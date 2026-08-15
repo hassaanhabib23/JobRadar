@@ -1,0 +1,706 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "JobRadar API",
+        "version": "1.0.0",
+        "description": "Job aggregation, per-user scoring and application tracking."
+    },
+    "paths": {
+        "/api/auth/login/": {
+            "post": {
+                "operationId": "authLogin",
+                "description": "Returns an access token in the body and a refresh token in an httpOnly cookie.",
+                "tags": [
+                    "auth"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TokenObtainPair"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/auth/logout/": {
+            "post": {
+                "operationId": "authLogout",
+                "description": "Blacklist the refresh token and clear the cookie.",
+                "tags": [
+                    "auth"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/auth/me/": {
+            "get": {
+                "operationId": "authMe",
+                "tags": [
+                    "auth"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "authMeUpdate",
+                "description": "Marks onboarding complete. No other field is writable here.",
+                "tags": [
+                    "auth"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedUser"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/auth/password/": {
+            "post": {
+                "operationId": "authPasswordChange",
+                "tags": [
+                    "auth"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PasswordChange"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/auth/refresh/": {
+            "post": {
+                "operationId": "authRefresh",
+                "description": "Mint a new access token from the refresh cookie.\n\nThe token is read from the cookie, falling back to the body so the endpoint\nis still usable from a non-browser client.",
+                "tags": [
+                    "auth"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RefreshRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/auth/register/": {
+            "post": {
+                "operationId": "authRegister",
+                "description": "Create the account, its profile, and hand back tokens.\n\nRegistration returns tokens so the user lands straight in the app rather than\nbeing bounced to a login form they just filled in.",
+                "tags": [
+                    "auth"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Register"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {}
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/User"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/health/": {
+            "get": {
+                "operationId": "health",
+                "description": "Service health: database connectivity and last successful run age.",
+                "tags": [
+                    "health"
+                ],
+                "security": [
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "503": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/locations/": {
+            "get": {
+                "operationId": "locationsList",
+                "description": "The cities offered in the onboarding picker.\n\nOpen to anonymous callers — the register screen needs it before there is a\ntoken to send.",
+                "tags": [
+                    "locations"
+                ],
+                "security": [
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Location"
+                                    }
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/profile/": {
+            "get": {
+                "operationId": "profileRetrieve",
+                "description": "The CURRENT USER's profile — never one identified by a client-supplied id.",
+                "tags": [
+                    "profile"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Profile"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "profileUpdate",
+                "description": "The CURRENT USER's profile — never one identified by a client-supplied id.",
+                "tags": [
+                    "profile"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Profile"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Profile"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "profilePartialUpdate",
+                "description": "The CURRENT USER's profile — never one identified by a client-supplied id.",
+                "tags": [
+                    "profile"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedProfile"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Profile"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/profile/preview/": {
+            "post": {
+                "operationId": "profilePreview",
+                "description": "Score a hypothetical posting against the caller's own profile.\n\nTuning weights blind is miserable; this is what makes it interactive.",
+                "tags": [
+                    "profile"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ScorePreviewRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ScorePreviewResponse"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Location": {
+                "type": "object",
+                "description": "A selectable city for the onboarding picker.",
+                "properties": {
+                    "key": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "aliases": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "aliases",
+                    "key",
+                    "label"
+                ]
+            },
+            "PasswordChange": {
+                "type": "object",
+                "properties": {
+                    "oldPassword": {
+                        "type": "string",
+                        "writeOnly": true
+                    },
+                    "newPassword": {
+                        "type": "string",
+                        "writeOnly": true
+                    }
+                },
+                "required": [
+                    "newPassword",
+                    "oldPassword"
+                ]
+            },
+            "PatchedProfile": {
+                "type": "object",
+                "description": "The requesting user's own profile. `user` is never client-supplied.",
+                "properties": {
+                    "skills": {
+                        "description": "keyword → weight"
+                    },
+                    "levelBonus": {
+                        "description": "title term → multiplier"
+                    },
+                    "levelPenalty": {
+                        "description": "title term → multiplier"
+                    },
+                    "titleBlocklist": {},
+                    "locationsAllowed": {},
+                    "locationsPreferred": {},
+                    "locationsSecondary": {},
+                    "stackSaturation": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "freshness": {},
+                    "roleKeywords": {},
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                }
+            },
+            "PatchedUser": {
+                "type": "object",
+                "description": "The current user. Never exposes another user's row.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "readOnly": true,
+                        "title": "Email address"
+                    },
+                    "onboardingComplete": {
+                        "type": "boolean",
+                        "readOnly": true
+                    },
+                    "dateJoined": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                }
+            },
+            "Profile": {
+                "type": "object",
+                "description": "The requesting user's own profile. `user` is never client-supplied.",
+                "properties": {
+                    "skills": {
+                        "description": "keyword → weight"
+                    },
+                    "levelBonus": {
+                        "description": "title term → multiplier"
+                    },
+                    "levelPenalty": {
+                        "description": "title term → multiplier"
+                    },
+                    "titleBlocklist": {},
+                    "locationsAllowed": {},
+                    "locationsPreferred": {},
+                    "locationsSecondary": {},
+                    "stackSaturation": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "freshness": {},
+                    "roleKeywords": {},
+                    "updatedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "updatedAt"
+                ]
+            },
+            "RefreshRequest": {
+                "type": "object",
+                "description": "The refresh endpoint normally reads the httpOnly cookie.\n\nThe body field exists only so non-browser clients have a way in, and so the\nschema describes something concrete.",
+                "properties": {
+                    "refresh": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Register": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "password": {
+                        "type": "string",
+                        "writeOnly": true
+                    },
+                    "locations": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Catalogue keys from GET /api/locations/. Defaults to Islamabad + Rawalpindi."
+                    },
+                    "roleKeywords": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "description": "Onboarding role chips that pre-weight the matching skills."
+                    }
+                },
+                "required": [
+                    "email",
+                    "password"
+                ]
+            },
+            "ScorePreviewRequest": {
+                "type": "object",
+                "description": "A hypothetical posting, for tuning weights interactively.",
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "default": ""
+                    },
+                    "description": {
+                        "type": "string",
+                        "default": ""
+                    },
+                    "location": {
+                        "type": "string",
+                        "default": ""
+                    },
+                    "company": {
+                        "type": "string",
+                        "default": "Preview"
+                    }
+                }
+            },
+            "ScorePreviewResponse": {
+                "type": "object",
+                "properties": {
+                    "score": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "tier": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "detail": {
+                        "type": "object",
+                        "additionalProperties": {},
+                        "nullable": true
+                    },
+                    "flags": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "filtered": {
+                        "type": "boolean"
+                    },
+                    "filteredReason": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "required": [
+                    "detail",
+                    "filtered",
+                    "filteredReason",
+                    "flags",
+                    "score",
+                    "tier"
+                ]
+            },
+            "TokenObtainPair": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "writeOnly": true
+                    },
+                    "password": {
+                        "type": "string",
+                        "writeOnly": true
+                    },
+                    "access": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "refresh": {
+                        "type": "string",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "access",
+                    "email",
+                    "password",
+                    "refresh"
+                ]
+            },
+            "User": {
+                "type": "object",
+                "description": "The current user. Never exposes another user's row.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "readOnly": true,
+                        "title": "Email address"
+                    },
+                    "onboardingComplete": {
+                        "type": "boolean",
+                        "readOnly": true
+                    },
+                    "dateJoined": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "dateJoined",
+                    "email",
+                    "id",
+                    "onboardingComplete"
+                ]
+            }
+        },
+        "securitySchemes": {
+            "jwtAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        }
+    }
+}

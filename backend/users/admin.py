@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.utils.translation import gettext_lazy as _
 
-from users.models import User
+from users.models import Profile, User
 
 
 @admin.register(User)
@@ -41,3 +41,11 @@ class UserAdmin(DjangoUserAdmin):
             },
         ),
     )
+
+
+@admin.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ("user", "locations_preferred", "role_keywords", "updated_at")
+    search_fields = ("user__email",)
+    autocomplete_fields = ("user",)
+    readonly_fields = ("created_at", "updated_at")

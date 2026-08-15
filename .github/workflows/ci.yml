@@ -64,6 +64,16 @@ jobs:
       - name: Missing migrations
         run: python manage.py makemigrations --check --dry-run
 
+      - name: OpenAPI contract is in sync
+        # The frontend generates its types from the committed contract. If the
+        # code and the contract drift apart, the types describe an API that no
+        # longer exists — a whole class of confusing bugs, caught here instead.
+        run: |
+          python manage.py spectacular --format openapi-json --validate --fail-on-warn \
+            > /tmp/schema.json
+          diff -u ../contracts/jobradar-v1.json /tmp/schema.json \
+            || { echo "::error::contracts/jobradar-v1.json is stale — run 'make gen-schema'"; exit 1; }
+
       - name: Tests
         run: pytest --cov --cov-report=term-missing
 

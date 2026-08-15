@@ -98,6 +98,39 @@ DEFAULT_LOCATIONS: tuple[str, ...] = ("islamabad", "rawalpindi")
 DEFAULT_SECONDARY_LOCATIONS: tuple[str, ...] = ("pakistan",)
 
 
+#: Onboarding role chips. A blank weight table is a screen nobody fills in, so
+#: picking a chip pre-weights the skills that go with it instead.
+ROLE_PRESETS: dict[str, tuple[str, ...]] = {
+    "dotnet": ("asp.net core", "asp.net", ".net", "dotnet", "c#", "entity framework", "blazor"),
+    "react": ("react", "typescript", "javascript", "frontend"),
+    "angular": ("angular", "typescript", "javascript", "frontend"),
+    "python": ("python", "django", "backend"),
+    "qa": ("rest api", "postman", "ci/cd"),
+    "devops": ("docker", "ci/cd", "azure devops", "azure"),
+    "ai_ml": ("llm", "rag", "generative ai", "openai", "langchain", "agentic", "machine learning"),
+}
+
+#: How much picking a chip raises the weights it covers.
+ROLE_PRESET_BOOST = 1.5
+
+
+def apply_role_keywords(
+    skills: dict[str, float], role_keywords: tuple[str, ...]
+) -> dict[str, float]:
+    """Raise the weights a user's chosen role chips cover.
+
+    Pure, so it is testable without a database and reusable when a user changes
+    their chips later. Unknown keywords are ignored rather than raising — the
+    chip list is presentation data and should never be able to break a signup.
+    """
+    boosted = dict(skills)
+    for keyword in role_keywords:
+        for skill in ROLE_PRESETS.get(keyword.lower().strip(), ()):
+            if skill in boosted:
+                boosted[skill] = round(boosted[skill] * ROLE_PRESET_BOOST, 2)
+    return boosted
+
+
 def default_profile(locations: tuple[str, ...] = DEFAULT_LOCATIONS) -> Profile:
     """A working profile for a user who has just chosen their cities."""
     chosen = tuple(locations) or DEFAULT_LOCATIONS
