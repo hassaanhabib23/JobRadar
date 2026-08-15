@@ -26,6 +26,76 @@ export interface MockState {
   validTokens: Set<string>
   refreshCount: number
   runsTriggered: number
+  /** The query string of the most recent job list request. */
+  lastJobQuery: string
+  bulkUpdates: { ids: number[]; status: string }[]
+  jobs: MockJob[]
+}
+
+export interface MockJob {
+  id: number
+  key: string
+  source: string
+  company: string
+  title: string
+  location: string
+  url: string
+  description: string
+  postedAt: string | null
+  firstSeen: string
+  lastSeen: string
+  closedAt: string | null
+  seenCount: number
+  score: number
+  tier: string
+  status: string
+  notes: string
+  pinned: boolean
+  isNew: boolean
+  flags: string[]
+  detail: Record<string, unknown> | null
+  alsoSeenOn: string[]
+  dateFrom: string
+  trackingDays: number
+}
+
+function job(overrides: Partial<MockJob> = {}): MockJob {
+  return {
+    id: 1,
+    key: 'greenhouse:careem:1',
+    source: 'greenhouse',
+    company: 'Careem',
+    title: 'Associate Software Engineer',
+    location: 'Islamabad, Pakistan',
+    url: 'https://example.com/job/1',
+    description: 'Build things with ASP.NET Core.',
+    postedAt: '2026-08-14',
+    firstSeen: '2026-08-16T04:00:00Z',
+    lastSeen: '2026-08-16T04:00:00Z',
+    closedAt: null,
+    seenCount: 3,
+    score: 87,
+    tier: 'High',
+    status: 'not_started',
+    notes: '',
+    pinned: false,
+    isNew: true,
+    flags: [],
+    detail: {
+      stack: 28.4,
+      level: 23.8,
+      location: 20,
+      fresh: 15,
+      skillsHit: ['asp.net core', 'asp.net', 'c#', 'azure'],
+      notes: ['matched 4 skills', 'entry-level signal: associate', 'preferred location'],
+      ageDays: 2,
+      ageInferred: false,
+    },
+    alsoSeenOn: [],
+    dateFrom: '',
+    trackingDays: 0,
+    ...overrides,
+  }
 }
 
 export const state: MockState = createState()
@@ -42,6 +112,33 @@ function createState(): MockState {
     validTokens: new Set<string>(),
     refreshCount: 0,
     runsTriggered: 0,
+    lastJobQuery: '',
+    bulkUpdates: [],
+    jobs: [
+      job(),
+      job({
+        id: 2,
+        key: 'greenhouse:careem:2',
+        title: 'Junior React Developer',
+        company: 'Arbisoft',
+        score: 61,
+        tier: 'Medium',
+        isNew: false,
+        flags: ['ghost?'],
+        alsoSeenOn: ['jobspy'],
+        trackingDays: 30,
+        detail: {
+          stack: 18,
+          level: 25,
+          location: 13,
+          fresh: 1,
+          skillsHit: ['react', 'typescript'],
+          notes: ['matched 2 skills', 'listed 30d without closing'],
+          ageDays: 30,
+          ageInferred: true,
+        },
+      }),
+    ],
   }
 }
 
@@ -145,6 +242,100 @@ export const handlers = [
     state.runsTriggered += 1
     return HttpResponse.json({ taskId: 'task-1', runId: state.runsTriggered }, { status: 202 })
   }),
+
+  http.get(`${API}/jobs/statuses/`, () =>
+    HttpResponse.json([
+      { value: 'not_started', label: 'Not started' },
+      { value: 'researching', label: 'Researching' },
+      { value: 'applied', label: 'Applied' },
+      { value: 'interviewing', label: 'Interviewing' },
+      { value: 'rejected', label: 'Rejected' },
+      { value: 'skipped', label: 'Skipped' },
+    ]),
+  ),
+
+  http.get(`${API}/jobs/`, ({ request }) => {
+    if (!authed(request)) return unauthorized()
+    const url = new URL(request.url)
+    state.lastJobQuery = url.search
+    return HttpResponse.json({
+      count: state.jobs.length,
+      next: null,
+      previous: null,
+      results: state.jobs,
+    })
+  }),
+
+  http.get(`${API}/jobs/:id/`, ({ request, params }) => {
+    if (!authed(request)) return unauthorized()
+    const found = state.jobs.find((entry) => entry.id === Number(params.id))
+    return found ? HttpResponse.json(found) : HttpResponse.json({}, { status: 404 })
+  }),
+
+  http.patch(`${API}/jobs/:id/`, async ({ request, params }) => {
+    if (!authed(request)) return unauthorized()
+    const patch = (await request.json()) as Partial<MockJob>
+    const found = state.jobs.find((entry) => entry.id === Number(params.id))
+    if (!found) return HttpResponse.json({}, { status: 404 })
+    Object.assign(found, patch)
+    return HttpResponse.json(found)
+  }),
+
+  http.post(`${API}/jobs/bulk_status/`, async ({ request }) => {
+    if (!authed(request)) return unauthorized()
+    const body = (await request.json()) as { ids: number[]; status: string }
+    state.bulkUpdates.push(body)
+    state.jobs.forEach((entry) => {
+      if (body.ids.includes(entry.id)) entry.status = body.status
+    })
+    return HttpResponse.json({ updated: body.ids.length })
+  }),
+
+  http.get(`${API}/runs/`, ({ request }) =>
+    authed(request)
+      ? HttpResponse.json({ count: 0, next: null, previous: null, results: [] })
+      : unauthorized(),
+  ),
+
+  http.get(`${API}/profile/`, ({ request }) =>
+    authed(request)
+      ? HttpResponse.json({
+          skills: { 'asp.net core': 10, react: 6 },
+          levelBonus: {},
+          levelPenalty: {},
+          titleBlocklist: ['recruiter'],
+          locationsAllowed: ['islamabad'],
+          locationsPreferred: ['islamabad'],
+          locationsSecondary: ['pakistan'],
+          stackSaturation: 45,
+          freshness: { maxAgeDays: 60 },
+          roleKeywords: ['dotnet'],
+          updatedAt: '2026-08-16T04:00:00Z',
+        })
+      : unauthorized(),
+  ),
+
+  http.post(`${API}/profile/preview/`, ({ request }) =>
+    authed(request)
+      ? HttpResponse.json({
+          score: 72,
+          tier: 'Medium',
+          detail: {
+            stack: 24,
+            level: 20,
+            location: 20,
+            fresh: 8,
+            skillsHit: ['react'],
+            notes: ['matched 1 skill'],
+            ageDays: null,
+            ageInferred: false,
+          },
+          flags: [],
+          filtered: false,
+          filteredReason: null,
+        })
+      : unauthorized(),
+  ),
 
   http.get(`${API}/stats/`, ({ request }) =>
     authed(request)

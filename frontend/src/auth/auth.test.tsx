@@ -52,20 +52,21 @@ describe('routing', () => {
 
     renderWithProviders(<App />, { route: '/login' })
 
-    expect(await screen.findByRole('heading', { name: /dashboard/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /^jobs$/i })).toBeInTheDocument()
   })
 
   it('returns the visitor to where they were heading after signing in', async () => {
     // The whole point of remembering the destination: a link to a specific job
     // must not become "the dashboard".
-    renderWithProviders(<App />, { route: '/app/jobs/5' })
+    renderWithProviders(<App />, { route: '/app/jobs/1' })
 
     await screen.findByRole('heading', { name: /sign in/i })
     await signIn()
 
-    // The placeholder dashboard serves every /app route in this milestone;
-    // arriving there at all proves the redirect used the remembered path.
-    expect(await screen.findByRole('heading', { name: /dashboard/i })).toBeInTheDocument()
+    // The job detail page, not the dashboard.
+    expect(
+      await screen.findByRole('heading', { name: /associate software engineer/i }),
+    ).toBeInTheDocument()
   })
 })
 
@@ -78,7 +79,7 @@ describe('session restoration', () => {
     // On a page reload there is no access token yet. Deciding before the
     // refresh answers would log every returning user out.
     expect(await screen.findByRole('status')).toHaveTextContent(/restoring your session/i)
-    expect(await screen.findByRole('heading', { name: /dashboard/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /^jobs$/i })).toBeInTheDocument()
   })
 
   it('restores a session from the refresh cookie alone', async () => {
@@ -86,7 +87,7 @@ describe('session restoration', () => {
 
     renderWithProviders(<App />, { route: '/app' })
 
-    await screen.findByRole('heading', { name: /dashboard/i })
+    await screen.findByRole('heading', { name: /^jobs$/i })
     expect(state.refreshCount).toBeGreaterThan(0)
     expect(getAccessToken()).toBeTruthy()
   })
@@ -115,7 +116,7 @@ describe('signing in', () => {
     await screen.findByRole('heading', { name: /sign in/i })
 
     await signIn()
-    await screen.findByRole('heading', { name: /dashboard/i })
+    await screen.findByRole('heading', { name: /^jobs$/i })
 
     // Anything an injected script can read, it can exfiltrate.
     expect(window.localStorage.length).toBe(0)
@@ -140,7 +141,7 @@ describe('signing out', () => {
   it('clears the session and returns to the landing page', async () => {
     state.refreshValid = true
     renderWithProviders(<App />, { route: '/app' })
-    await screen.findByRole('heading', { name: /dashboard/i })
+    await screen.findByRole('heading', { name: /^jobs$/i })
 
     const user = userEvent.setup()
     await user.click(screen.getByRole('button', { name: /sign out/i }))

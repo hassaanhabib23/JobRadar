@@ -19,6 +19,9 @@ import Register from './routes/Register'
 const Landing = lazy(() => import('./routes/Landing'))
 const Welcome = lazy(() => import('./routes/Welcome'))
 const Dashboard = lazy(() => import('./routes/Dashboard'))
+const JobDetail = lazy(() => import('./routes/JobDetail'))
+const ProfilePage = lazy(() => import('./routes/ProfilePage'))
+const Runs = lazy(() => import('./routes/Runs'))
 
 function RouteFallback() {
   return (
@@ -50,9 +53,9 @@ export default function App() {
 
           <Route element={<RequireOnboarding />}>
             <Route path="/app" element={<Dashboard />} />
-            <Route path="/app/jobs/:id" element={<Dashboard />} />
-            <Route path="/app/profile" element={<Dashboard />} />
-            <Route path="/app/runs" element={<Dashboard />} />
+            <Route path="/app/jobs/:id" element={<JobDetail />} />
+            <Route path="/app/profile" element={<ProfilePage />} />
+            <Route path="/app/runs" element={<Runs />} />
           </Route>
         </Route>
 

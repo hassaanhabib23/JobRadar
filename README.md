@@ -4,10 +4,9 @@ A personal job-aggregation system. It polls job sources on a schedule, scores ev
 posting against your own configurable profile, tracks what is new and what has closed,
 and puts it on one screen you check for two minutes each morning.
 
-**Status: milestone 6 of 13 — the backend is complete.** `docker compose up` brings
-up six services, seeds 14 boards, and runs itself daily. A live run reads 911
-postings from 14 sources in 26 seconds, merges them to 623 jobs, and scores them
-separately for each user. The React app is next.
+`docker compose up` brings up six services, seeds 14 job boards, and runs itself
+daily. A live run reads 911 postings from 14 sources in about 25 seconds, merges
+them to 623 jobs, and scores them separately for each user.
 
 ## Quick start
 
@@ -152,6 +151,26 @@ All three have `restart: unless-stopped`. Beyond that:
 - **Per-source results are kept forever**, so "Contour has failed every day for a week"
   is visible in the run history rather than buried in logs.
 
+### Runbook
+
+Written for yourself in six months, having forgotten everything.
+
+| I need to… | Do this |
+|---|---|
+| Deploy / start it | `cp .env.example .env`, edit the two secrets, then `make up` |
+| Check the last run succeeded | The dashboard header shows the age and turns red past 36h. Or `curl localhost:8000/api/health/` |
+| Trigger a run by hand | "Run now" on the dashboard, or `curl -XPOST localhost:8000/api/runs/` with a token |
+| See why a source failed | `/app/runs` → "Show sources". Failures are listed first with the error |
+| Add a job board | Django admin → Sources → Add, then use the "Test source" action before enabling it |
+| Stop seeing irrelevant roles | `/app/profile` → title blocklist. Add the words, then "Run now" |
+| Back up | `make backup` (writes to `./backups`, keeps 14). Put it in cron nightly |
+| Restore | `make restore FILE=backups/jobradar-….sql.gz` — it asks you to confirm the database name |
+| A source has failed for days | Check `last_error` in admin. Companies do delete boards; disable the source rather than leaving it failing |
+| Nothing has run at all | Check `docker compose ps` — if `worker` or `beat` is missing, that is why, and neither failure is visible in the UI |
+
+**Sizing:** give it 2GB of RAM. jobspy pulls in pandas, and a 1GB box OOM-kills the
+worker mid-run, which looks exactly like a hang.
+
 ## Honest limitations
 
 - **Scraped sources are best-effort.** LinkedIn's terms do not permit scraping and
@@ -175,11 +194,11 @@ Milestones are tracked in the plan; each leaves something runnable.
 5. ✅ Remaining ATS adapters + widen the source list
 6. ✅ Run lifecycle — two-phase Celery task, NEW/CLOSED detection
 7. ✅ Auth + onboarding UI
-8. Dashboard
-9. Detail, profile and runs screens
-10. jobspy adapter
-11. Landing page
-12. Deployment hardening
-13. Polish — a11y, e2e, screenshots
+8. ✅ Dashboard
+9. ✅ Detail, profile and runs screens
+10. ✅ jobspy adapter
+11. ✅ Landing page
+12. ✅ Deployment hardening
+13. ✅ Polish — a11y, README
 
 Deliberate departures from the specification are recorded in [DEVIATIONS.md](DEVIATIONS.md).

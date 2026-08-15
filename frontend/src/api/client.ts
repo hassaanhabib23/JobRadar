@@ -52,8 +52,19 @@ export class ApiError extends Error {
 let accessToken: string | null = null
 let onUnauthenticated: (() => void) | null = null
 
+/**
+ * Bumped every time the token changes.
+ *
+ * A request sent with the old token can land *after* someone else has already
+ * refreshed. Comparing generations tells those requests to simply retry rather
+ * than start a second refresh — which would rotate the token again and
+ * invalidate the one everybody else just started using.
+ */
+let tokenGeneration = 0
+
 export function setAccessToken(token: string | null): void {
   accessToken = token
+  tokenGeneration += 1
 }
 
 export function getAccessToken(): string | null {
@@ -137,10 +148,14 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     return fetch(`${base}${path}`, init)
   }
 
+  const generationAtSend = tokenGeneration
   let response = await send()
 
   if (response.status === 401 && !anonymous) {
-    const refreshed = await refreshAccessToken()
+    // Someone else refreshed while this request was in flight: retry with the
+    // token that already exists instead of rotating it again.
+    const refreshed = tokenGeneration !== generationAtSend ? true : await refreshAccessToken()
+
     if (refreshed) {
       response = await send()
     } else {
@@ -183,4 +198,5 @@ export function resetClientState(): void {
   accessToken = null
   refreshInFlight = null
   onUnauthenticated = null
+  tokenGeneration = 0
 }

@@ -72,4 +72,21 @@ SHARED_SOURCES: list[dict[str, Any]] = [
     {"kind": "lever", "slug": "kwanso", "company": "Kwanso", "label": "Kwanso"},
     {"kind": "lever", "slug": "educative", "company": "Educative", "label": "Educative"},
     {"kind": "smartrecruiters", "slug": "devsinc", "company": "Devsinc", "label": "Devsinc"},
+    # --- Scraped, best-effort -------------------------------------------
+    # The ATS feeds above are the reliable backbone. Most local employers post
+    # to Indeed or Bayt instead, which is the gap this closes — at the cost of
+    # being blockable. Its cities come from user demand at run time, not from
+    # here, so this row is a template rather than a specific search.
+    {
+        "kind": "jobspy",
+        "label": "Job boards",
+        "company": "",
+        "config": {
+            # Indeed and Bayt are considerably more tolerant than LinkedIn.
+            "sites": ["indeed", "bayt", "google"],
+            "query": "software engineer",
+            "country": "pakistan",
+            "limit": 40,
+        },
+    },
 ]

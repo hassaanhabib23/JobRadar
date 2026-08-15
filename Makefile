@@ -2,7 +2,7 @@ COMPOSE     := docker compose
 COMPOSE_DEV := docker compose -f docker-compose.yml -f docker-compose.dev.yml
 
 .DEFAULT_GOAL := help
-.PHONY: help up dev down clean logs shell psql migrate migrations \
+.PHONY: help up dev down clean logs shell psql migrate migrations backup restore prod seed \
         test test-backend test-frontend lint lint-backend lint-frontend \
         format gen-schema build
 
@@ -17,6 +17,18 @@ dev:  ## Start the stack with hot reload and exposed ports
 
 down:  ## Stop the stack, keeping data
 	$(COMPOSE) down
+
+backup:  ## Dump the database to ./backups (keeps the last 14)
+	./scripts/backup.sh
+
+restore:  ## Restore from a backup: make restore FILE=backups/jobradar-....sql.gz
+	./scripts/restore.sh $(FILE)
+
+prod:  ## Start the stack with production settings
+	DJANGO_SETTINGS_MODULE=config.settings.prod DJANGO_DEBUG=0 JWT_COOKIE_SECURE=1 	  $(COMPOSE) up -d --build
+
+seed:  ## Seed shared sources, a superuser and two demo users
+	$(COMPOSE) exec web python manage.py seed
 
 clean:  ## Stop the stack and DESTROY all data (postgres + redis volumes)
 	$(COMPOSE) down -v

@@ -497,20 +497,13 @@ class TestWorkday:
 
 
 class TestEveryAdapterIsRegistered:
-    def test_all_nine_kinds_have_an_adapter(self) -> None:
+    def test_every_kind_has_an_adapter(self) -> None:
+        from jobs.models import SourceKind
         from sources import ADAPTERS
 
-        assert set(ADAPTERS) == {
-            "greenhouse",
-            "lever",
-            "workable",
-            "breezy",
-            "ashby",
-            "smartrecruiters",
-            "recruitee",
-            "workday",
-            "rss",
-        }
+        # Every kind the database can store must be fetchable. A kind with no
+        # adapter is a source that fails silently on every single run.
+        assert set(ADAPTERS) == {kind.value for kind in SourceKind}
 
     def test_glassdoor_is_not_offered(self) -> None:
         """It does not serve Pakistan at all — the data does not exist."""

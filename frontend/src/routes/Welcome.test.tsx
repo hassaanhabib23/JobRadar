@@ -86,7 +86,7 @@ describe('onboarding', () => {
     await user.click(await screen.findByRole('button', { name: /continue/i }))
     await user.click(await screen.findByRole('button', { name: /go to my dashboard/i }))
 
-    expect(await screen.findByRole('heading', { name: /dashboard/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /^jobs$/i })).toBeInTheDocument()
     expect(state.user.onboardingComplete).toBe(true)
   })
 
@@ -95,7 +95,7 @@ describe('onboarding', () => {
 
     await user.click(await screen.findByRole('button', { name: /skip for now/i }))
 
-    expect(await screen.findByRole('heading', { name: /dashboard/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /^jobs$/i })).toBeInTheDocument()
     expect(state.user.onboardingComplete).toBe(true)
   })
 
