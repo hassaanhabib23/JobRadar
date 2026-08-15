@@ -131,7 +131,26 @@ either the result or the rejection reason, which is what the run logs and the
 "why is this job missing?" question need. No duplicated logic — `score_job` is a
 one-line wrapper.
 
-## 10. `python-jobspy` is an optional dependency until milestone 10
+## 10. Greenhouse is fetched with `content=true`, not `content=false`
+
+**Spec (§3):** `GET .../boards/{slug}/jobs?content=false`.
+
+**Problem:** measured live against Careem's board, `content=false` returns 24
+jobs in 38 KB with **zero** descriptions. The stack component is 40 of the 100
+available points and is scored over "title + location + description" (§4). With
+no description it has only the title, and in a real end-to-end run 23 of 24
+postings scored `stack: 0` and landed in Stretch.
+
+`content=true` returns the same 24 jobs, in the same **single** request, at
+216 KB — with all 24 descriptions. Re-running the same two users afterwards moved
+the top result from 36 to 51 and 47, with `c#`, `docker` and `backend` actually
+matching.
+
+**Resolution:** descriptions are fetched by default. Any source can opt out with
+`{"content": false}` in its config if a particular board is unusually large. One
+request per board either way, so NFR12 is unaffected.
+
+## 11. `python-jobspy` is an optional dependency until milestone 10
 
 Not a spec disagreement — a build-time one. jobspy pulls in pandas, which is slow
 to install and heavy at runtime. It is declared as the `scrape` extra in

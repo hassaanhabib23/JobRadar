@@ -21,6 +21,7 @@ dependencies = [
     "django-filter>=24.3",
     "drf-spectacular>=0.27",
     "psycopg[binary]>=3.2",
+    "requests>=2.32",
     "celery>=5.4",
     "redis>=5.0",
     "django-celery-beat>=2.7",
@@ -43,6 +44,7 @@ dev = [
     "mypy>=1.13",
     "django-stubs[compatible-mypy]>=5.1",
     "djangorestframework-stubs>=3.15",
+    "types-requests>=2.32",
 ]
 
 [tool.ruff]
@@ -72,7 +74,14 @@ disallow_untyped_defs = false
 exclude = ["migrations/"]
 
 [[tool.mypy.overrides]]
-module = ["celery.*", "django_celery_beat.*", "jobspy.*"]
+module = [
+    "celery.*",
+    "django_celery_beat.*",
+    "jobspy.*",
+    # django-filter ships no stubs; django-stubs' bundled ones cover only part
+    # of the rest_framework integration.
+    "django_filters.*",
+]
 ignore_missing_imports = true
 
 [tool.django-stubs]

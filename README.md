@@ -4,9 +4,9 @@ A personal job-aggregation system. It polls job sources on a schedule, scores ev
 posting against your own configurable profile, tracks what is new and what has closed,
 and puts it on one screen you check for two minutes each morning.
 
-**Status: milestone 3 of 13.** The stack boots, scoring is complete, and users can
-register, sign in and tune their own profile. Adapters, the run lifecycle and the
-dashboard follow.
+**Status: milestone 4 of 13.** The whole vertical slice works: it fetches Careem's
+real Greenhouse board once, stores one row per posting, and scores it separately for
+each user. Eight more adapters, the run lifecycle and the dashboard follow.
 
 ## Quick start
 
@@ -145,7 +145,7 @@ Milestones are tracked in the plan; each leaves something runnable.
 1. ✅ Skeleton — compose, custom user model, health check, CI
 2. ✅ Scoring core (pure, no Django)
 3. ✅ Auth + per-user profile
-4. First vertical slice — Greenhouse end to end
+4. ✅ First vertical slice — Greenhouse end to end
 5. Remaining ATS adapters + widen the source list
 6. Run lifecycle — two-phase Celery task, NEW/CLOSED detection
 7. Auth + onboarding UI
