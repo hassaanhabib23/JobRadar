@@ -35,6 +35,11 @@ services:
   web:
     build:
       context: ./backend
+    # One image for all three backend processes. Building it three times under
+    # three names wastes disk and lets them drift: rebuilding `web` alone leaves
+    # the worker running last week's code, which is invisible until a task fails
+    # for a reason that makes no sense.
+    image: jobradar-backend
     restart: unless-stopped
     command: >
       sh -c "python manage.py migrate --noinput &&
@@ -70,8 +75,7 @@ services:
   # common way this silently stops working: the API keeps serving yesterday's
   # data while nothing is fetching or scheduling.
   worker:
-    build:
-      context: ./backend
+    image: jobradar-backend
     restart: unless-stopped
     command: celery -A config worker --loglevel=info --concurrency=4
     environment: *backend-env
@@ -88,8 +92,7 @@ services:
       start_period: 30s
 
   beat:
-    build:
-      context: ./backend
+    image: jobradar-backend
     restart: unless-stopped
     # Fires the daily schedule. If this dies, nothing ever starts — and you
     # would not notice, which is why the dashboard shows the last-run age.

@@ -197,7 +197,34 @@ corruption the rule exists to prevent. A test caught this immediately.
 threaded through `RawPosting` from the run. Closures are scoped to the set of
 feeds that actually succeeded.
 
-## 14. `python-jobspy` is an optional dependency until milestone 10
+## 14. The job table renders one layout, not two hidden behind CSS
+
+**Spec (§9):** "Table collapses to cards under 900px."
+
+**Problem:** the obvious implementation renders both and hides one with a CSS
+media query. Both stay in the DOM, so every element id exists twice and every
+control is announced twice to a screen reader — in a suite that checks for
+exactly that, it showed up immediately as "found multiple elements".
+
+**Resolution:** a `useMediaQuery` hook picks one layout. Same behaviour, half
+the DOM, and no duplicated ids.
+
+## 15. A retry replaces a second refresh when the token already rotated
+
+**Spec (§9):** "Handle 401 by attempting one silent refresh before giving up."
+
+**Problem:** a dashboard fires several requests at once. If one 401s and
+refreshes while another is still in flight, the second request's 401 arrives
+*after* the token has already been replaced — and refreshing again rotates it a
+second time, invalidating the token every other request just started using. The
+user is logged out at the exact moment everything was fine.
+
+**Resolution:** the client tracks a token generation. A request that 401s after
+the generation changed simply retries with the current token instead of starting
+another refresh. A test fires three concurrent requests and asserts exactly one
+refresh happens.
+
+## 16. `python-jobspy` and the `scrape` extra
 
 Not a spec disagreement — a build-time one. jobspy pulls in pandas, which is slow
 to install and heavy at runtime. It is declared as the `scrape` extra in

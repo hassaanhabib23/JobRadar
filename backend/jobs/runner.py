@@ -58,6 +58,57 @@ class FetchOutcome:
         return not self.error
 
 
+def expand_location_sources(sources: list[Source]) -> list[Source]:
+    """Turn each jobspy source into one source per city users actually want.
+
+    ATS feeds are company-based: one fetch serves every user, and each user's
+    filter picks their subset. Scraped sources are location-based, so the scrape
+    list has to come from **demand** — the distinct union of cities across all
+    active users' profiles.
+
+    Ten users wanting Islamabad produce one Islamabad scrape; a new user in
+    Lahore adds exactly one more; a city nobody selected is never scraped.
+    """
+    from sources.jobspy_adapter import scrape_locations_for_users
+    from users.models import Profile
+
+    scrape_sources = [source for source in sources if source.kind == "jobspy"]
+    if not scrape_sources:
+        return sources
+
+    profiles = list(Profile.objects.filter(user__is_active=True))
+    cities = scrape_locations_for_users(profiles)
+
+    expanded = [source for source in sources if source.kind != "jobspy"]
+    seen: set[tuple[str, str]] = set()
+
+    for source in scrape_sources:
+        for city in cities:
+            query = str((source.config or {}).get("query") or "software engineer")
+            key = (query.lower(), city.lower())
+            # Never the same city twice in one run, even if two jobspy sources
+            # ask the same question.
+            if key in seen:
+                continue
+            seen.add(key)
+
+            # An unsaved clone: it exists only for this run's fetch loop.
+            clone = Source(
+                id=source.id,
+                kind=source.kind,
+                slug=source.slug,
+                company=source.company,
+                label=f"{source.label or 'jobspy'} — {city}",
+                location_hint=city,
+                config=source.config,
+                enabled=True,
+                owner_id=source.owner_id,
+            )
+            expanded.append(clone)
+
+    return expanded
+
+
 def enabled_sources() -> list[Source]:
     """Every enabled source, deduplicated by feed identity.
 
@@ -151,8 +202,8 @@ def _record_source_results(run: Run, outcomes: list[FetchOutcome]) -> None:
         [
             RunSource(
                 run=run,
-                source=outcome.source,
-                label=str(outcome.source),
+                source_id=outcome.source.pk,
+                label=outcome.source.label or str(outcome.source),
                 kind=outcome.source.kind,
                 ok=outcome.ok,
                 postings=len(outcome.postings),
@@ -162,14 +213,24 @@ def _record_source_results(run: Run, outcomes: list[FetchOutcome]) -> None:
             for outcome in outcomes
         ]
     )
+    # Location-expanded clones share their parent's id, so keep one row per id —
+    # bulk_update on duplicates would write the same row twice with whichever
+    # outcome happened to be last.
+    by_id: dict[int, Source] = {}
     for outcome in outcomes:
-        outcome.source.last_run_at = now
-        outcome.source.last_status = "ok" if outcome.ok else "error"
-        outcome.source.last_error = outcome.error
-    Source.objects.bulk_update(
-        [outcome.source for outcome in outcomes],
-        ["last_run_at", "last_status", "last_error"],
-    )
+        if outcome.source.pk is None:
+            continue
+        source = by_id.setdefault(outcome.source.pk, outcome.source)
+        source.last_run_at = now
+        # A single failing city must not mark the whole source healthy.
+        if not outcome.ok or source.last_status != "error":
+            source.last_status = "ok" if outcome.ok else "error"
+            source.last_error = outcome.error
+
+    if by_id:
+        Source.objects.bulk_update(
+            list(by_id.values()), ["last_run_at", "last_status", "last_error"]
+        )
 
 
 def execute_run(*, triggered_by: str = "schedule", today: date | None = None) -> Run:
@@ -182,7 +243,7 @@ def execute_run(*, triggered_by: str = "schedule", today: date | None = None) ->
     today = today or timezone.localdate()
 
     try:
-        sources = enabled_sources()
+        sources = expand_location_sources(enabled_sources())
         run.sources_total = len(sources)
 
         # --- Phase 1: fetch and store globally, once per feed ---------------

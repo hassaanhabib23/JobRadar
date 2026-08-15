@@ -13,8 +13,12 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Dependencies first so the layer caches across source edits.
+#
+# The `scrape` extra pulls in python-jobspy and therefore pandas, which is the
+# reason this image is not small. It also means the worker needs ~2GB: a 1GB box
+# OOM-kills it mid-run, which looks exactly like a hang.
 COPY pyproject.toml ./
-RUN pip install --no-cache-dir ".[dev]"
+RUN pip install --no-cache-dir ".[dev,scrape]"
 
 COPY . .
 

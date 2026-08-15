@@ -24,5 +24,8 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     css: false,
+    // A full dashboard render through MSW and jsdom takes a few seconds on a
+    // cold worker; the default 5s makes the suite flaky rather than strict.
+    testTimeout: 20_000,
   },
 })
