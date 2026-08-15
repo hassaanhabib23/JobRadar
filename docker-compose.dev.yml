@@ -1,0 +1,36 @@
+# Development override: hot reload and exposed ports.
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+# (or just `make dev`)
+
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  web:
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py runserver 0.0.0.0:8000"
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.dev
+      DJANGO_DEBUG: "1"
+    volumes:
+      - ./backend:/app
+      - ./contracts:/contracts
+
+  frontend:
+    build:
+      context: ./frontend
+      target: builder
+    command: sh -c "npm run dev -- --host 0.0.0.0 --port 5173"
+    environment:
+      VITE_API_PROXY_TARGET: http://web:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"

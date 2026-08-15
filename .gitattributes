@@ -1,0 +1,14 @@
+# Normalise to LF in the repository. Without this, a clone on Windows can give
+# docker-entrypoint.sh CRLF endings, and Alpine's sh then fails with a
+# "bad interpreter" error that is genuinely confusing to diagnose.
+* text=auto eol=lf
+
+*.sh   text eol=lf
+Makefile text eol=lf
+Dockerfile text eol=lf
+
+*.png  binary
+*.jpg  binary
+*.ico  binary
+*.woff binary
+*.woff2 binary

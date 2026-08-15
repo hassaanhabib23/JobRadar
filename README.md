@@ -1,1 +1,138 @@
 # JobRadar
+
+A personal job-aggregation system. It polls job sources on a schedule, scores every
+posting against your own configurable profile, tracks what is new and what has closed,
+and puts it on one screen you check for two minutes each morning.
+
+**Status: milestone 1 of 13 — skeleton.** The stack boots, the API answers, the
+frontend talks to it. Scoring, adapters, the run lifecycle and the dashboard follow.
+
+## Quick start
+
+```bash
+cp .env.example .env      # edit DJANGO_SECRET_KEY and POSTGRES_PASSWORD
+docker compose up --build
+```
+
+| URL | What |
+|---|---|
+| http://localhost:3000 | Frontend |
+| http://localhost:8000/api/health/ | Health check — database status and last-run age |
+| http://localhost:8000/api/docs/ | API documentation (Swagger UI) |
+| http://localhost:8000/admin/ | Django admin |
+
+For hot reload and exposed database/Redis ports:
+
+```bash
+make dev      # http://localhost:5173, /api proxied to the backend
+```
+
+## Common tasks
+
+```bash
+make help          # every target, described
+make test          # backend pytest + frontend vitest
+make lint          # ruff + mypy + eslint + prettier + tsc
+make migrate       # apply migrations
+make gen-schema    # regenerate contracts/jobradar-v1.json
+make clean         # DESTROYS all data — see the warning below
+```
+
+## Architecture
+
+One repository, two independently deployable apps, sharing only the OpenAPI contract
+in `contracts/`.
+
+```
+                        ┌──────────────┐
+   job boards  ────────▶│    worker    │  fetches every source ONCE per run
+   (ATS, RSS, scrapes)  │   (celery)   │  then scores per user
+                        └──────┬───────┘
+                               │
+                    ┌──────────▼──────────┐
+                    │   postgres  redis   │
+                    └──────────┬──────────┘
+                               │
+   browser ──▶ nginx ──▶ ┌─────▼─────┐
+              (frontend) │    web    │  Django REST API
+                         └───────────┘
+```
+
+The central design decision: **a job posting is global, a score is per user.** One
+`Job` row per real-world posting, plus one `UserJob` row per user watching it with
+that user's score, tier, status and notes. Adding a user must never increase outbound
+traffic to job boards.
+
+### Layout
+
+```
+backend/
+  config/     settings (base/dev/prod/test), urls, celery app
+  users/      custom user model — email is the username
+  scoring/    PURE domain logic, no Django imports  (milestone 2)
+  sources/    one adapter module per ATS + scraper  (milestones 4–5, 10)
+  jobs/       models, serializers, views, admin, tasks  (milestone 4+)
+  tests/
+frontend/
+  src/
+contracts/    OpenAPI 3 — written by the backend, read by the frontend
+```
+
+`scoring/` must not import Django. Scoring, reconciliation and staleness are pure
+functions over plain dataclasses, which is what makes them fast and pleasant to test.
+
+## Configuration
+
+Everything comes from the environment. `.env.example` lists every variable with
+placeholder values; **no secrets are ever committed.**
+
+| Variable | Purpose |
+|---|---|
+| `DJANGO_SECRET_KEY` | Django signing key. Must be a real random value outside dev |
+| `DJANGO_SETTINGS_MODULE` | `config.settings.dev` / `.prod` / `.test` |
+| `DJANGO_ALLOWED_HOSTS` | Comma-separated hostnames; required in production |
+| `POSTGRES_*` | Database name, user, password, host, port |
+| `CELERY_BROKER_URL` / `CELERY_RESULT_BACKEND` | Redis URLs |
+| `CELERY_TIMEZONE` | Schedule timezone — `Asia/Karachi`, while timestamps stay UTC |
+| `API_BASE_URL` | Written into `/config.json` by the frontend entrypoint at start-up |
+| `JOBSPY_PROXIES` | Optional residential proxies for scraping. Off by default |
+
+## Data and backups
+
+> **`docker compose down -v` (and `make clean`) deletes every application status and
+> note you have ever recorded.** Postings can always be re-fetched; your application
+> history cannot. Use `make down` unless you genuinely mean to wipe it.
+
+A nightly `pg_dump` and a tested restore command arrive in milestone 12.
+
+## Honest limitations
+
+- **Scraped sources are best-effort.** LinkedIn's terms do not permit scraping and
+  their `robots.txt` disallows job pages; IP blocks are a normal outcome, not a bug.
+  The ATS feeds (Greenhouse, Lever, Workable, Ashby, Workday, RSS) are the reliable
+  backbone. A scrape returning nothing never means "no jobs today".
+- **Glassdoor is not supported.** It does not serve Pakistan at all — the API returns
+  "Glassdoor is not available for PAKISTAN". This is missing data, not a limitation to
+  work around.
+- Scoring is transparent keyword weighting against a profile you control. It is not
+  AI, and that is the point: you can always see exactly why something ranked where it did.
+
+## Roadmap
+
+Milestones are tracked in the plan; each leaves something runnable.
+
+1. ✅ Skeleton — compose, custom user model, health check, CI
+2. Scoring core (pure, no Django)
+3. Auth + per-user profile
+4. First vertical slice — Greenhouse end to end
+5. Remaining ATS adapters + widen the source list
+6. Run lifecycle — two-phase Celery task, NEW/CLOSED detection
+7. Auth + onboarding UI
+8. Dashboard
+9. Detail, profile and runs screens
+10. jobspy adapter
+11. Landing page
+12. Deployment hardening
+13. Polish — a11y, e2e, screenshots
+
+Deliberate departures from the specification are recorded in [DEVIATIONS.md](DEVIATIONS.md).
