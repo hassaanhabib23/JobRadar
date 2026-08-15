@@ -63,6 +63,9 @@ format:  ## Autoformat both apps
 	$(COMPOSE_DEV) run --rm web ruff format .
 	cd frontend && npm run format
 
+gen-client:  ## Regenerate the frontend's types from the committed contract
+	cd frontend && npx openapi-typescript ../contracts/jobradar-v1.json -o src/api/schema.d.ts
+
 gen-schema:  ## Write contracts/jobradar-v1.json from drf-spectacular
 	$(COMPOSE_DEV) run --rm -u root web sh -c "python manage.py spectacular \
 	  --file /contracts/jobradar-v1.json --format openapi-json --validate --fail-on-warn \

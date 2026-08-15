@@ -118,5 +118,12 @@ jobs:
       - name: Tests
         run: npm run test -- --run
 
+      - name: Generated types match the contract
+        # The types describe an API that must actually exist. Drift here is a
+        # whole class of confusing bugs, caught in seconds instead.
+        run: |
+          npx openapi-typescript ../contracts/jobradar-v1.json -o /tmp/schema.d.ts
+          diff -u src/api/schema.d.ts /tmp/schema.d.ts             || { echo "::error::src/api/schema.d.ts is stale — run 'make gen-client'"; exit 1; }
+
       - name: Build
         run: npm run build
