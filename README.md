@@ -4,8 +4,8 @@ A personal job-aggregation system. It polls job sources on a schedule, scores ev
 posting against your own configurable profile, tracks what is new and what has closed,
 and puts it on one screen you check for two minutes each morning.
 
-**Status: milestone 1 of 13 — skeleton.** The stack boots, the API answers, the
-frontend talks to it. Scoring, adapters, the run lifecycle and the dashboard follow.
+**Status: milestone 2 of 13.** The stack boots, the API answers, and the scoring
+engine is complete and tested. Adapters, the run lifecycle and the dashboard follow.
 
 ## Quick start
 
@@ -80,6 +80,26 @@ contracts/    OpenAPI 3 — written by the backend, read by the frontend
 
 `scoring/` must not import Django. Scoring, reconciliation and staleness are pure
 functions over plain dataclasses, which is what makes them fast and pleasant to test.
+There is a test that enforces it rather than trusting the convention.
+
+### How a score is built
+
+Hard filters run first — a blocked title, a city you did not ask for, a posting
+older than your cutoff — and produce a reason rather than a score. What survives is
+scored out of 100 across four components, and the breakdown is always shown:
+
+| Component | Out of | What it measures |
+|---|---|---|
+| Stack | 40 | Weighted skill keywords found in the title, location and description |
+| Level | 25 | Seniority signals in the title. An unstated level scores 14, not 0 |
+| Location | 20 | Preferred city 20, secondary 13, elsewhere 8 |
+| Freshness | 15 | Age bands, with an undated posting scoring 4 and a ghost 1 |
+
+Tiers: **High** ≥75, **Medium** ≥60, **Stretch** below that.
+
+Keyword matching tokenises on `[a-z0-9+#.]+`, joins with single spaces, pads both
+ends and then substring-matches. That is what stops `.net` from matching
+`kubernetes`, `telnet` and `subnet` while still matching `.NET Developer`.
 
 ## Configuration
 
@@ -122,7 +142,7 @@ A nightly `pg_dump` and a tested restore command arrive in milestone 12.
 Milestones are tracked in the plan; each leaves something runnable.
 
 1. ✅ Skeleton — compose, custom user model, health check, CI
-2. Scoring core (pure, no Django)
+2. ✅ Scoring core (pure, no Django)
 3. Auth + per-user profile
 4. First vertical slice — Greenhouse end to end
 5. Remaining ATS adapters + widen the source list
