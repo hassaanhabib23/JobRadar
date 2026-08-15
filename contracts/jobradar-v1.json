@@ -250,6 +250,419 @@
                 }
             }
         },
+        "/api/jobs/": {
+            "get": {
+                "operationId": "jobsList",
+                "description": "The user's own job list.\n\nNever `UserJob.objects.get(pk=...)` without a user filter — `get_object`\nresolves against the filtered queryset, so an id belonging to somebody else\nsimply is not there.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "company",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "flag",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "e.g. ghost?"
+                    },
+                    {
+                        "in": "query",
+                        "name": "has_date",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "description": "Excludes inferred ages as well as nulls"
+                    },
+                    {
+                        "in": "query",
+                        "name": "include_closed",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "is_new",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "description": "New since this user's last run"
+                    },
+                    {
+                        "in": "query",
+                        "name": "location",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "A location catalogue key"
+                    },
+                    {
+                        "in": "query",
+                        "name": "max_score",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "min_score",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "ordering",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "-score | posted_at | first_seen | company"
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "pinned",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "search",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Full-text over title, company, location"
+                    },
+                    {
+                        "in": "query",
+                        "name": "source",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "tier",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "High | Medium | Stretch"
+                    }
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedJobList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/jobs/{id}/": {
+            "get": {
+                "operationId": "jobsRetrieve",
+                "description": "The user's own job list.\n\nNever `UserJob.objects.get(pk=...)` without a user filter — `get_object`\nresolves against the filtered queryset, so an id belonging to somebody else\nsimply is not there.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "A unique integer value identifying this user job.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Job"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "jobsPartialUpdate",
+                "description": "The user's own job list.\n\nNever `UserJob.objects.get(pk=...)` without a user filter — `get_object`\nresolves against the filtered queryset, so an id belonging to somebody else\nsimply is not there.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "A unique integer value identifying this user job.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedJobUpdate"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Job"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/jobs/bulk_status/": {
+            "post": {
+                "operationId": "jobsBulkStatusCreate",
+                "description": "Set one status across many jobs. Ids belonging to another user are ignored.",
+                "tags": [
+                    "jobs"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BulkStatus"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/jobs/statuses/": {
+            "get": {
+                "operationId": "jobsStatusesList",
+                "description": "Human labels for every status, so the frontend never hardcodes them.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "company",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "flag",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "has_date",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "include_closed",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "is_new",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "location",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "max_score",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "min_score",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "pinned",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "search",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "source",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "ashby",
+                                "breezy",
+                                "greenhouse",
+                                "jobspy",
+                                "lever",
+                                "recruitee",
+                                "rss",
+                                "smartrecruiters",
+                                "workable",
+                                "workday"
+                            ]
+                        },
+                        "description": "* `greenhouse` - Greenhouse\n* `lever` - Lever\n* `workable` - Workable\n* `breezy` - Breezy\n* `ashby` - Ashby\n* `smartrecruiters` - SmartRecruiters\n* `recruitee` - Recruitee\n* `workday` - Workday\n* `rss` - RSS / Atom\n* `jobspy` - Job boards (jobspy)"
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "applied",
+                                "assessment",
+                                "cv_tailored",
+                                "interviewing",
+                                "not_started",
+                                "offer",
+                                "rejected",
+                                "researching",
+                                "skipped"
+                            ]
+                        },
+                        "description": "* `not_started` - Not started\n* `researching` - Researching\n* `cv_tailored` - CV tailored\n* `applied` - Applied\n* `assessment` - Assessment\n* `interviewing` - Interviewing\n* `offer` - Offer\n* `rejected` - Rejected\n* `skipped` - Skipped"
+                    },
+                    {
+                        "in": "query",
+                        "name": "tier",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedStatusChoiceList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/locations/": {
             "get": {
                 "operationId": "locationsList",
@@ -403,10 +816,392 @@
                     }
                 }
             }
+        },
+        "/api/sources/": {
+            "get": {
+                "operationId": "sourcesList",
+                "description": "Shared sources plus this user's own private ones.\n\nAnother user's private source is invisible: not listable, not readable, not\neditable, not deletable.",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "tags": [
+                    "sources"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedSourceList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "sourcesCreate",
+                "description": "Shared sources plus this user's own private ones.\n\nAnother user's private source is invisible: not listable, not readable, not\neditable, not deletable.",
+                "tags": [
+                    "sources"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Source"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Source"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/sources/{id}/": {
+            "get": {
+                "operationId": "sourcesRetrieve",
+                "description": "Shared sources plus this user's own private ones.\n\nAnother user's private source is invisible: not listable, not readable, not\neditable, not deletable.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "A unique integer value identifying this source.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "sources"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Source"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "put": {
+                "operationId": "sourcesUpdate",
+                "description": "Shared sources plus this user's own private ones.\n\nAnother user's private source is invisible: not listable, not readable, not\neditable, not deletable.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "A unique integer value identifying this source.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "sources"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Source"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Source"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "patch": {
+                "operationId": "sourcesPartialUpdate",
+                "description": "Shared sources plus this user's own private ones.\n\nAnother user's private source is invisible: not listable, not readable, not\neditable, not deletable.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "A unique integer value identifying this source.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "sources"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedSource"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Source"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "sourcesDestroy",
+                "description": "Shared sources plus this user's own private ones.\n\nAnother user's private source is invisible: not listable, not readable, not\neditable, not deletable.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "A unique integer value identifying this source.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "sources"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
         }
     },
     "components": {
         "schemas": {
+            "BulkStatus": {
+                "type": "object",
+                "properties": {
+                    "ids": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/StatusEnum"
+                    }
+                },
+                "required": [
+                    "ids",
+                    "status"
+                ]
+            },
+            "Job": {
+                "type": "object",
+                "description": "A `UserJob` joined to its `Job`, flattened.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "key": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "source": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "company": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "title": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "location": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "url": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "description": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "postedAt": {
+                        "type": "string",
+                        "format": "date",
+                        "readOnly": true
+                    },
+                    "firstSeen": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "lastSeen": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "closedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "seenCount": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "score": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "tier": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/StatusEnum"
+                    },
+                    "notes": {
+                        "type": "string"
+                    },
+                    "pinned": {
+                        "type": "boolean"
+                    },
+                    "isNew": {
+                        "type": "boolean",
+                        "readOnly": true
+                    },
+                    "flags": {
+                        "readOnly": true
+                    },
+                    "detail": {
+                        "readOnly": true
+                    },
+                    "alsoSeenOn": {
+                        "readOnly": true
+                    },
+                    "dateFrom": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "trackingDays": {
+                        "type": "integer",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "alsoSeenOn",
+                    "closedAt",
+                    "company",
+                    "dateFrom",
+                    "description",
+                    "detail",
+                    "firstSeen",
+                    "flags",
+                    "id",
+                    "isNew",
+                    "key",
+                    "lastSeen",
+                    "location",
+                    "postedAt",
+                    "score",
+                    "seenCount",
+                    "source",
+                    "tier",
+                    "title",
+                    "trackingDays",
+                    "url"
+                ]
+            },
+            "KindEnum": {
+                "enum": [
+                    "greenhouse",
+                    "lever",
+                    "workable",
+                    "breezy",
+                    "ashby",
+                    "smartrecruiters",
+                    "recruitee",
+                    "workday",
+                    "rss",
+                    "jobspy"
+                ],
+                "type": "string",
+                "description": "* `greenhouse` - Greenhouse\n* `lever` - Lever\n* `workable` - Workable\n* `breezy` - Breezy\n* `ashby` - Ashby\n* `smartrecruiters` - SmartRecruiters\n* `recruitee` - Recruitee\n* `workday` - Workday\n* `rss` - RSS / Atom\n* `jobspy` - Job boards (jobspy)"
+            },
             "Location": {
                 "type": "object",
                 "description": "A selectable city for the onboarding picker.",
@@ -430,6 +1225,99 @@
                     "label"
                 ]
             },
+            "PaginatedJobList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Job"
+                        }
+                    }
+                }
+            },
+            "PaginatedSourceList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Source"
+                        }
+                    }
+                }
+            },
+            "PaginatedStatusChoiceList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/StatusChoice"
+                        }
+                    }
+                }
+            },
             "PasswordChange": {
                 "type": "object",
                 "properties": {
@@ -446,6 +1334,21 @@
                     "newPassword",
                     "oldPassword"
                 ]
+            },
+            "PatchedJobUpdate": {
+                "type": "object",
+                "description": "The only three fields a user may write.",
+                "properties": {
+                    "status": {
+                        "$ref": "#/components/schemas/StatusEnum"
+                    },
+                    "notes": {
+                        "type": "string"
+                    },
+                    "pinned": {
+                        "type": "boolean"
+                    }
+                }
             },
             "PatchedProfile": {
                 "type": "object",
@@ -473,6 +1376,86 @@
                     "updatedAt": {
                         "type": "string",
                         "format": "date-time",
+                        "readOnly": true
+                    }
+                }
+            },
+            "PatchedSource": {
+                "type": "object",
+                "description": "A user sees shared sources and their own private ones, never another's.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "kind": {
+                        "$ref": "#/components/schemas/KindEnum"
+                    },
+                    "slug": {
+                        "type": "string",
+                        "maxLength": 200
+                    },
+                    "company": {
+                        "type": "string",
+                        "maxLength": 200
+                    },
+                    "host": {
+                        "type": "string",
+                        "maxLength": 200
+                    },
+                    "tenant": {
+                        "type": "string",
+                        "maxLength": 200
+                    },
+                    "site": {
+                        "type": "string",
+                        "maxLength": 200
+                    },
+                    "url": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "uri",
+                                "maxLength": 500
+                            },
+                            {
+                                "type": "string",
+                                "maxLength": 0
+                            }
+                        ]
+                    },
+                    "label": {
+                        "type": "string",
+                        "maxLength": 200
+                    },
+                    "locationHint": {
+                        "type": "string",
+                        "maxLength": 200
+                    },
+                    "config": {},
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "lastRunAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "nullable": true
+                    },
+                    "lastStatus": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "lastError": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "isShared": {
+                        "type": "boolean",
+                        "readOnly": true
+                    },
+                    "isMine": {
+                        "type": "boolean",
                         "readOnly": true
                     }
                 }
@@ -635,6 +1618,125 @@
                     "score",
                     "tier"
                 ]
+            },
+            "Source": {
+                "type": "object",
+                "description": "A user sees shared sources and their own private ones, never another's.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "kind": {
+                        "$ref": "#/components/schemas/KindEnum"
+                    },
+                    "slug": {
+                        "type": "string",
+                        "maxLength": 200
+                    },
+                    "company": {
+                        "type": "string",
+                        "maxLength": 200
+                    },
+                    "host": {
+                        "type": "string",
+                        "maxLength": 200
+                    },
+                    "tenant": {
+                        "type": "string",
+                        "maxLength": 200
+                    },
+                    "site": {
+                        "type": "string",
+                        "maxLength": 200
+                    },
+                    "url": {
+                        "oneOf": [
+                            {
+                                "type": "string",
+                                "format": "uri",
+                                "maxLength": 500
+                            },
+                            {
+                                "type": "string",
+                                "maxLength": 0
+                            }
+                        ]
+                    },
+                    "label": {
+                        "type": "string",
+                        "maxLength": 200
+                    },
+                    "locationHint": {
+                        "type": "string",
+                        "maxLength": 200
+                    },
+                    "config": {},
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "lastRunAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "nullable": true
+                    },
+                    "lastStatus": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "lastError": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "isShared": {
+                        "type": "boolean",
+                        "readOnly": true
+                    },
+                    "isMine": {
+                        "type": "boolean",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "id",
+                    "isMine",
+                    "isShared",
+                    "kind",
+                    "lastError",
+                    "lastRunAt",
+                    "lastStatus"
+                ]
+            },
+            "StatusChoice": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "label",
+                    "value"
+                ]
+            },
+            "StatusEnum": {
+                "enum": [
+                    "not_started",
+                    "researching",
+                    "cv_tailored",
+                    "applied",
+                    "assessment",
+                    "interviewing",
+                    "offer",
+                    "rejected",
+                    "skipped"
+                ],
+                "type": "string",
+                "description": "* `not_started` - Not started\n* `researching` - Researching\n* `cv_tailored` - CV tailored\n* `applied` - Applied\n* `assessment` - Assessment\n* `interviewing` - Interviewing\n* `offer` - Offer\n* `rejected` - Rejected\n* `skipped` - Skipped"
             },
             "TokenObtainPair": {
                 "type": "object",
