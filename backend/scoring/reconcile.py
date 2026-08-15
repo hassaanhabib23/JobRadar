@@ -151,6 +151,14 @@ def _merge(group: Sequence[RawPosting]) -> RawPosting:
             authority(posting.source),
             posting.posted_at is not None,
             len(posting.description),
+            # A stable final tie-break, so the winner does not depend on the
+            # order a board happened to return its rows in. Without it, a feed
+            # reordering its response would pick a different winner tomorrow,
+            # change the stored key, and make one job look closed and another
+            # look new — every day, for no reason.
+            str(posting.external_id or ""),
+            posting.url,
+            posting.title,
         ),
     )
 

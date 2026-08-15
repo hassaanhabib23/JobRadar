@@ -6,7 +6,7 @@ from django.contrib import admin, messages
 from django.db.models import QuerySet
 from django.http import HttpRequest
 
-from jobs.models import Job, Source, UserJob
+from jobs.models import Job, Run, RunSource, Source, UserJob
 from sources import SourceError, fetch
 
 
@@ -62,3 +62,37 @@ class UserJobAdmin(admin.ModelAdmin):
     list_filter = ("tier", "status", "is_new", "is_open")
     search_fields = ("user__email", "job__title", "job__company")
     readonly_fields = ("score", "tier", "detail", "flags", "tracking_days")
+
+
+class RunSourceInline(admin.TabularInline):
+    model = RunSource
+    extra = 0
+    can_delete = False
+    readonly_fields = ("label", "kind", "ok", "postings", "error", "duration_ms")
+
+
+@admin.register(Run)
+class RunAdmin(admin.ModelAdmin):
+    """Run history. Keeping these makes "Contour has failed every day for a
+    week" visible rather than buried in logs."""
+
+    list_display = (
+        "id",
+        "started_at",
+        "status",
+        "sources_total",
+        "sources_failed",
+        "postings_fetched",
+        "jobs_created",
+        "jobs_closed",
+        "users_scored",
+    )
+    list_filter = ("status", "triggered_by")
+    date_hierarchy = "started_at"
+    inlines = (RunSourceInline,)
+
+    def has_add_permission(self, request: HttpRequest) -> bool:
+        return False
+
+    def has_change_permission(self, request: HttpRequest, obj: Any = None) -> bool:
+        return False

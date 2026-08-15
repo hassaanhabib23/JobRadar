@@ -22,6 +22,14 @@ services:
       - ./backend:/app
       - ./contracts:/contracts
 
+  worker:
+    volumes:
+      - ./backend:/app
+
+  beat:
+    volumes:
+      - ./backend:/app
+
   frontend:
     build:
       context: ./frontend

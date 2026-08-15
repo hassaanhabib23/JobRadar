@@ -20,6 +20,15 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {"register": "3/hour", "login": "3/min"},
 }
 
+# Local memory is right here and wrong in production: the suite is one process,
+# and a shared Redis would leak throttle counters between test runs.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "jobradar-tests",
+    }
+}
+
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
 

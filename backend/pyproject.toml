@@ -90,7 +90,13 @@ django_settings_module = "config.settings.test"
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 python_files = ["test_*.py"]
-addopts = "--reuse-db --strict-markers -q"
+# `--ds` beats the DJANGO_SETTINGS_MODULE environment variable, which the
+# containers set to config.settings.dev. Without it, pytest-django honours the
+# environment and the suite runs against dev settings — silently, with
+# everything still passing while eager Celery, the fast password hasher and the
+# low throttle rates are all inactive. tests/test_settings_guard.py keeps this
+# honest.
+addopts = "--ds=config.settings.test --reuse-db --strict-markers -q"
 testpaths = ["tests"]
 markers = [
     "isolation: multi-user data isolation tests — the highest-priority suite",
