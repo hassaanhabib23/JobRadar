@@ -79,7 +79,66 @@ DEFAULT_LEVEL_PENALTY: dict[str, float] = {
     "consultant": 0.6,
 }
 
-DEFAULT_TITLE_BLOCKLIST: tuple[str, ...] = ()
+#: FR5 requires dropping non-engineering titles, and section 10 gives no list, so
+#: this is one. It matters more than it looks: with an empty blocklist, a run
+#: across 14 real boards put "Associate — Project Sales" and "Associate People
+#: Business Partner" near the top of a .NET developer's list, scoring ~49 on the
+#: entry-level bonus alone with zero skill matches.
+#:
+#: Deliberately conservative. Only titles that are unambiguously a different
+#: profession are listed — "analyst", "consultant" and "specialist" are left out
+#: because they are penalised by seniority weighting rather than excluded, and
+#: they do sometimes describe engineering work. Every entry is editable per user.
+DEFAULT_TITLE_BLOCKLIST: tuple[str, ...] = (
+    # Not a bare "sales": that would also drop "Sales Engineer" and "Solution
+    # Engineer (Pre-Sales)", which are genuinely technical roles.
+    "sales executive",
+    "sales manager",
+    "sales officer",
+    "sales representative",
+    "sales associate",
+    "field sales",
+    "project sales",
+    "inside sales",
+    "account executive",
+    "account manager",
+    "business development",
+    "recruiter",
+    "recruitment",
+    "talent acquisition",
+    "people business partner",
+    "people operations",
+    "human resources",
+    "accountant",
+    "accounts officer",
+    "accounts receivable",
+    "accounts payable",
+    "finance",
+    "payroll",
+    "legal",
+    "counsel",
+    "paralegal",
+    "marketing",
+    "brand",
+    "copywriter",
+    "content writer",
+    "social media",
+    "graphic designer",
+    "customer support",
+    "customer service",
+    "call center",
+    "call centre",
+    "rider",
+    "driver",
+    "warehouse",
+    "logistics",
+    "procurement",
+    "admin officer",
+    "receptionist",
+    "teacher",
+    "nurse",
+    "physician",
+)
 
 DEFAULT_STACK_SATURATION = 45.0
 

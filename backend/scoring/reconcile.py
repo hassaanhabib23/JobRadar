@@ -172,6 +172,22 @@ def _merge(group: Sequence[RawPosting]) -> RawPosting:
         candidates = [getattr(p, attribute) for p in group if getattr(p, attribute)]
         return max(candidates, key=len) if candidates else current
 
+    def merged_locations() -> str:
+        """Union every location in the group, not just the winner's.
+
+        Title normalisation strips city names, so "Software Engineer — Karachi"
+        and "Software Engineer — Islamabad" are one group. Keeping only the
+        winner's city would delete the other one, and a user who chose only that
+        city would never see the role at all.
+        """
+        seen: list[str] = []
+        for posting in group:
+            for part in posting.location.split(","):
+                cleaned = part.strip()
+                if cleaned and cleaned.lower() not in {s.lower() for s in seen}:
+                    seen.append(cleaned)
+        return ", ".join(seen)
+
     # Parentheses matter: `-` binds tighter than `|`, so without them the
     # winner's own source survives into its "also seen on" list.
     seen_elsewhere = ({p.source for p in group} | set(winner.also_seen_on)) - {winner.source}
@@ -182,7 +198,7 @@ def _merge(group: Sequence[RawPosting]) -> RawPosting:
         posted_at=posted_at,
         date_from=date_from,
         description=best("description"),
-        location=best("location"),
+        location=merged_locations() or best("location"),
         url=best("url"),
         also_seen_on=also_seen_on,
         reposted=any(p.reposted for p in group),

@@ -6,8 +6,8 @@ time anything asks for one.
 
 from sources.base import ADAPTERS, ADDITIVE_KINDS, SourceError, SourceSpec, fetch, register
 
-# Registration side effects. Each import adds one entry to ADAPTERS.
-from sources import greenhouse  # noqa: F401  isort:skip
+# Registration side effects. Each import adds entries to ADAPTERS.
+from sources import ats, greenhouse, rss  # noqa: F401  isort:skip
 
 __all__ = [
     "ADAPTERS",
