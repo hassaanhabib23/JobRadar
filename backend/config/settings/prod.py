@@ -30,3 +30,6 @@ SESSION_COOKIE_HTTPONLY = True
 X_FRAME_OPTIONS = "DENY"
 
 CSRF_TRUSTED_ORIGINS = env_list("DJANGO_CSRF_TRUSTED_ORIGINS")
+
+# The refresh cookie must never travel over plain HTTP.
+JWT_REFRESH_COOKIE_SECURE = True

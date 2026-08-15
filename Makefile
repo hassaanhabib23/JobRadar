@@ -64,4 +64,6 @@ format:  ## Autoformat both apps
 	cd frontend && npm run format
 
 gen-schema:  ## Write contracts/jobradar-v1.json from drf-spectacular
-	$(COMPOSE_DEV) run --rm web python manage.py spectacular --file /contracts/jobradar-v1.json --validate
+	$(COMPOSE_DEV) run --rm -u root web sh -c "python manage.py spectacular \
+	  --file /contracts/jobradar-v1.json --format openapi-json --validate --fail-on-warn \
+	  && chown 1000:1000 /contracts/jobradar-v1.json"

@@ -5,7 +5,7 @@ plain dataclasses, which is what makes it fast to run, pleasant to test without 
 database, and independent of the web framework. There is a test that enforces it.
 """
 
-from scoring.defaults import default_profile
+from scoring.defaults import ROLE_PRESETS, apply_role_keywords, default_profile
 from scoring.domain import (
     Freshness,
     Profile,
@@ -20,12 +20,14 @@ from scoring.scorer import evaluate_job, score_job
 from scoring.text import find_terms, find_weighted, normalise
 
 __all__ = [
+    "ROLE_PRESETS",
     "Freshness",
     "Profile",
     "RawPosting",
     "ScoreDetail",
     "ScoreOutcome",
     "ScoreResult",
+    "apply_role_keywords",
     "authority",
     "default_profile",
     "evaluate_job",

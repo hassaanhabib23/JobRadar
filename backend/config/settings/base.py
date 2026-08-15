@@ -7,6 +7,7 @@ Nothing secret lives in this file — everything sensitive comes from the enviro
 from __future__ import annotations
 
 import os
+from datetime import timedelta
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     # Third party
     "rest_framework",
+    "rest_framework_simplejwt.token_blacklist",
     "django_filters",
     "drf_spectacular",
     # Local
@@ -126,6 +128,40 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 50,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DATETIME_FORMAT": "%Y-%m-%dT%H:%M:%SZ",
+    "DEFAULT_THROTTLE_CLASSES": ("rest_framework.throttling.ScopedRateThrottle",),
+    "DEFAULT_THROTTLE_RATES": {
+        # Credential-stuffing defence on the two endpoints that accept passwords.
+        "register": env("THROTTLE_REGISTER", "5/hour"),
+        "login": env("THROTTLE_LOGIN", "10/min"),
+    },
+}
+
+# --- JWT ------------------------------------------------------------------
+# Access token in memory on the frontend, refresh token in an httpOnly cookie.
+# Neither goes in localStorage, where any injected script could read it.
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=14),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+}
+
+#: The refresh cookie. Scoped to the auth endpoints so it is not sent with every
+#: dashboard request.
+JWT_REFRESH_COOKIE = "jobradar_refresh"
+JWT_REFRESH_COOKIE_PATH = "/api/auth/"
+JWT_REFRESH_COOKIE_SAMESITE = "Lax"
+JWT_REFRESH_COOKIE_SECURE = env_bool("JWT_COOKIE_SECURE", False)
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "jobradar",
+    }
 }
 
 SPECTACULAR_SETTINGS = {
