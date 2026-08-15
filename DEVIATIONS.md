@@ -150,7 +150,40 @@ matching.
 `{"content": false}` in its config if a particular board is unusually large. One
 request per board either way, so NFR12 is unaffected.
 
-## 11. `python-jobspy` is an optional dependency until milestone 10
+## 11. A default `title_blocklist`, where the specification gives none
+
+**Spec:** FR5 requires dropping postings that fail hard rules, naming
+"non-engineering title" explicitly. Section 10's default profile lists skills,
+level weights and freshness knobs — but no blocklist.
+
+**Problem:** with an empty blocklist, a live run across 14 real boards put
+"Associate — Project Sales" and "Associate People Business Partner" near the top
+of a .NET developer's list, both scoring ~49 on the entry-level bonus alone with
+zero skill matches. The entry-level bonus rewards the word "Associate" wherever
+it appears.
+
+**Resolution:** a conservative default blocklist of titles that are
+unambiguously a different profession. Deliberately narrow: "analyst",
+"consultant" and "specialist" are left out because they are already penalised by
+seniority weighting and sometimes describe engineering work, and bare "sales" is
+avoided because it would drop "Sales Engineer" and "Solution Engineer
+(Pre-Sales)". Fully editable per user.
+
+## 12. Reconciliation merges locations rather than keeping only the winner's
+
+**Spec (§5):** the highest-authority source wins, inheriting a date from
+siblings.
+
+**Problem:** title normalisation strips city names, so "Software Engineer —
+Karachi" and "Software Engineer — Islamabad" are one group. Keeping only the
+winner's location silently deletes the other city, and a user who selected only
+that city would never see the role at all. In a live run this affected 182 jobs.
+
+**Resolution:** the merged posting carries the union of every location in its
+group, de-duplicated. This is the same principle the specification already
+applies to Lever's `allLocations`.
+
+## 13. `python-jobspy` is an optional dependency until milestone 10
 
 Not a spec disagreement — a build-time one. jobspy pulls in pandas, which is slow
 to install and heavy at runtime. It is declared as the `scrape` extra in

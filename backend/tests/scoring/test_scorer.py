@@ -134,6 +134,53 @@ class TestHardFilters:
         assert outcome.filtered_reason == "title blocklist: sales"
 
 
+class TestDefaultTitleBlocklist:
+    """FR5: drop postings whose title is a different profession entirely.
+
+    Without this, a run across 14 real boards put "Associate — Project Sales"
+    and "Associate People Business Partner" near the top of a .NET developer's
+    list, scoring ~49 on the entry-level bonus alone with zero skill matches.
+    """
+
+    @pytest.mark.parametrize(
+        "title",
+        [
+            "Associate - Project Sales",
+            "Associate People Business Partner",
+            "Account Executive, Enterprise",
+            "Talent Acquisition Specialist",
+            "Accounts Receivable Associate",
+            "Graphic Designer",
+            "Customer Support Representative",
+        ],
+    )
+    def test_non_engineering_titles_are_dropped(self, profile: Profile, title: str) -> None:
+        outcome = evaluate_job(posting(title=title), profile, today=TODAY)
+
+        assert outcome.result is None, f"{title!r} should not reach a developer's list"
+        assert outcome.filtered_reason is not None
+
+    @pytest.mark.parametrize(
+        "title",
+        [
+            "Associate Software Engineer",
+            "Junior .NET Developer",
+            "Trainee Software Developer",
+            "Full Stack Engineer",
+            "QA Automation Engineer",
+            "DevOps Engineer",
+            "Data Engineer",
+            "Sales Engineer",
+        ],
+    )
+    def test_engineering_titles_survive(self, profile: Profile, title: str) -> None:
+        """Including "Sales Engineer" — the blocklist matches whole tokens, and
+        that is a real engineering role."""
+        outcome = evaluate_job(posting(title=title), profile, today=TODAY)
+
+        assert outcome.result is not None, f"{title!r} was wrongly filtered out"
+
+
 class TestStackComponent:
     def test_saturates_at_forty(self, profile: Profile) -> None:
         loaded = posting(

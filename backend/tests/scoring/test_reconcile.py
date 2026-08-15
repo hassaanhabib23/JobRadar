@@ -247,6 +247,34 @@ class TestMergedData:
 
         assert merged[0].reposted is True
 
+    def test_every_location_in_the_group_survives_the_merge(self) -> None:
+        """Title normalisation strips city names, so the same role in two cities
+        is one group. Keeping only the winner's city would delete the other, and
+        a user who chose only that city would never see the role."""
+        merged = reconcile(
+            [
+                posting("greenhouse", "Careem", "Software Engineer", location="Karachi, Pakistan"),
+                posting(
+                    "greenhouse", "Careem", "Software Engineer", location="Islamabad, Pakistan"
+                ),
+            ]
+        )
+
+        assert len(merged) == 1
+        assert "Karachi" in merged[0].location
+        assert "Islamabad" in merged[0].location
+
+    def test_duplicate_location_parts_are_not_repeated(self) -> None:
+        merged = reconcile(
+            [
+                posting("greenhouse", "Careem", "Software Engineer", location="Lahore, Pakistan"),
+                posting("jobspy", "Careem", "Software Engineer", location="Lahore, Pakistan"),
+            ]
+        )
+
+        assert merged[0].location.count("Lahore") == 1
+        assert merged[0].location.count("Pakistan") == 1
+
     def test_a_single_posting_passes_through_untouched(self) -> None:
         only = posting("greenhouse", "Careem", "Software Engineer")
 

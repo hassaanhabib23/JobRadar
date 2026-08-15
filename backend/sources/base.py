@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, TypeVar
 
 from scoring.domain import RawPosting
 
@@ -64,11 +64,15 @@ class SourceError(Exception):
 
 Adapter = Callable[[SourceSpec], list[RawPosting]]
 
+#: Bound to Adapter so the decorator preserves each adapter's own signature —
+#: several take extra keyword-only arguments (`today`) that tests rely on.
+AdapterT = TypeVar("AdapterT", bound=Adapter)
+
 ADAPTERS: dict[str, Adapter] = {}
 
 
-def register(kind: str) -> Callable[[Adapter], Adapter]:
-    def decorator(adapter: Adapter) -> Adapter:
+def register(kind: str) -> Callable[[AdapterT], AdapterT]:
+    def decorator(adapter: AdapterT) -> AdapterT:
         ADAPTERS[kind] = adapter
         return adapter
 
