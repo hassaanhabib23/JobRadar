@@ -183,7 +183,21 @@ that city would never see the role at all. In a live run this affected 182 jobs.
 group, de-duplicated. This is the same principle the specification already
 applies to Lever's `allLocations`.
 
-## 13. `python-jobspy` is an optional dependency until milestone 10
+## 13. Closed-detection is scoped by feed, not by source kind
+
+**Spec (§6):** "Scope closures to sources that **succeeded**, so a network
+failure never mass-closes a healthy board."
+
+**Problem:** `Job.source` stores the vendor (`greenhouse`), not which board.
+Careem and Arbisoft are both Greenhouse boards, so scoping by that field means a
+failed Arbisoft fetch closes every one of Careem's jobs — precisely the
+corruption the rule exists to prevent. A test caught this immediately.
+
+**Resolution:** `Job.source_ref` records the specific feed (`greenhouse:careem`),
+threaded through `RawPosting` from the run. Closures are scoped to the set of
+feeds that actually succeeded.
+
+## 14. `python-jobspy` is an optional dependency until milestone 10
 
 Not a spec disagreement — a build-time one. jobspy pulls in pandas, which is slow
 to install and heavy at runtime. It is declared as the `scrape` extra in

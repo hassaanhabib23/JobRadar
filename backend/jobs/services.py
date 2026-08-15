@@ -54,6 +54,7 @@ def _upsert(posting: RawPosting, key: str, now) -> Job:
         return Job.objects.create(
             key=key,
             source=posting.source,
+            source_ref=posting.source_ref,
             company=posting.company,
             title=posting.title,
             location=posting.location,
@@ -69,6 +70,7 @@ def _upsert(posting: RawPosting, key: str, now) -> Job:
 
     existing.title = posting.title
     existing.company = posting.company
+    existing.source_ref = posting.source_ref or existing.source_ref
     existing.location = posting.location or existing.location
     existing.url = posting.url or existing.url
     existing.description = posting.description or existing.description
@@ -192,6 +194,7 @@ def _to_posting(job: Job) -> RawPosting:
     """The framework-free view the scorer works with."""
     return RawPosting(
         source=job.source,
+        source_ref=job.source_ref,
         company=job.company,
         title=job.title,
         location=job.location,

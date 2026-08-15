@@ -10,7 +10,7 @@ from typing import Any
 
 from rest_framework import serializers
 
-from jobs.models import ApplicationStatus, Source, UserJob
+from jobs.models import ApplicationStatus, Run, RunSource, Source, UserJob
 
 
 class JobSerializer(serializers.ModelSerializer):
@@ -145,3 +145,43 @@ def job_queryset_for(user: Any):
     queries.
     """
     return UserJob.objects.filter(user=user).select_related("job")
+
+
+class RunSourceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RunSource
+        fields = ("id", "label", "kind", "ok", "postings", "error", "duration_ms")
+
+
+class RunSerializer(serializers.ModelSerializer):
+    duration_seconds = serializers.FloatField(read_only=True, allow_null=True)
+    succeeded = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = Run
+        fields: tuple[str, ...] = (
+            "id",
+            "started_at",
+            "finished_at",
+            "status",
+            "triggered_by",
+            "sources_total",
+            "sources_failed",
+            "postings_fetched",
+            "jobs_created",
+            "jobs_updated",
+            "jobs_closed",
+            "users_scored",
+            "error",
+            "duration_seconds",
+            "succeeded",
+        )
+
+
+class RunDetailSerializer(RunSerializer):
+    """Per-source results, so a partial failure is impossible to miss."""
+
+    source_results = RunSourceSerializer(many=True, read_only=True)
+
+    class Meta(RunSerializer.Meta):
+        fields: tuple[str, ...] = (*RunSerializer.Meta.fields, "source_results")

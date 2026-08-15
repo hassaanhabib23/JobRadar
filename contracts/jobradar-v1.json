@@ -817,6 +817,105 @@
                 }
             }
         },
+        "/api/runs/": {
+            "get": {
+                "operationId": "runsList",
+                "description": "Run history.\n\nRuns are global — they describe the shared fetch, not one user's data — so\nevery authenticated user sees the same history. Nothing user-private is in\nthem.",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "tags": [
+                    "runs"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedRunList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "post": {
+                "operationId": "runsCreate",
+                "description": "Trigger a run. Returns 202 immediately; poll GET /api/runs/ for progress.",
+                "tags": [
+                    "runs"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/runs/{id}/": {
+            "get": {
+                "operationId": "runsRetrieve",
+                "description": "Run history.\n\nRuns are global — they describe the shared fetch, not one user's data — so\nevery authenticated user sees the same history. Nothing user-private is in\nthem.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "A unique integer value identifying this run.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "runs"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/RunDetail"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/sources/": {
             "get": {
                 "operationId": "sourcesList",
@@ -1041,10 +1140,51 @@
                     }
                 }
             }
+        },
+        "/api/stats/": {
+            "get": {
+                "operationId": "stats",
+                "description": "Dashboard summary for the requesting user.\n\nEvery count here is scoped to `request.user` except `last_run_at`, which\ndescribes the shared fetch.",
+                "tags": [
+                    "stats"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Stats"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
         }
     },
     "components": {
         "schemas": {
+            "ApplicationStatusEnum": {
+                "enum": [
+                    "not_started",
+                    "researching",
+                    "cv_tailored",
+                    "applied",
+                    "assessment",
+                    "interviewing",
+                    "offer",
+                    "rejected",
+                    "skipped"
+                ],
+                "type": "string",
+                "description": "* `not_started` - Not started\n* `researching` - Researching\n* `cv_tailored` - CV tailored\n* `applied` - Applied\n* `assessment` - Assessment\n* `interviewing` - Interviewing\n* `offer` - Offer\n* `rejected` - Rejected\n* `skipped` - Skipped"
+            },
             "BulkStatus": {
                 "type": "object",
                 "properties": {
@@ -1055,7 +1195,7 @@
                         }
                     },
                     "status": {
-                        "$ref": "#/components/schemas/StatusEnum"
+                        "$ref": "#/components/schemas/ApplicationStatusEnum"
                     }
                 },
                 "required": [
@@ -1132,7 +1272,7 @@
                         "readOnly": true
                     },
                     "status": {
-                        "$ref": "#/components/schemas/StatusEnum"
+                        "$ref": "#/components/schemas/ApplicationStatusEnum"
                     },
                     "notes": {
                         "type": "string"
@@ -1256,6 +1396,37 @@
                     }
                 }
             },
+            "PaginatedRunList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Run"
+                        }
+                    }
+                }
+            },
             "PaginatedSourceList": {
                 "type": "object",
                 "required": [
@@ -1340,7 +1511,7 @@
                 "description": "The only three fields a user may write.",
                 "properties": {
                     "status": {
-                        "$ref": "#/components/schemas/StatusEnum"
+                        "$ref": "#/components/schemas/ApplicationStatusEnum"
                     },
                     "notes": {
                         "type": "string"
@@ -1558,6 +1729,219 @@
                     "password"
                 ]
             },
+            "Run": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "startedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "finishedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/RunStatusEnum"
+                    },
+                    "triggeredBy": {
+                        "type": "string",
+                        "maxLength": 32
+                    },
+                    "sourcesTotal": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    "sourcesFailed": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    "postingsFetched": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    "jobsCreated": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    "jobsUpdated": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    "jobsClosed": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    "usersScored": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    "error": {
+                        "type": "string"
+                    },
+                    "durationSeconds": {
+                        "type": "number",
+                        "format": "double",
+                        "readOnly": true,
+                        "nullable": true
+                    },
+                    "succeeded": {
+                        "type": "boolean",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "durationSeconds",
+                    "id",
+                    "succeeded"
+                ]
+            },
+            "RunDetail": {
+                "type": "object",
+                "description": "Per-source results, so a partial failure is impossible to miss.",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "startedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "finishedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/RunStatusEnum"
+                    },
+                    "triggeredBy": {
+                        "type": "string",
+                        "maxLength": 32
+                    },
+                    "sourcesTotal": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    "sourcesFailed": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    "postingsFetched": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    "jobsCreated": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    "jobsUpdated": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    "jobsClosed": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    "usersScored": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    "error": {
+                        "type": "string"
+                    },
+                    "durationSeconds": {
+                        "type": "number",
+                        "format": "double",
+                        "readOnly": true,
+                        "nullable": true
+                    },
+                    "succeeded": {
+                        "type": "boolean",
+                        "readOnly": true
+                    },
+                    "sourceResults": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RunSource"
+                        },
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "durationSeconds",
+                    "id",
+                    "sourceResults",
+                    "succeeded"
+                ]
+            },
+            "RunSource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "readOnly": true
+                    },
+                    "label": {
+                        "type": "string",
+                        "maxLength": 200
+                    },
+                    "kind": {
+                        "type": "string",
+                        "maxLength": 32
+                    },
+                    "ok": {
+                        "type": "boolean"
+                    },
+                    "postings": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    "error": {
+                        "type": "string"
+                    },
+                    "durationMs": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    }
+                },
+                "required": [
+                    "id",
+                    "kind",
+                    "label"
+                ]
+            },
+            "RunStatusEnum": {
+                "enum": [
+                    "running",
+                    "success",
+                    "partial",
+                    "failed"
+                ],
+                "type": "string",
+                "description": "* `running` - Running\n* `success` - Success\n* `partial` - Partial — some sources failed\n* `failed` - Failed"
+            },
             "ScorePreviewRequest": {
                 "type": "object",
                 "description": "A hypothetical posting, for tuning weights interactively.",
@@ -1708,6 +2092,62 @@
                     "lastStatus"
                 ]
             },
+            "Stats": {
+                "type": "object",
+                "properties": {
+                    "openCount": {
+                        "type": "integer"
+                    },
+                    "newToday": {
+                        "type": "integer"
+                    },
+                    "byTier": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "integer"
+                        }
+                    },
+                    "bySource": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "integer"
+                        }
+                    },
+                    "byStatus": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "integer"
+                        }
+                    },
+                    "avgScore": {
+                        "type": "number",
+                        "format": "double",
+                        "nullable": true
+                    },
+                    "lastRunAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
+                    },
+                    "scoreHistogram": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": {}
+                        }
+                    }
+                },
+                "required": [
+                    "avgScore",
+                    "bySource",
+                    "byStatus",
+                    "byTier",
+                    "lastRunAt",
+                    "newToday",
+                    "openCount",
+                    "scoreHistogram"
+                ]
+            },
             "StatusChoice": {
                 "type": "object",
                 "properties": {
@@ -1722,21 +2162,6 @@
                     "label",
                     "value"
                 ]
-            },
-            "StatusEnum": {
-                "enum": [
-                    "not_started",
-                    "researching",
-                    "cv_tailored",
-                    "applied",
-                    "assessment",
-                    "interviewing",
-                    "offer",
-                    "rejected",
-                    "skipped"
-                ],
-                "type": "string",
-                "description": "* `not_started` - Not started\n* `researching` - Researching\n* `cv_tailored` - CV tailored\n* `applied` - Applied\n* `assessment` - Assessment\n* `interviewing` - Interviewing\n* `offer` - Offer\n* `rejected` - Rejected\n* `skipped` - Skipped"
             },
             "TokenObtainPair": {
                 "type": "object",

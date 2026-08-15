@@ -10,6 +10,8 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+from celery.schedules import crontab
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
@@ -45,6 +47,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt.token_blacklist",
     "django_filters",
     "drf_spectacular",
+    "django_celery_beat",
     # Local
     "users",
     "jobs",
@@ -158,11 +161,40 @@ JWT_REFRESH_COOKIE_PATH = "/api/auth/"
 JWT_REFRESH_COOKIE_SAMESITE = "Lax"
 JWT_REFRESH_COOKIE_SECURE = env_bool("JWT_COOKIE_SECURE", False)
 
+# Redis, not local memory. The run lock and the auth throttle counters both live
+# here, and both are worthless per-process: the worker runs four forks, so a
+# LocMemCache lock is invisible to the other three and two triggers happily
+# double-fetch every source.
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "jobradar",
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": env("REDIS_CACHE_URL", "") or env("REDIS_URL", "redis://redis:6379/0"),
+        "KEY_PREFIX": "jobradar",
     }
+}
+
+# The camelCase renderer rewrites *keys*, which is right for field names and
+# wrong for data. `by_status` is keyed by status value — `not_started` is a value
+# the client also receives verbatim from /api/jobs/statuses/, so camelising it to
+# `notStarted` would leave the frontend unable to match the two.
+JSON_CAMEL_CASE = {
+    "JSON_UNDERSCOREIZE": {
+        "ignore_fields": (
+            # Keyed by status / source / tier value, not by field name.
+            # `not_started` is a value the client also gets verbatim from
+            # /api/jobs/statuses/, so rewriting it to `notStarted` here would
+            # leave the frontend unable to match the two.
+            "by_status",
+            "by_source",
+            "by_tier",
+            # User-authored keys. A skill called "machine_learning" must come
+            # back exactly as it was saved, or tuning it becomes impossible.
+            "skills",
+            "level_bonus",
+            "level_penalty",
+            "config",
+        ),
+    },
 }
 
 SPECTACULAR_SETTINGS = {
@@ -171,6 +203,13 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "CAMELIZE_NAMES": True,
+    # Both UserJob.status and Run.status are called "status", and without this
+    # the generated TypeScript gets names like `Status51bEnum` — meaningless to
+    # read and unstable across regenerations.
+    "ENUM_NAME_OVERRIDES": {
+        "ApplicationStatusEnum": "jobs.models.ApplicationStatus.choices",
+        "RunStatusEnum": "jobs.models.RunStatus.choices",
+    },
     "POSTPROCESSING_HOOKS": [
         "drf_spectacular.hooks.postprocess_schema_enums",
         "drf_spectacular.contrib.djangorestframework_camel_case.camelize_serializer_fields",
@@ -187,6 +226,18 @@ CELERY_TASK_ACKS_LATE = True
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 
 REDIS_URL = env("REDIS_URL", "redis://redis:6379/0")
+
+# The daily schedule. django-celery-beat stores it in the database, so the cron
+# is editable from the admin without a redeploy; this is only the initial value.
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+CELERY_BEAT_SCHEDULE = {
+    "daily-run": {
+        "task": "jobs.run_now",
+        # 09:00 Asia/Karachi — CELERY_TIMEZONE above, not the server's clock.
+        "schedule": crontab(hour="9", minute="0"),
+        "kwargs": {"triggered_by": "schedule"},
+    },
+}
 
 LOGGING = {
     "version": 1,

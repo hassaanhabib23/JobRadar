@@ -4,9 +4,10 @@ A personal job-aggregation system. It polls job sources on a schedule, scores ev
 posting against your own configurable profile, tracks what is new and what has closed,
 and puts it on one screen you check for two minutes each morning.
 
-**Status: milestone 5 of 13.** All nine source adapters work, against 14 seeded
-boards. A live run reads ~900 postings in 20 seconds, merges them to ~620 jobs, and
-scores them per user. The run lifecycle and the dashboard follow.
+**Status: milestone 6 of 13 — the backend is complete.** `docker compose up` brings
+up six services, seeds 14 boards, and runs itself daily. A live run reads 911
+postings from 14 sources in 26 seconds, merges them to 623 jobs, and scores them
+separately for each user. The React app is next.
 
 ## Quick start
 
@@ -126,6 +127,31 @@ placeholder values; **no secrets are ever committed.**
 
 A nightly `pg_dump` and a tested restore command arrive in milestone 12.
 
+## Operating it
+
+Three backend processes must be running, not one. Deploying only `web` is the
+single most common way this stops working, and it fails *silently* — the API keeps
+serving yesterday's data.
+
+| Process | Job | If it dies |
+|---|---|---|
+| `web` | Serves the API | UI breaks — you notice immediately |
+| `worker` | Executes run tasks | Runs never finish — **you may not notice for days** |
+| `beat` | Fires the daily schedule | Nothing ever starts — **you definitely won't notice** |
+
+All three have `restart: unless-stopped`. Beyond that:
+
+- **`GET /api/health/` reports the age of the last *successful* run.** Point an uptime
+  monitor at it. A failed run does not reset the clock, so a worker that quietly died
+  shows up as a growing number long before anyone notices missing jobs.
+- **Beat does not backfill.** If the machine was down at 09:00 that run never happens,
+  so a worker checks on startup and fires a catch-up if the last success is over 24
+  hours old.
+- **A Redis lock stops two runs overlapping.** A manual "Run now" during the scheduled
+  run is skipped rather than double-fetching every source.
+- **Per-source results are kept forever**, so "Contour has failed every day for a week"
+  is visible in the run history rather than buried in logs.
+
 ## Honest limitations
 
 - **Scraped sources are best-effort.** LinkedIn's terms do not permit scraping and
@@ -147,7 +173,7 @@ Milestones are tracked in the plan; each leaves something runnable.
 3. ✅ Auth + per-user profile
 4. ✅ First vertical slice — Greenhouse end to end
 5. ✅ Remaining ATS adapters + widen the source list
-6. Run lifecycle — two-phase Celery task, NEW/CLOSED detection
+6. ✅ Run lifecycle — two-phase Celery task, NEW/CLOSED detection
 7. Auth + onboarding UI
 8. Dashboard
 9. Detail, profile and runs screens

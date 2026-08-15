@@ -44,13 +44,26 @@ class HealthView(APIView):
             logger.exception("health check: database unreachable")
             checks["database"] = f"error: {exc.__class__.__name__}"
 
+        # An uptime monitor can watch this: a worker that quietly died shows up
+        # as a growing number here long before anyone notices missing jobs.
+        last_run_age: float | None = None
+        if checks.get("database") == "ok":
+            try:
+                from django.utils import timezone
+
+                from jobs.runner import last_successful_run
+
+                last_run = last_successful_run()
+                if last_run is not None:
+                    last_run_age = (timezone.now() - last_run.started_at).total_seconds()
+            except Exception:
+                logger.exception("health check: could not read the last run")
+
         healthy = all(value == "ok" for value in checks.values())
         payload = {
             "status": "ok" if healthy else "degraded",
             "checks": checks,
-            # Wired to the Run model in milestone 6. Present from the start so the
-            # contract does not change under monitoring later.
-            "last_successful_run_age_seconds": None,
+            "last_successful_run_age_seconds": last_run_age,
         }
         return Response(
             payload,

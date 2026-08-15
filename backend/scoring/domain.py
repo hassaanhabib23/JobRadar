@@ -23,6 +23,10 @@ class RawPosting:
     company: str
     title: str
     location: str = ""
+    #: Which *feed* produced this, e.g. "greenhouse:careem". `source` is only the
+    #: vendor, and two boards from the same vendor must not be confused: closing
+    #: jobs by vendor alone would let a failed Arbisoft fetch close Careem's jobs.
+    source_ref: str = ""
     url: str = ""
     external_id: str | None = None
     posted_at: date | None = None

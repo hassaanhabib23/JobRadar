@@ -125,6 +125,92 @@ class Source(models.Model):
         return self.kind in ADDITIVE_KINDS
 
 
+class RunStatus(models.TextChoices):
+    RUNNING = "running", "Running"
+    SUCCESS = "success", "Success"
+    PARTIAL = "partial", "Partial — some sources failed"
+    FAILED = "failed", "Failed"
+
+
+class Run(models.Model):
+    """One execution of the daily job, scheduled or manual.
+
+    Kept forever: "Contour has failed every day for a week" should be visible in
+    the UI rather than buried in logs.
+    """
+
+    started_at = models.DateTimeField(default=timezone.now)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=16, choices=RunStatus.choices, default=RunStatus.RUNNING)
+    triggered_by = models.CharField(max_length=32, default="schedule")
+
+    sources_total = models.PositiveIntegerField(default=0)
+    sources_failed = models.PositiveIntegerField(default=0)
+    postings_fetched = models.PositiveIntegerField(default=0)
+    jobs_created = models.PositiveIntegerField(default=0)
+    jobs_updated = models.PositiveIntegerField(default=0)
+    jobs_closed = models.PositiveIntegerField(default=0)
+    users_scored = models.PositiveIntegerField(default=0)
+
+    error = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ("-started_at",)
+        indexes = [
+            # `last_run_at` must reflect only successful runs, so the lookup is
+            # by status as well as time.
+            models.Index(fields=["-started_at", "status"], name="run_recent_by_status"),
+        ]
+
+    def __str__(self) -> str:
+        return f"Run {self.pk} ({self.status})"
+
+    @property
+    def duration_seconds(self) -> float | None:
+        if self.finished_at is None:
+            return None
+        return (self.finished_at - self.started_at).total_seconds()
+
+    @property
+    def succeeded(self) -> bool:
+        """Partial counts as success: most sources delivered.
+
+        A run where one board was down still produced usable data, and treating
+        it as a failure would make the staleness warning cry wolf.
+        """
+        return self.status in {RunStatus.SUCCESS, RunStatus.PARTIAL}
+
+
+class RunSource(models.Model):
+    """What one source did during one run.
+
+    A partial failure must be visible, not silent (FR13). The list looking
+    healthy while half the sources are down is the most misleading thing this
+    system could do.
+    """
+
+    run = models.ForeignKey(Run, on_delete=models.CASCADE, related_name="source_results")
+    source = models.ForeignKey(
+        "Source", on_delete=models.SET_NULL, null=True, related_name="run_results"
+    )
+
+    #: Kept as text so a deleted source still reads sensibly in old runs.
+    label = models.CharField(max_length=200)
+    kind = models.CharField(max_length=32)
+
+    ok = models.BooleanField(default=False)
+    postings = models.PositiveIntegerField(default=0)
+    error = models.TextField(blank=True)
+    duration_ms = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ("-ok", "label")
+        indexes = [models.Index(fields=["run", "ok"], name="runsource_run_ok")]
+
+    def __str__(self) -> str:
+        return f"{self.label}: {'ok' if self.ok else self.error[:40]}"
+
+
 class Job(models.Model):
     """One row per real-world posting, shared by every user.
 
@@ -135,6 +221,10 @@ class Job(models.Model):
     key = models.CharField(max_length=255, unique=True)
 
     source = models.CharField(max_length=32, choices=SourceKind.choices)
+    #: The specific feed, e.g. "greenhouse:careem". Closed-detection scopes by
+    #: this rather than by `source`, so one failing board cannot close another
+    #: board's jobs just because they share a vendor.
+    source_ref = models.CharField(max_length=255, blank=True, db_index=True)
     company = models.CharField(max_length=255)
     title = models.CharField(max_length=500)
     location = models.CharField(max_length=255, blank=True)
