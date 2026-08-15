@@ -174,7 +174,7 @@ Milestones are tracked in the plan; each leaves something runnable.
 4. ✅ First vertical slice — Greenhouse end to end
 5. ✅ Remaining ATS adapters + widen the source list
 6. ✅ Run lifecycle — two-phase Celery task, NEW/CLOSED detection
-7. Auth + onboarding UI
+7. ✅ Auth + onboarding UI
 8. Dashboard
 9. Detail, profile and runs screens
 10. jobspy adapter

@@ -3,25 +3,45 @@
 @tailwind utilities;
 
 /*
- * Theme is driven by CSS custom properties rather than two Tailwind themes, so
- * dark and light stay in one place as the UI grows. Filled in properly in
- * milestone 8; these are the minimum needed for the skeleton to look deliberate.
+ * Theme via CSS custom properties, not two Tailwind themes, so light and dark
+ * stay in one place as the UI grows.
+ *
+ * Colour never carries meaning alone — every state that uses one of these also
+ * carries a text label.
  */
 :root {
   color-scheme: light dark;
 
   --bg: #ffffff;
+  --surface: #f7f8fa;
+  --surface-strong: #eef0f4;
   --fg: #16181d;
   --muted: #5b616e;
   --border: #e3e5e9;
+
+  --accent: #2563eb;
+  --accent-strong: #1d4ed8;
+  --high: #15803d;
+  --medium: #b45309;
+  --stretch: #7c3aed;
+  --danger: #dc2626;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #0f1115;
+    --surface: #161920;
+    --surface-strong: #1d212a;
     --fg: #e6e8ec;
     --muted: #969ba7;
     --border: #262a33;
+
+    --accent: #3b82f6;
+    --accent-strong: #60a5fa;
+    --high: #4ade80;
+    --medium: #fbbf24;
+    --stretch: #c084fc;
+    --danger: #f87171;
   }
 }
 
@@ -38,6 +58,17 @@ body {
 
 /* Never rely on the browser default — this is a keyboard-first tool. */
 :focus-visible {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

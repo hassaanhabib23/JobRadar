@@ -12,6 +12,11 @@ export interface RuntimeConfig {
 
 const FALLBACK: RuntimeConfig = { apiBaseUrl: '/api' }
 
+/** Reset between tests, which swap the mock server's state. */
+export function resetConfigCache(): void {
+  cached = null
+}
+
 let cached: RuntimeConfig | null = null
 
 export async function loadConfig(): Promise<RuntimeConfig> {
