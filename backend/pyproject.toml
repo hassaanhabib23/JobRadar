@@ -1,0 +1,92 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+# Nothing is packaged — this file exists to declare dependencies and tool config.
+# The Django code is imported from the working directory, not from site-packages.
+[tool.setuptools]
+packages = []
+
+[project]
+name = "jobradar-backend"
+version = "0.1.0"
+description = "JobRadar — job aggregation, scoring and tracking API"
+requires-python = ">=3.12"
+
+dependencies = [
+    "Django>=5.1,<6.0",
+    "djangorestframework>=3.15",
+    "djangorestframework-simplejwt>=5.3",
+    "djangorestframework-camel-case>=1.4",
+    "django-filter>=24.3",
+    "drf-spectacular>=0.27",
+    "psycopg[binary]>=3.2",
+    "celery>=5.4",
+    "redis>=5.0",
+    "django-celery-beat>=2.7",
+    "gunicorn>=23.0",
+]
+
+[project.optional-dependencies]
+# Pulled in at milestone 10 — jobspy drags in pandas, which is slow to build and
+# heavy at runtime, so it stays out of the image until it is actually used.
+scrape = [
+    "python-jobspy>=1.1.80",
+]
+dev = [
+    "pytest>=8.3",
+    "pytest-django>=4.9",
+    "pytest-cov>=5.0",
+    "responses>=0.25",
+    "factory-boy>=3.3",
+    "ruff>=0.7",
+    "mypy>=1.13",
+    "django-stubs[compatible-mypy]>=5.1",
+    "djangorestframework-stubs>=3.15",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["*/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "DJ", "SIM", "RUF"]
+ignore = [
+    "RUF012",  # Django class attrs are conventionally plain mutables
+]
+
+[tool.ruff.lint.per-file-ignores]
+# `User = get_user_model()` is the idiomatic spelling despite the capital.
+"tests/*" = ["N806"]
+# Settings modules are star-imported by design.
+"config/settings/*.py" = ["F403", "F405"]
+
+[tool.mypy]
+python_version = "3.12"
+plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
+strict_optional = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+disallow_untyped_defs = false
+exclude = ["migrations/"]
+
+[[tool.mypy.overrides]]
+module = ["celery.*", "django_celery_beat.*", "jobspy.*"]
+ignore_missing_imports = true
+
+[tool.django-stubs]
+django_settings_module = "config.settings.test"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.test"
+python_files = ["test_*.py"]
+addopts = "--reuse-db --strict-markers -q"
+testpaths = ["tests"]
+markers = [
+    "isolation: multi-user data isolation tests — the highest-priority suite",
+]
+
+[tool.coverage.run]
+source = ["scoring", "sources", "jobs", "users"]
+omit = ["*/migrations/*", "*/tests/*"]
