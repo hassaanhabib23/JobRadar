@@ -57,7 +57,7 @@ describe('onboarding', () => {
     const user = await startOnboarding()
 
     await user.click(await screen.findByRole('button', { name: /continue/i }))
-    expect(await screen.findByRole('heading', { name: /what kind of role/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /what do you build/i })).toBeInTheDocument()
 
     await user.click(screen.getByRole('checkbox', { name: /\.net/i }))
     await user.click(screen.getByRole('button', { name: /continue/i }))
@@ -71,7 +71,7 @@ describe('onboarding', () => {
     const user = await startOnboarding()
 
     await user.click(await screen.findByRole('button', { name: /continue/i }))
-    await screen.findByRole('heading', { name: /what kind of role/i })
+    await screen.findByRole('heading', { name: /what do you build/i })
     await user.click(screen.getByRole('button', { name: /back/i }))
 
     expect(

@@ -16,6 +16,7 @@ from sources import SourceError, fetch
 from sources.base import SourceSpec
 from sources.jobspy_adapter import (
     DEFAULT_SITES,
+    KNOWN_UNAVAILABLE,
     _nan_to_none,
     clean,
     scrape_locations_for_users,
@@ -194,20 +195,60 @@ class TestScraping:
 
 
 class TestGlassdoor:
-    def test_glassdoor_is_refused_rather_than_silently_dropped(self) -> None:
-        """It does not serve Pakistan at all — the data does not exist. Silently
-        dropping it would leave someone waiting for results that never come."""
-        with pytest.raises(SourceError, match="glassdoor"):
-            fetch(spec(config={"sites": ["glassdoor", "indeed"]}))
+    """Glassdoor refuses this market, and that refusal is reported rather than
+    pre-empted.
+
+    Verified live against the real API: it raises "Glassdoor is not available for
+    PAKISTAN". Blocking it here would replace the vendor's own words with ours,
+    and would silently stop working the day they add the country.
+    """
+
+    def test_a_glassdoor_failure_does_not_lose_the_other_sites(self) -> None:
+        outcomes = [Exception("Glassdoor is not available for PAKISTAN"), FakeFrame([row()])]
+
+        def scraper(**kwargs):
+            outcome = outcomes.pop(0)
+            if isinstance(outcome, Exception):
+                raise outcome
+            return outcome
+
+        with (
+            mock.patch("sources.jobspy_adapter._load_scraper", return_value=scraper),
+            mock.patch("sources.jobspy_adapter.time.sleep"),
+        ):
+            postings = fetch(spec(config={"sites": ["glassdoor", "indeed"]}))
+
+        assert len(postings) == 1
+
+    def test_the_reason_reaches_the_run_history(self) -> None:
+        """ "Glassdoor is not available for PAKISTAN" is far more useful to read
+        than "scrape failed"."""
+
+        def scraper(**kwargs):
+            raise Exception("Glassdoor is not available for PAKISTAN")
+
+        with (
+            mock.patch("sources.jobspy_adapter._load_scraper", return_value=scraper),
+            pytest.raises(SourceError, match="does not serve Pakistan"),
+        ):
+            fetch(spec(config={"sites": ["glassdoor"]}))
+
+    def test_it_is_documented_as_unavailable(self) -> None:
+        assert "glassdoor" in KNOWN_UNAVAILABLE
 
     def test_it_is_not_in_the_defaults(self) -> None:
+        """Configurable, but not on unless someone asks for it."""
         assert "glassdoor" not in DEFAULT_SITES
 
-    def test_the_defaults_prefer_the_tolerant_boards(self) -> None:
-        """Indeed and Bayt are considerably more tolerant than LinkedIn."""
-        assert "indeed" in DEFAULT_SITES
-        assert "bayt" in DEFAULT_SITES
-        assert "linkedin" not in DEFAULT_SITES
+    def test_the_tolerant_boards_are_scraped_first(self) -> None:
+        """A run blocked partway has already banked the reliable results."""
+        assert DEFAULT_SITES.index("indeed") < DEFAULT_SITES.index("linkedin")
+        assert DEFAULT_SITES.index("bayt") < DEFAULT_SITES.index("linkedin")
+
+    def test_linkedin_is_included(self) -> None:
+        """Tested from a residential connection it returns real Islamabad roles.
+        It is fragile, not useless."""
+        assert "linkedin" in DEFAULT_SITES
 
 
 class TestAdditiveOnly:

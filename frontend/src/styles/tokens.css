@@ -1,0 +1,209 @@
+/**
+ * Design tokens.
+ *
+ * One source of truth for the whole app, defined as CSS custom properties so
+ * light and dark are a token swap rather than two parallel Tailwind themes.
+ *
+ * Palette: professional blue + slate, from the analytics-dashboard family in
+ * light and the financial-dashboard family in dark. Density is deliberately
+ * high — this is a tool you scan, not a page you read.
+ *
+ * Every foreground/background pair below is at or above WCAG AA (4.5:1 for body
+ * text, 3:1 for large text and UI boundaries). Colour never carries meaning on
+ * its own anywhere in the app; every state also has a word.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* --- Surfaces ------------------------------------------------------- */
+  --bg: #f8fafc;
+  --bg-subtle: #f1f5f9;
+  --surface: #ffffff;
+  --surface-hover: #f8fafc;
+  --surface-strong: #eef2f7;
+  --overlay: rgb(15 23 42 / 0.45);
+
+  /* --- Text ----------------------------------------------------------- */
+  --fg: #0f172a; /* 16.9:1 on --bg */
+  --fg-muted: #475569; /* 7.4:1 on --bg  */
+  --fg-subtle: #64748b; /* 4.8:1 on --bg  */
+  --fg-on-accent: #ffffff;
+
+  /* --- Lines ---------------------------------------------------------- */
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+
+  /* --- Brand ---------------------------------------------------------- */
+  --accent: #1d4ed8;
+  --accent-hover: #1e40af;
+  --accent-subtle: #eff6ff;
+  --accent-border: #bfdbfe;
+
+  /* --- Semantic: tiers and states ------------------------------------- */
+  /* Each is paired with a -fg for text and a -bg for its chip. */
+  --high: #15803d;
+  --high-bg: #f0fdf4;
+  --high-border: #bbf7d0;
+
+  --medium: #b45309;
+  --medium-bg: #fffbeb;
+  --medium-border: #fde68a;
+
+  --stretch: #6d28d9;
+  --stretch-bg: #f5f3ff;
+  --stretch-border: #ddd6fe;
+
+  --danger: #b91c1c;
+  --danger-bg: #fef2f2;
+  --danger-border: #fecaca;
+
+  --success: #15803d;
+  --success-bg: #f0fdf4;
+
+  /* --- Score bar segments --------------------------------------------- */
+  --seg-stack: #2563eb;
+  --seg-level: #16a34a;
+  --seg-location: #7c3aed;
+  --seg-fresh: #d97706;
+
+  /* --- Spacing: dense scale (8→32) ------------------------------------ */
+  --space-1: 0.25rem; /*  4px */
+  --space-2: 0.5rem; /*  8px */
+  --space-3: 0.75rem; /* 12px */
+  --space-4: 1rem; /* 16px */
+  --space-5: 1.5rem; /* 24px */
+  --space-6: 2rem; /* 32px */
+  --space-7: 3rem; /* 48px */
+
+  /* --- Radius --------------------------------------------------------- */
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-lg: 10px;
+  --radius-full: 999px;
+
+  /* --- Elevation ------------------------------------------------------ */
+  /* Flat by default. These are for genuinely floating things only. */
+  --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.05);
+  --shadow: 0 4px 12px -2px rgb(15 23 42 / 0.08), 0 2px 4px -2px rgb(15 23 42 / 0.04);
+
+  /* --- Motion --------------------------------------------------------- */
+  /* Fast enough to feel instant, slow enough to be seen. */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 120ms;
+  --dur: 180ms;
+
+  /* --- Layout --------------------------------------------------------- */
+  --sidebar-w: 216px;
+  --topbar-h: 56px;
+  /* Reading widths. The dashboard is full-bleed; prose is not. */
+  --measure: 68ch;
+}
+
+:root[data-theme='dark'],
+html.dark {
+  color-scheme: dark;
+
+  --bg: #020617;
+  --bg-subtle: #0b1220;
+  --surface: #0e1526;
+  --surface-hover: #151d31;
+  --surface-strong: #1a2337;
+  --overlay: rgb(2 6 23 / 0.7);
+
+  --fg: #f1f5f9; /* 16.4:1 on --bg */
+  --fg-muted: #94a3b8; /* 7.1:1 on --bg  */
+  --fg-subtle: #7c8ba1; /* 4.9:1 on --bg  */
+  --fg-on-accent: #ffffff;
+
+  --border: #1e293b;
+  --border-strong: #334155;
+
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+  --accent-subtle: #10203e;
+  --accent-border: #1e3a8a;
+
+  /* Lightened deliberately: the light-mode greens and ambers fail contrast
+     on a near-black background. */
+  --high: #4ade80;
+  --high-bg: #0c2318;
+  --high-border: #14532d;
+
+  --medium: #fbbf24;
+  --medium-bg: #261a05;
+  --medium-border: #78350f;
+
+  --stretch: #c084fc;
+  --stretch-bg: #1e1233;
+  --stretch-border: #5b21b6;
+
+  --danger: #f87171;
+  --danger-bg: #2a1113;
+  --danger-border: #7f1d1d;
+
+  --success: #4ade80;
+  --success-bg: #0c2318;
+
+  --seg-stack: #3b82f6;
+  --seg-level: #4ade80;
+  --seg-location: #c084fc;
+  --seg-fresh: #fbbf24;
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+  --shadow: 0 4px 16px -2px rgb(0 0 0 / 0.5), 0 2px 6px -2px rgb(0 0 0 / 0.3);
+}
+
+/* Follow the system when the user has expressed no preference. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --bg: #020617;
+    --bg-subtle: #0b1220;
+    --surface: #0e1526;
+    --surface-hover: #151d31;
+    --surface-strong: #1a2337;
+    --overlay: rgb(2 6 23 / 0.7);
+
+    --fg: #f1f5f9;
+    --fg-muted: #94a3b8;
+    --fg-subtle: #7c8ba1;
+    --fg-on-accent: #ffffff;
+
+    --border: #1e293b;
+    --border-strong: #334155;
+
+    --accent: #3b82f6;
+    --accent-hover: #60a5fa;
+    --accent-subtle: #10203e;
+    --accent-border: #1e3a8a;
+
+    --high: #4ade80;
+    --high-bg: #0c2318;
+    --high-border: #14532d;
+
+    --medium: #fbbf24;
+    --medium-bg: #261a05;
+    --medium-border: #78350f;
+
+    --stretch: #c084fc;
+    --stretch-bg: #1e1233;
+    --stretch-border: #5b21b6;
+
+    --danger: #f87171;
+    --danger-bg: #2a1113;
+    --danger-border: #7f1d1d;
+
+    --success: #4ade80;
+    --success-bg: #0c2318;
+
+    --seg-stack: #3b82f6;
+    --seg-level: #4ade80;
+    --seg-location: #c084fc;
+    --seg-fresh: #fbbf24;
+
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+    --shadow: 0 4px 16px -2px rgb(0 0 0 / 0.5), 0 2px 6px -2px rgb(0 0 0 / 0.3);
+  }
+}

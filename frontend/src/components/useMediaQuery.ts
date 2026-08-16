@@ -24,5 +24,11 @@ export function useMediaQuery(query: string): boolean {
   return matches
 }
 
-/** The dashboard's table/card breakpoint. */
-export const WIDE_SCREEN = '(min-width: 900px)'
+/**
+ * The table/card breakpoint.
+ *
+ * Matches the sidebar's own breakpoint on purpose: below it the sidebar is a
+ * slide-over and the content has the full width, so a table would be squeezed
+ * into whatever the sidebar left behind.
+ */
+export const WIDE_SCREEN = '(min-width: 1024px)'

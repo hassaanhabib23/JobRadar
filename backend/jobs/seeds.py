@@ -82,8 +82,11 @@ SHARED_SOURCES: list[dict[str, Any]] = [
         "label": "Job boards",
         "company": "",
         "config": {
-            # Indeed and Bayt are considerably more tolerant than LinkedIn.
-            "sites": ["indeed", "bayt", "google"],
+            # Ordered by how tolerant each is: a run that gets blocked partway
+            # has already banked the reliable results. Glassdoor is included
+            # because it was asked for, and it will record its own refusal —
+            # verified live, it answers "not available for PAKISTAN".
+            "sites": ["indeed", "bayt", "google", "linkedin", "glassdoor"],
             "query": "software engineer",
             "country": "pakistan",
             "limit": 40,

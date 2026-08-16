@@ -1,13 +1,18 @@
 /**
  * The filter bar.
  *
- * Search is debounced so typing does not fire a request per keystroke; every
- * other control commits immediately. All of it goes into the URL.
+ * Filters are visible, not hidden behind a "Filters" button — a filter you
+ * cannot see is a filter you forget is on, and then the list looks wrong for
+ * reasons you cannot explain.
+ *
+ * Search is debounced so typing does not fire a request per keystroke;
+ * everything else commits immediately. All of it goes into the URL.
  */
 
 import { useEffect, useState } from 'react'
 
 import type { StatusChoice } from '../api/types'
+import { IconClose, IconSearch } from '../components/icons'
 import { Button, Chip, cx } from '../components/ui'
 import type { JobFilters } from './useJobFilters'
 
@@ -30,13 +35,6 @@ const CITIES = [
   { value: 'lahore', label: 'Lahore' },
   { value: 'karachi', label: 'Karachi' },
   { value: 'remote_pk', label: 'Remote (PK)' },
-]
-
-/** One-click views for the things looked at most often. */
-const QUICK_CHIPS: { key: keyof JobFilters; label: string; value?: string; title: string }[] = [
-  { key: 'isNew', label: 'New today', title: 'Appeared for the first time on the last run' },
-  { key: 'hasDate', label: 'Has real date', title: 'Excludes undated postings and estimated ages' },
-  { key: 'pinned', label: 'Pinned', title: 'Jobs you have pinned' },
 ]
 
 export function FilterBar({
@@ -67,90 +65,99 @@ export function FilterBar({
   }, [searchDraft, filters.search, setFilters])
 
   return (
-    <section aria-label="Filters" className="flex flex-col gap-3">
+    <section aria-label="Filters" className="rounded-lg border border-hairline bg-surface p-3">
       <div className="flex flex-wrap items-center gap-2">
-        <div className="min-w-[200px] flex-1">
+        <div className="relative min-w-[220px] flex-1">
           <label htmlFor="job-search" className="sr-only">
             Search jobs
           </label>
+          <IconSearch
+            size={15}
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-subtle"
+          />
           <input
             id="job-search"
             type="search"
             placeholder="Search title, company or location"
             value={searchDraft}
             onChange={(event) => setSearchDraft(event.target.value)}
-            className="min-h-[44px] w-full rounded-lg border border-hairline bg-surface px-3 text-sm"
+            className="h-9 w-full rounded border border-hairline bg-bg pl-9 pr-3 text-base placeholder:text-subtle"
           />
         </div>
 
-        <Select
-          label="Tier"
-          value={filters.tier}
-          onChange={(tier) => setFilters({ tier })}
-          options={[
-            { value: '', label: 'Any tier' },
-            { value: 'High', label: 'High' },
-            { value: 'Medium', label: 'Medium' },
-            { value: 'Stretch', label: 'Stretch' },
-          ]}
-        />
+        <Compact label="Tier" value={filters.tier} onChange={(tier) => setFilters({ tier })}>
+          <option value="">Any tier</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Stretch">Stretch</option>
+        </Compact>
 
-        <Select
+        <Compact
           label="Status"
           value={filters.status}
           onChange={(status) => setFilters({ status })}
-          options={[
-            { value: '', label: 'Any status' },
-            ...statuses.map((s) => ({
-              value: s.value as string,
-              label: s.label,
-            })),
-          ]}
-        />
+        >
+          <option value="">Any status</option>
+          {statuses.map((status) => (
+            <option key={status.value} value={status.value}>
+              {status.label}
+            </option>
+          ))}
+        </Compact>
 
-        <Select
+        <Compact
           label="Source"
           value={filters.source}
           onChange={(source) => setFilters({ source })}
-          options={[
-            { value: '', label: 'Any source' },
-            ...SOURCES.map((value) => ({ value, label: value })),
-          ]}
-        />
+        >
+          <option value="">Any source</option>
+          {SOURCES.map((source) => (
+            <option key={source} value={source}>
+              {source}
+            </option>
+          ))}
+        </Compact>
 
-        <Select
+        <Compact
           label="City"
           value={filters.location}
           onChange={(location) => setFilters({ location })}
-          options={[{ value: '', label: 'Any city' }, ...CITIES]}
-        />
+        >
+          <option value="">Any city</option>
+          {CITIES.map((city) => (
+            <option key={city.value} value={city.value}>
+              {city.label}
+            </option>
+          ))}
+        </Compact>
 
-        <div className="flex items-center gap-1">
-          <label htmlFor="min-score" className="text-xs text-muted">
-            Min score
+        <div className="flex items-center gap-1.5">
+          <label htmlFor="min-score" className="text-xs text-subtle">
+            Min
           </label>
           <input
             id="min-score"
             type="number"
             min={0}
             max={100}
+            placeholder="0"
             value={filters.minScore}
             onChange={(event) => setFilters({ minScore: event.target.value })}
-            className="min-h-[44px] w-[76px] rounded-lg border border-hairline bg-surface px-2 text-sm"
+            className="tabular h-9 w-[68px] rounded border border-hairline bg-bg px-2 text-sm"
           />
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        {QUICK_CHIPS.map((chip) => (
-          <Chip
-            key={chip.key}
-            checked={Boolean(filters[chip.key])}
-            onChange={(checked) => setFilters({ [chip.key]: checked } as Partial<JobFilters>)}
-          >
-            <span title={chip.title}>{chip.label}</span>
-          </Chip>
-        ))}
+      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-hairline pt-3">
+        <Chip checked={filters.isNew} onChange={(isNew) => setFilters({ isNew })}>
+          <span title="Appeared for the first time on the last run">New today</span>
+        </Chip>
+        <Chip checked={filters.hasDate} onChange={(hasDate) => setFilters({ hasDate })}>
+          <span title="Excludes undated postings and estimated ages">Has real date</span>
+        </Chip>
+        <Chip checked={filters.pinned} onChange={(pinned) => setFilters({ pinned })}>
+          Pinned
+        </Chip>
         <Chip
           checked={filters.flag === 'ghost?'}
           onChange={(checked) => setFilters({ flag: checked ? 'ghost?' : '' })}
@@ -165,39 +172,42 @@ export function FilterBar({
         </Chip>
 
         {activeCount > 0 && (
-          <Button variant="ghost" onClick={reset} className="text-sm">
+          <Button variant="ghost" size="sm" onClick={reset}>
+            <IconClose size={13} />
             Clear {activeCount} filter{activeCount === 1 ? '' : 's'}
           </Button>
         )}
 
-        <p
-          // Announced, so a screen-reader user learns the list changed size.
-          aria-live="polite"
-          className={cx('ml-auto text-sm text-muted')}
-        >
-          {resultCount === undefined
-            ? 'Loading…'
-            : `${resultCount} job${resultCount === 1 ? '' : 's'}`}
+        <p aria-live="polite" className={cx('ml-auto text-sm text-muted')}>
+          {resultCount === undefined ? (
+            'Loading…'
+          ) : (
+            <>
+              <span className="tabular font-medium text-fg">{resultCount}</span> job
+              {resultCount === 1 ? '' : 's'}
+            </>
+          )}
         </p>
       </div>
     </section>
   )
 }
 
-function Select({
+/** A compact labelled select for the filter row. */
+function Compact({
   label,
   value,
   onChange,
-  options,
+  children,
 }: {
   label: string
   value: string
   onChange: (value: string) => void
-  options: { value: string; label: string }[]
+  children: React.ReactNode
 }) {
-  const id = `filter-${label.toLowerCase().replace(/\s+/g, '-')}`
+  const id = `filter-${label.toLowerCase()}`
   return (
-    <div className="flex items-center gap-1">
+    <>
       <label htmlFor={id} className="sr-only">
         {label}
       </label>
@@ -205,14 +215,13 @@ function Select({
         id={id}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="min-h-[44px] rounded-lg border border-hairline bg-surface px-2 text-sm"
+        className={cx(
+          'h-9 rounded border bg-bg px-2 text-sm',
+          value ? 'border-accent-border text-accent' : 'border-hairline text-muted',
+        )}
       >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
+        {children}
       </select>
-    </div>
+    </>
   )
 }

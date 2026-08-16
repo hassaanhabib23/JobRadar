@@ -1,23 +1,31 @@
 /**
  * Badges derived from a job's flags and dates.
  *
- * Each one exists because the underlying value means something specific that a
+ * Each exists because the underlying value means something specific that a
  * reader would otherwise get wrong.
  */
 
 import type { Job } from '../api/types'
-import { cx } from '../components/ui'
+import {
+  IconAlert,
+  IconCalendar,
+  IconGhost,
+  IconLayers,
+  IconRefresh,
+  IconSparkle,
+} from '../components/icons'
+import { Badge, type BadgeTone } from '../components/ui'
 
-export interface Badge {
+export interface JobBadge {
   key: string
   label: string
   title: string
-  tone: 'neutral' | 'warning' | 'accent'
+  tone: BadgeTone
+  icon: React.ReactNode
 }
 
-export function badgesFor(job: Job): Badge[] {
-  const badges: Badge[] = []
-  const detail = job.detail
+export function badgesFor(job: Job): JobBadge[] {
+  const badges: JobBadge[] = []
 
   if (job.isNew) {
     badges.push({
@@ -27,6 +35,7 @@ export function badgesFor(job: Job): Badge[] {
       label: 'New today',
       title: 'First appeared in your list on the most recent run',
       tone: 'accent',
+      icon: <IconSparkle size={11} />,
     })
   }
 
@@ -36,13 +45,15 @@ export function badgesFor(job: Job): Badge[] {
       label: 'No date',
       title: 'The source gave no posting date, so this is scored down deliberately',
       tone: 'neutral',
+      icon: <IconCalendar size={11} />,
     })
-  } else if (detail?.ageInferred) {
+  } else if (job.detail?.ageInferred) {
     badges.push({
       key: 'age-estimated',
       label: 'Age estimated',
       title: 'Age is how long we have tracked it, not a date the employer published',
       tone: 'neutral',
+      icon: <IconCalendar size={11} />,
     })
   }
 
@@ -51,7 +62,8 @@ export function badgesFor(job: Job): Badge[] {
       key: 'ghost',
       label: 'Ghost?',
       title: 'Listed for weeks without closing — often already filled',
-      tone: 'warning',
+      tone: 'medium',
+      icon: <IconGhost size={11} />,
     })
   }
 
@@ -61,6 +73,7 @@ export function badgesFor(job: Job): Badge[] {
       label: 'Reposted',
       title: 'The source flagged this as a repost rather than a new listing',
       tone: 'neutral',
+      icon: <IconRefresh size={11} />,
     })
   }
 
@@ -68,10 +81,11 @@ export function badgesFor(job: Job): Badge[] {
   if (alsoSeenOn.length > 0) {
     badges.push({
       key: 'also-seen',
-      // Without this the row reads as thin coverage from one source.
+      // Without this the row reads as thin coverage from a single source.
       label: `also on ${alsoSeenOn.join(', ')}`,
-      title: 'This posting was found on more than one source and merged',
+      title: 'Found on more than one source and merged into one row',
       tone: 'neutral',
+      icon: <IconLayers size={11} />,
     })
   }
 
@@ -80,36 +94,25 @@ export function badgesFor(job: Job): Badge[] {
       key: 'closed',
       label: 'Closed',
       title: 'This posting has disappeared from its source',
-      tone: 'warning',
+      tone: 'danger',
+      icon: <IconAlert size={11} />,
     })
   }
 
   return badges
 }
 
-const TONES = {
-  neutral: 'border-hairline text-muted',
-  warning: 'border-medium/50 bg-medium/10 text-medium',
-  accent: 'border-accent/50 bg-accent/10 text-accent',
-} as const
-
 export function Badges({ job }: { job: Job }) {
   const badges = badgesFor(job)
   if (badges.length === 0) return null
 
   return (
-    <ul className="flex flex-wrap gap-1">
+    <ul className="flex flex-wrap items-center gap-1">
       {badges.map((badge) => (
-        <li key={badge.key}>
-          <span
-            title={badge.title}
-            className={cx(
-              'inline-block rounded-full border px-2 py-0.5 text-[11px] leading-4',
-              TONES[badge.tone],
-            )}
-          >
+        <li key={badge.key} className="min-w-0">
+          <Badge tone={badge.tone} title={badge.title} icon={badge.icon}>
             {badge.label}
-          </span>
+          </Badge>
         </li>
       ))}
     </ul>

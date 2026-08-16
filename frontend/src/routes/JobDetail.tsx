@@ -1,174 +1,215 @@
 /**
  * One job, in full.
  *
- * Notes autosave — a note you have to remember to save is a note you lose.
+ * The score breakdown is the centrepiece: four components with their maximums,
+ * the reasoning line by line, and the skills that matched. Notes autosave,
+ * because a note you have to remember to save is a note you lose — and it is
+ * the one thing here that cannot be re-fetched.
  */
 
 import { useEffect, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import { useJob, useStatuses, useUpdateJob } from '../api/queries'
-import { Panel, Spinner } from '../components/ui'
+import { AppShell, Column } from '../components/AppShell'
+import { IconArrowLeft, IconCheck, IconExternal } from '../components/icons'
+import { Badge, Panel, PanelHeader, Skeleton, cx } from '../components/ui'
 import { Badges } from '../dashboard/badges'
-import { ScoreBar, TIER_CLASS } from '../dashboard/ScoreBar'
+import { MAXIMUMS, SEGMENTS, ScoreBar, TIER_TONE } from '../dashboard/ScoreBar'
 import { StatusSelect } from '../dashboard/StatusSelect'
-import { cx } from '../components/ui'
 
-const COMPONENTS = [
-  { key: 'stack', label: 'Stack', max: 40, hint: 'Weighted skills found in the posting' },
-  { key: 'level', label: 'Level', max: 25, hint: 'Seniority signals in the title' },
-  { key: 'location', label: 'Location', max: 20, hint: 'How well the city matches your profile' },
-  { key: 'fresh', label: 'Freshness', max: 15, hint: 'How recently it was posted' },
-] as const
+const HINTS: Record<string, string> = {
+  stack: 'Weighted skills found in the title, location and description',
+  level: 'Seniority signals in the title. An unstated level scores 14, not 0',
+  location: 'How well the city matches your profile',
+  fresh: 'How recently it was posted',
+}
 
 export default function JobDetail() {
   const { id } = useParams()
   const jobId = Number(id)
   const job = useJob(jobId)
   const statuses = useStatuses()
-
-  if (job.isPending) {
-    return (
-      <Wrapper>
-        <Spinner label="Loading this job" />
-      </Wrapper>
-    )
-  }
-
-  if (job.isError || !job.data) {
-    return (
-      <Wrapper>
-        <Panel>
-          <p role="alert" className="text-sm">
-            This job could not be loaded. It may have been removed from your list.{' '}
-            <Link to="/app" className="font-medium underline underline-offset-2">
-              Back to the dashboard
-            </Link>
-          </p>
-        </Panel>
-      </Wrapper>
-    )
-  }
-
   const data = job.data
-  const detail = data.detail
 
   return (
-    <Wrapper>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <Link to="/app" className="text-sm text-muted underline-offset-2 hover:underline">
-            ← All jobs
-          </Link>
-          <h1 className="mt-2 text-2xl font-semibold">{data.title}</h1>
-          <p className="mt-1 text-muted">
-            {data.company}
-            {data.location && ` · ${data.location}`}
-          </p>
-          <div className="mt-2">
-            <Badges job={data} />
-          </div>
-        </div>
+    <AppShell
+      topbar={
+        <Link
+          to="/app"
+          className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-fg"
+        >
+          <IconArrowLeft size={15} />
+          All jobs
+        </Link>
+      }
+    >
+      <Column className="flex flex-col gap-4">
+        {job.isPending && (
+          <>
+            <span className="sr-only" role="status">
+              Loading this job
+            </span>
+            <Skeleton className="h-28" />
+            <Skeleton className="h-64" />
+          </>
+        )}
 
-        <div className="flex items-center gap-2">
-          <StatusSelect job={data} choices={statuses.data ?? []} />
-          {data.url && (
-            <a
-              href={data.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-[44px] items-center rounded-lg bg-accent px-4 text-sm font-medium text-white"
-            >
-              Apply
-            </a>
-          )}
-        </div>
-      </div>
+        {(job.isError || (!job.isPending && !data)) && (
+          <Panel className="p-5">
+            <p role="alert" className="text-sm">
+              This job could not be loaded. It may no longer be on your list.{' '}
+              <Link to="/app" className="font-medium text-accent underline underline-offset-2">
+                Back to your jobs
+              </Link>
+            </p>
+          </Panel>
+        )}
 
-      <Panel className="flex flex-col gap-4">
-        <div className="flex items-baseline gap-3">
-          <span className="text-3xl font-semibold tabular-nums">{data.score}</span>
-          <span className="text-muted">/ 100</span>
-          <span
-            className={cx(
-              'rounded-full border px-2 py-0.5 text-xs font-medium',
-              TIER_CLASS[data.tier] ?? 'border-hairline',
-            )}
-          >
-            {data.tier}
-          </span>
-        </div>
+        {data && (
+          <>
+            <Panel className="p-5">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <h1 className="text-xl font-semibold">{data.title}</h1>
+                  <p className="mt-1 text-muted">
+                    {data.company}
+                    {data.location && ` · ${data.location}`}
+                  </p>
+                  <div className="mt-2.5">
+                    <Badges job={data} />
+                  </div>
+                </div>
 
-        <ScoreBar detail={detail} score={data.score} />
-
-        {detail && (
-          <dl className="grid gap-3 sm:grid-cols-4">
-            {COMPONENTS.map((component) => (
-              <div key={component.key}>
-                <dt className="text-xs uppercase tracking-wide text-muted" title={component.hint}>
-                  {component.label}
-                </dt>
-                <dd className="mt-1 tabular-nums">
-                  <strong>{detail[component.key].toFixed(1)}</strong>
-                  <span className="text-muted"> / {component.max}</span>
-                </dd>
+                <div className="flex items-center gap-2">
+                  <StatusSelect job={data} choices={statuses.data ?? []} className="w-[150px]" />
+                  {data.url && (
+                    <a
+                      href={data.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex h-11 min-h-[44px] items-center gap-2 rounded bg-accent px-4 text-base font-medium text-on-accent transition-colors duration-fast hover:bg-accent-hover"
+                    >
+                      Apply
+                      <IconExternal size={14} />
+                    </a>
+                  )}
+                </div>
               </div>
-            ))}
-          </dl>
+            </Panel>
+
+            <Panel>
+              <PanelHeader
+                title="Why it scored this"
+                description="Every number here comes from a weight you control."
+                action={
+                  <div className="flex items-baseline gap-2">
+                    <span className="tabular text-2xl font-semibold leading-none">
+                      {data.score}
+                    </span>
+                    <span className="text-sm text-subtle">/ 100</span>
+                    <Badge tone={TIER_TONE[data.tier as keyof typeof TIER_TONE] ?? 'neutral'}>
+                      {data.tier}
+                    </Badge>
+                  </div>
+                }
+              />
+
+              <div className="p-5">
+                <ScoreBar detail={data.detail} score={data.score} className="h-2" />
+
+                {data.detail && (
+                  <dl className="mt-4 grid gap-4 sm:grid-cols-4">
+                    {SEGMENTS.map((segment) => (
+                      <div key={segment.key}>
+                        <dt
+                          className="flex items-center gap-1.5 text-2xs uppercase tracking-wide text-subtle"
+                          title={HINTS[segment.key]}
+                        >
+                          <span
+                            aria-hidden="true"
+                            className={cx('h-2 w-2 rounded-full', segment.colour)}
+                          />
+                          {segment.label}
+                        </dt>
+                        <dd className="tabular mt-1.5">
+                          <span className="text-md font-semibold">
+                            {data.detail![segment.key].toFixed(1)}
+                          </span>
+                          <span className="text-subtle"> / {MAXIMUMS[segment.key]}</span>
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                )}
+
+                {data.detail?.notes?.length ? (
+                  <ul className="mt-5 space-y-1.5 border-t border-hairline pt-4">
+                    {data.detail.notes.map((note) => (
+                      <li key={note} className="flex items-start gap-2 text-sm text-muted">
+                        <IconCheck size={13} className="mt-1 text-high" />
+                        {note}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+
+                {data.detail?.skillsHit?.length ? (
+                  <div className="mt-4 border-t border-hairline pt-4">
+                    <h3 className="text-2xs font-medium uppercase tracking-wide text-subtle">
+                      Matched skills
+                    </h3>
+                    <ul className="mt-2 flex flex-wrap gap-1.5">
+                      {data.detail.skillsHit.map((skill) => (
+                        <li key={skill}>
+                          <Badge tone="accent">{skill}</Badge>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <p className="mt-4 border-t border-hairline pt-4 text-sm text-muted">
+                    No skills from your profile appeared in this posting — its score comes from
+                    location, seniority and freshness alone.
+                  </p>
+                )}
+              </div>
+            </Panel>
+
+            <Panel>
+              <PanelHeader title="Timeline" />
+              <dl className="grid gap-4 p-5 text-sm sm:grid-cols-4">
+                <Fact label="Posted" value={data.postedAt ?? 'not stated'} />
+                <Fact label="First seen by you" value={formatDate(data.firstSeen)} />
+                <Fact label="Last seen" value={formatDate(data.lastSeen)} />
+                <Fact
+                  label="Times seen"
+                  value={`${data.seenCount}${data.closedAt ? ' · now closed' : ''}`}
+                />
+              </dl>
+              {data.alsoSeenOn.length > 0 && (
+                <p className="border-t border-hairline px-5 py-3 text-sm text-muted">
+                  Also found on {data.alsoSeenOn.join(', ')}
+                  {data.dateFrom && ` — the posting date came from ${data.dateFrom}`}
+                </p>
+              )}
+            </Panel>
+
+            <NotesPanel jobId={jobId} initial={data.notes} />
+
+            {data.description && (
+              <Panel>
+                <PanelHeader title="Description" />
+                {/* Rendered as text, never as HTML: a posting is untrusted input. */}
+                <p className="whitespace-pre-wrap p-5 text-sm leading-relaxed text-muted">
+                  {data.description}
+                </p>
+              </Panel>
+            )}
+          </>
         )}
-
-        {detail?.notes?.length ? (
-          <div>
-            <h2 className="text-sm font-medium">Why it scored this</h2>
-            <ul className="mt-1 list-inside list-disc text-sm text-muted">
-              {detail.notes.map((note) => (
-                <li key={note}>{note}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-
-        {detail?.skillsHit?.length ? (
-          <div>
-            <h2 className="text-sm font-medium">Matched skills</h2>
-            <p className="mt-1 text-sm text-muted">{detail.skillsHit.join(', ')}</p>
-          </div>
-        ) : (
-          <p className="text-sm text-muted">
-            No skills from your profile appeared in this posting.
-          </p>
-        )}
-      </Panel>
-
-      <Panel>
-        <h2 className="text-sm font-medium">Timeline</h2>
-        <dl className="mt-2 grid gap-3 text-sm sm:grid-cols-4">
-          <Fact label="Posted" value={data.postedAt ?? 'not stated'} />
-          <Fact label="First seen by you" value={formatDate(data.firstSeen)} />
-          <Fact label="Last seen" value={formatDate(data.lastSeen)} />
-          <Fact
-            label="Times seen"
-            value={`${data.seenCount}${data.closedAt ? ' · now closed' : ''}`}
-          />
-        </dl>
-        {data.alsoSeenOn.length > 0 && (
-          <p className="mt-3 text-sm text-muted">
-            Also found on {data.alsoSeenOn.join(', ')}
-            {data.dateFrom && ` — posting date came from ${data.dateFrom}`}
-          </p>
-        )}
-      </Panel>
-
-      <NotesPanel jobId={jobId} initial={data.notes} />
-
-      {data.description && (
-        <Panel>
-          <h2 className="text-sm font-medium">Description</h2>
-          {/* Rendered as text, never as HTML: a posting is untrusted input. */}
-          <p className="mt-2 whitespace-pre-wrap text-sm text-muted">{data.description}</p>
-        </Panel>
-      )}
-    </Wrapper>
+      </Column>
+    </AppShell>
   )
 }
 
@@ -183,8 +224,6 @@ function NotesPanel({ jobId, initial }: { jobId: number; initial: string }) {
   useEffect(() => {
     if (notes === initial) return
     clearTimeout(timer.current)
-    // Autosave after a pause. A note you have to remember to save is a note you
-    // lose, and this is the one thing here that cannot be re-fetched.
     timer.current = setTimeout(() => {
       update.mutate(
         { id: jobId, notes },
@@ -197,30 +236,40 @@ function NotesPanel({ jobId, initial }: { jobId: number; initial: string }) {
       )
     }, 800)
     return () => clearTimeout(timer.current)
-    // `update` is deliberately excluded: the mutation object is a new reference
-    // on every render, and including it restarts the autosave timer forever.
+    // `update` is a new reference every render; including it restarts the timer forever.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notes, initial, jobId])
 
   return (
     <Panel>
-      <div className="flex items-center justify-between">
-        <label htmlFor="job-notes" className="text-sm font-medium">
-          Your notes
-        </label>
-        <span aria-live="polite" className="text-xs text-muted">
-          {update.isPending ? 'Saving…' : saved ? 'Saved' : ''}
-          {update.isError && <span className="text-danger">Could not save</span>}
-        </span>
-      </div>
-      <textarea
-        id="job-notes"
-        rows={4}
-        value={notes}
-        onChange={(event) => setNotes(event.target.value)}
-        placeholder="Who referred you, what you tailored, when to follow up…"
-        className="mt-2 w-full rounded-lg border border-hairline bg-surface p-3 text-sm"
+      <PanelHeader
+        title="Your notes"
+        description="Saved automatically. Private to your account."
+        action={
+          <span aria-live="polite" className="text-xs">
+            {update.isPending && <span className="text-subtle">Saving…</span>}
+            {saved && !update.isPending && (
+              <span className="flex items-center gap-1 text-high">
+                <IconCheck size={12} /> Saved
+              </span>
+            )}
+            {update.isError && <span className="text-danger">Could not save</span>}
+          </span>
+        }
       />
+      <div className="p-5">
+        <label htmlFor="job-notes" className="sr-only">
+          Notes
+        </label>
+        <textarea
+          id="job-notes"
+          rows={4}
+          value={notes}
+          onChange={(event) => setNotes(event.target.value)}
+          placeholder="Who referred you, what you tailored, when to follow up…"
+          className="w-full rounded border border-hairline bg-bg p-3 text-base leading-relaxed placeholder:text-subtle"
+        />
+      </div>
     </Panel>
   )
 }
@@ -228,7 +277,7 @@ function NotesPanel({ jobId, initial }: { jobId: number; initial: string }) {
 function Fact({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs uppercase tracking-wide text-muted">{label}</dt>
+      <dt className="text-2xs uppercase tracking-wide text-subtle">{label}</dt>
       <dd className="mt-1">{value}</dd>
     </div>
   )
@@ -237,12 +286,4 @@ function Fact({ label, value }: { label: string; value: string }) {
 function formatDate(value: string | null | undefined): string {
   if (!value) return '—'
   return new Date(value).toLocaleDateString()
-}
-
-function Wrapper({ children }: { children: React.ReactNode }) {
-  return (
-    <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-5 p-4 sm:p-6">
-      {children}
-    </main>
-  )
 }

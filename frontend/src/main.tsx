@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 
 import App from './App'
+import { applyTheme, readTheme } from './components/ThemeToggle'
 import { AuthProvider } from './auth/AuthProvider'
 import './index.css'
 
@@ -24,6 +25,10 @@ const queryClient = new QueryClient({
     },
   },
 })
+
+// Before the first paint: otherwise a dark-mode user gets a white flash on
+// every page load.
+applyTheme(readTheme())
 
 const container = document.getElementById('root')
 if (!container) throw new Error('#root not found')

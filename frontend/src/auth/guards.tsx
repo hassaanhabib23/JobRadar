@@ -15,8 +15,12 @@ function Checking() {
     <div
       role="status"
       aria-live="polite"
-      className="flex min-h-screen items-center justify-center text-sm text-muted"
+      className="flex min-h-screen items-center justify-center gap-2 text-sm text-muted"
     >
+      <span
+        aria-hidden="true"
+        className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-hairline-strong border-t-accent"
+      />
       Restoring your session…
     </div>
   )

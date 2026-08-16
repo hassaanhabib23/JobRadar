@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest'
 
 import { cleanup } from '@testing-library/react'
-import { afterAll, afterEach, beforeAll } from 'vitest'
+import { afterAll, afterEach, beforeAll, vi } from 'vitest'
 
 import { resetClientState } from '../api/client'
 import { resetConfigCache } from '../config'
@@ -15,7 +15,7 @@ import { resetState, server } from './server'
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: (query: string) => ({
-    matches: query.includes('min-width: 900px'),
+    matches: query.includes('min-width: 1024px'),
     media: query,
     onchange: null,
     addEventListener: () => {},
@@ -25,6 +25,28 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: () => false,
   }),
 })
+
+// jsdom has no IntersectionObserver either, and the landing page's scroll
+// reveal needs one. This stub reveals immediately, which is the same end state
+// a reduced-motion user gets.
+class ImmediateObserver {
+  constructor(private callback: IntersectionObserverCallback) {}
+  observe(target: Element) {
+    this.callback(
+      [{ isIntersecting: true, target } as IntersectionObserverEntry],
+      this as unknown as IntersectionObserver,
+    )
+  }
+  unobserve() {}
+  disconnect() {}
+  takeRecords(): IntersectionObserverEntry[] {
+    return []
+  }
+  root = null
+  rootMargin = ''
+  thresholds = []
+}
+vi.stubGlobal('IntersectionObserver', ImmediateObserver)
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 

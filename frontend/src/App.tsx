@@ -10,7 +10,7 @@
  */
 
 import { lazy, Suspense } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Route, Routes } from 'react-router-dom'
 
 import { RedirectIfAuthenticated, RequireAuth, RequireOnboarding } from './auth/guards'
 import Login from './routes/Login'
@@ -22,6 +22,7 @@ const Dashboard = lazy(() => import('./routes/Dashboard'))
 const JobDetail = lazy(() => import('./routes/JobDetail'))
 const ProfilePage = lazy(() => import('./routes/ProfilePage'))
 const Runs = lazy(() => import('./routes/Runs'))
+const NotFound = lazy(() => import('./routes/NotFound'))
 
 function RouteFallback() {
   return (
@@ -59,7 +60,8 @@ export default function App() {
           </Route>
         </Route>
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* A silent redirect to "/" hides the mistake; a 404 names it. */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
   )

@@ -2,12 +2,16 @@
 
 **Be honest about what this is.** It is scraping. LinkedIn's terms do not permit
 it, their `robots.txt` disallows job pages, and IP blocks are a normal outcome
-rather than a bug. Indeed and Bayt are considerably more tolerant, so the default
-site list prefers them and treats LinkedIn as a bonus.
+rather than a bug. Indeed and Bayt are considerably more tolerant, which is why
+they lead the default list — but LinkedIn is included, because tested from a
+residential connection it does return real Islamabad roles.
 
-Glassdoor is **not** supported: it does not serve Pakistan at all — the API
-returns "Glassdoor is not available for PAKISTAN". That is missing data, not a
-limitation to work around, so it is rejected rather than silently dropped.
+**Glassdoor can be configured, and will fail for Pakistan.** Verified live: the
+API raises "Glassdoor is not available for PAKISTAN". That is their refusal, not
+ours, so it is not blocked here — a configured Glassdoor scrape simply records
+that message as a source error and the other sites in the same run carry on. If
+the search location ever moves to a country Glassdoor does serve, it works with
+no code change.
 
 Results are **additive only**. A keyword search is not a full listing of anyone's
 board, so a job's absence from today's results proves nothing about whether it is
@@ -29,11 +33,17 @@ from sources.coerce import strip_html, to_date
 
 logger = logging.getLogger(__name__)
 
-#: Indeed and Bayt tolerate this far better than LinkedIn does.
-DEFAULT_SITES = ("indeed", "bayt", "google")
+#: Indeed and Bayt tolerate scraping far better than LinkedIn, so they go first
+#: — a run that gets blocked has already collected the tolerant sites' results
+#: by the time it reaches the fragile one.
+DEFAULT_SITES = ("indeed", "bayt", "google", "linkedin")
 
-#: Never scraped. The data does not exist for this market.
-UNSUPPORTED_SITES = frozenset({"glassdoor"})
+#: Sites known to refuse this market outright. Not blocked — a configured scrape
+#: is attempted and its refusal recorded, so the run history shows the vendor's
+#: own words rather than a decision made here.
+KNOWN_UNAVAILABLE = {
+    "glassdoor": "Glassdoor does not serve Pakistan — the API refuses the country",
+}
 
 #: LinkedIn rate-limits hard by IP after roughly 100 results.
 DEFAULT_LIMIT = 40
@@ -84,12 +94,6 @@ def fetch_jobspy(spec: SourceSpec, *, today: date | None = None) -> list[RawPost
     config = spec.config or {}
     sites = [str(site).lower() for site in (config.get("sites") or DEFAULT_SITES)]
 
-    unsupported = sorted(set(sites) & UNSUPPORTED_SITES)
-    if unsupported:
-        raise SourceError(
-            f"{', '.join(unsupported)} is not supported for this market and will not be scraped"
-        )
-
     query = str(config.get("query") or "software engineer")
     location = str(spec.location_hint or config.get("location") or "")
     if not location:
@@ -125,8 +129,14 @@ def fetch_jobspy(spec: SourceSpec, *, today: date | None = None) -> list[RawPost
                 proxies=proxies or None,
             )
         except Exception as exc:
-            logger.info("jobspy %s/%s failed: %s", site, location, exc)
-            failures.append(f"{site}: {exc.__class__.__name__}")
+            # A blocked or unavailable site is expected, not fatal. The message
+            # is kept verbatim so the run history shows why rather than a
+            # generic failure — "Glassdoor is not available for PAKISTAN" is a
+            # far more useful thing to read than "scrape failed".
+            note = KNOWN_UNAVAILABLE.get(site)
+            detail = str(exc).strip() or exc.__class__.__name__
+            logger.info("jobspy %s/%s failed: %s", site, location, detail)
+            failures.append(f"{site}: {note or detail}"[:200])
             continue
 
         postings.extend(_rows_to_postings(frame, spec, location, today))

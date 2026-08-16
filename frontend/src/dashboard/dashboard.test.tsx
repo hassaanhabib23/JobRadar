@@ -38,7 +38,12 @@ describe('the job list', () => {
   it('announces how many jobs matched', async () => {
     await openDashboard()
 
-    expect(await screen.findByText(/^2 jobs$/i)).toBeInTheDocument()
+    // The count sits in its own element for tabular figures, so the text is
+    // split across nodes — match on the container instead.
+    const summary = await screen.findByText((_, element) =>
+      /^2 jobs$/i.test(element?.textContent?.trim() ?? ''),
+    )
+    expect(summary).toBeInTheDocument()
   })
 
   it('labels a first-run job "New today", never just "New"', async () => {
@@ -161,7 +166,9 @@ describe('bulk actions', () => {
     await screen.findByText('Associate Software Engineer')
 
     await user.click(screen.getByLabelText(/select all jobs on this page/i))
-    expect(await screen.findByText('2 selected')).toBeInTheDocument()
+    expect(
+      await screen.findByText((_, element) => element?.textContent?.trim() === '2 selected'),
+    ).toBeInTheDocument()
 
     await user.selectOptions(screen.getByLabelText(/set status for selected jobs/i), 'skipped')
 
@@ -214,7 +221,7 @@ describe('the empty states', () => {
     await openDashboard()
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/could not load your jobs/i)
-    expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument()
   })
 })
 

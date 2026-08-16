@@ -224,7 +224,31 @@ the generation changed simply retries with the current token instead of starting
 another refresh. A test fires three concurrent requests and asserts exactly one
 refresh happens.
 
-## 16. `python-jobspy` and the `scrape` extra
+## 16. LinkedIn is enabled, and Glassdoor is attempted rather than blocked
+
+**Spec (§3a):** prefer `["indeed", "bayt", "google"]`, treat LinkedIn as a bonus,
+and do not add Glassdoor at all.
+
+**LinkedIn:** tested live from a residential connection, it returns real
+Islamabad roles. It is now in the default site list — but *last*, after the
+tolerant boards, so a run that gets blocked partway has already banked the
+reliable results. Enabling it roughly doubled the scraped yield: 38 postings per
+city became 78.
+
+**Glassdoor:** the specification is factually right — verified live, the API
+raises `Glassdoor is not available for PAKISTAN`. But it is no longer rejected
+before the request. Blocking it here replaces the vendor's own words with ours,
+and would silently keep blocking on the day they add the country. Instead a
+configured Glassdoor scrape is attempted, its refusal is recorded verbatim in the
+run history, and the other sites in the same run carry on unaffected.
+
+**Cost:** five sites across three cities, scraped sequentially with a delay, took
+245 seconds — over NFR2's three-minute budget. The budget assumed roughly fifteen
+sources, not seventeen including five scraped sites. Scraping cities in parallel
+would fix it, but parallel scrapes from one IP is the fastest way to get that IP
+blocked, so the slower run is the deliberate choice.
+
+## 17. `python-jobspy` and the `scrape` extra
 
 Not a spec disagreement — a build-time one. jobspy pulls in pandas, which is slow
 to install and heavy at runtime. It is declared as the `scrape` extra in

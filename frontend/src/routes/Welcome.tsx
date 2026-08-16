@@ -1,11 +1,13 @@
 /**
  * Onboarding.
  *
- * This matters more than it sounds: a user whose first screen is an empty
+ * This matters more than it looks: a user whose first screen is an empty
  * dashboard leaves. Three short steps, and the last one triggers a run so their
  * first dashboard has jobs in it.
  *
- * Skippable throughout — the defaults produce a working profile either way.
+ * Progressive disclosure — one decision per screen, with a visible progress
+ * indicator so nobody wonders how much more of this there is. Skippable
+ * throughout, because the defaults already produce a working profile.
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -15,16 +17,19 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../api/client'
 import { ROLE_KEYWORDS, type Location, type Profile, type User } from '../api/types'
 import { useAuth } from '../auth/AuthProvider'
-import { Button, Chip, Panel, Spinner } from '../components/ui'
+import { AuthLayout } from '../components/AuthLayout'
+import { IconCheck, IconMapPin, IconRadar } from '../components/icons'
+import { Button, Chip, Panel, Skeleton, cx } from '../components/ui'
 
 const DEFAULT_CITIES = ['islamabad', 'rawalpindi']
+const STEPS = ['Cities', 'Focus', 'Done'] as const
 
 type Step = 1 | 2 | 3
 
 export default function Welcome() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { user, setUser } = useAuth()
+  const { setUser } = useAuth()
 
   const [step, setStep] = useState<Step>(1)
   const [cities, setCities] = useState<string[]>(DEFAULT_CITIES)
@@ -50,10 +55,7 @@ export default function Welcome() {
   })
 
   const finish = useMutation({
-    mutationFn: async () => {
-      const updated = await api.patch<User>('/auth/me/', { onboardingComplete: true })
-      return updated
-    },
+    mutationFn: () => api.patch<User>('/auth/me/', { onboardingComplete: true }),
     onSuccess: (updated) => {
       setUser(updated)
       void queryClient.invalidateQueries()
@@ -64,7 +66,7 @@ export default function Welcome() {
   async function goToStep3() {
     await saveProfile.mutateAsync()
     setStep(3)
-    // Kick a run so their first dashboard is not empty.
+    // Kick a run so their first dashboard is not an empty state.
     triggerRun.mutate()
   }
 
@@ -72,157 +74,215 @@ export default function Welcome() {
     setter(list.includes(value) ? list.filter((item) => item !== value) : [...list, value])
   }
 
+  const titles: Record<Step, string> = {
+    1: 'Where do you want to work?',
+    2: 'What do you build?',
+    3: "You're set up",
+  }
+
+  const subtitles: Record<Step, string> = {
+    1: 'This decides which jobs reach you and how they score. Change it any time.',
+    2: 'Picking a few raises the weight of the matching skills. Optional — you can tune every weight individually later.',
+    3: 'Your profile is saved and the first run is under way.',
+  }
+
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col justify-center gap-6 p-6">
-      <header>
-        <p className="text-xs uppercase tracking-wide text-muted">Step {step} of 3</p>
-        <h1 className="mt-1 text-2xl font-semibold">
-          {step === 1 && 'Where do you want to work?'}
-          {step === 2 && 'What kind of role?'}
-          {step === 3 && "You're set up"}
-        </h1>
-      </header>
+    <AuthLayout title={titles[step]} subtitle={subtitles[step]} wide>
+      <div className="flex flex-col gap-5">
+        <Progress current={step} />
 
-      <Panel className="flex flex-col gap-6">
-        {step === 1 && (
-          <>
-            <p className="text-sm text-muted">
-              Pick at least one. This drives both which jobs you see and how they score, and you can
-              change it any time.
-            </p>
+        <Panel className="p-5">
+          {step === 1 && (
+            <div className="flex flex-col gap-5">
+              {locations.isPending && (
+                <div className="flex flex-wrap gap-2" aria-busy="true">
+                  <span className="sr-only" role="status">
+                    Loading cities
+                  </span>
+                  {Array.from({ length: 8 }).map((_, index) => (
+                    <Skeleton key={index} className="h-10 w-28 rounded-full" />
+                  ))}
+                </div>
+              )}
 
-            {locations.isPending && <Spinner label="Loading cities" />}
-            {locations.isError && (
-              <p role="alert" className="text-sm text-danger">
-                Could not load the city list.{' '}
-                <button
-                  type="button"
-                  onClick={() => void locations.refetch()}
-                  className="underline underline-offset-2"
-                >
-                  Retry
-                </button>
-              </p>
-            )}
-
-            {locations.data && (
-              <fieldset className="flex flex-wrap gap-2">
-                <legend className="sr-only">Cities</legend>
-                {locations.data.map((location) => (
-                  <Chip
-                    key={location.key}
-                    name="city"
-                    checked={cities.includes(location.key)}
-                    onChange={() => toggle(cities, location.key, setCities)}
+              {locations.isError && (
+                <p role="alert" className="text-sm text-danger">
+                  Could not load the city list.{' '}
+                  <button
+                    type="button"
+                    onClick={() => void locations.refetch()}
+                    className="underline underline-offset-2"
                   >
-                    {location.label}
+                    Try again
+                  </button>
+                </p>
+              )}
+
+              {locations.data && (
+                <fieldset className="flex flex-wrap gap-2">
+                  <legend className="sr-only">Cities you want jobs in</legend>
+                  {locations.data.map((location) => (
+                    <Chip
+                      key={location.key}
+                      name="city"
+                      checked={cities.includes(location.key)}
+                      onChange={() => toggle(cities, location.key, setCities)}
+                    >
+                      {location.label}
+                    </Chip>
+                  ))}
+                </fieldset>
+              )}
+
+              <div className="flex items-center justify-between gap-3 border-t border-hairline pt-4">
+                <p aria-live="polite" className="flex items-center gap-1.5 text-sm text-muted">
+                  <IconMapPin size={14} />
+                  {cities.length === 0
+                    ? 'Choose at least one city to continue'
+                    : `${cities.length} selected`}
+                </p>
+                <Button disabled={cities.length === 0} onClick={() => setStep(2)}>
+                  Continue
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="flex flex-col gap-5">
+              <fieldset className="flex flex-wrap gap-2">
+                <legend className="sr-only">Role focus</legend>
+                {ROLE_KEYWORDS.map((role) => (
+                  <Chip
+                    key={role.value}
+                    name="role"
+                    checked={roles.includes(role.value)}
+                    onChange={() => toggle(roles, role.value, setRoles)}
+                  >
+                    {role.label}
                   </Chip>
                 ))}
               </fieldset>
+
+              <div className="flex items-center justify-between gap-3 border-t border-hairline pt-4">
+                <Button variant="ghost" onClick={() => setStep(1)}>
+                  Back
+                </Button>
+                <Button onClick={() => void goToStep3()} disabled={saveProfile.isPending}>
+                  {saveProfile.isPending ? 'Saving…' : 'Continue'}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="flex flex-col gap-5">
+              <ul aria-live="polite" className="space-y-3 text-sm">
+                <Done>
+                  Profile saved for{' '}
+                  <strong className="font-medium text-fg">
+                    {cities.length} {cities.length === 1 ? 'city' : 'cities'}
+                  </strong>
+                  {roles.length > 0 && (
+                    <>
+                      {' '}
+                      with <strong className="font-medium text-fg">{roles.length}</strong> role
+                      {roles.length === 1 ? '' : 's'} weighted up
+                    </>
+                  )}
+                  .
+                </Done>
+
+                <li className="flex items-start gap-2.5">
+                  <span
+                    className={cx(
+                      'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full',
+                      triggerRun.isSuccess
+                        ? 'bg-high-bg text-high'
+                        : 'bg-accent-subtle text-accent',
+                    )}
+                  >
+                    {triggerRun.isSuccess ? <IconCheck size={12} /> : <IconRadar size={12} />}
+                  </span>
+                  <span className="text-muted">
+                    {triggerRun.isPending && 'Starting a run across every source…'}
+                    {triggerRun.isSuccess &&
+                      'A run has started. Jobs appear on your dashboard as it finishes — usually under a minute.'}
+                    {triggerRun.isError &&
+                      'Could not start a run just now. The next scheduled one will pick it up, and you can trigger one from the Runs screen.'}
+                  </span>
+                </li>
+              </ul>
+
+              <div className="border-t border-hairline pt-4">
+                <Button onClick={() => finish.mutate()} disabled={finish.isPending}>
+                  {finish.isPending ? 'Opening…' : 'Go to my dashboard'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </Panel>
+
+        {step < 3 && (
+          <p className="text-center text-sm text-subtle">
+            <button
+              type="button"
+              onClick={() => finish.mutate()}
+              className="underline underline-offset-2 hover:text-fg"
+            >
+              Skip for now
+            </button>{' '}
+            — the defaults ({DEFAULT_CITIES.join(', ')}) already work.
+          </p>
+        )}
+      </div>
+    </AuthLayout>
+  )
+}
+
+function Done({ children }: { children: React.ReactNode }) {
+  return (
+    <li className="flex items-start gap-2.5">
+      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-high-bg text-high">
+        <IconCheck size={12} />
+      </span>
+      <span className="text-muted">{children}</span>
+    </li>
+  )
+}
+
+/** Where you are and how much is left — the thing that stops people bailing. */
+function Progress({ current }: { current: Step }) {
+  return (
+    <ol className="flex items-center gap-2" aria-label={`Step ${current} of ${STEPS.length}`}>
+      {STEPS.map((label, index) => {
+        const position = index + 1
+        const done = position < current
+        const active = position === current
+        return (
+          <li key={label} className="flex flex-1 items-center gap-2">
+            <span
+              className={cx(
+                'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-2xs font-medium',
+                done && 'bg-high-bg text-high',
+                active && 'bg-accent text-on-accent',
+                !done && !active && 'bg-surface-strong text-subtle',
+              )}
+            >
+              {done ? <IconCheck size={12} /> : position}
+            </span>
+            <span className={cx('text-xs', active ? 'font-medium text-fg' : 'text-subtle')}>
+              {label}
+            </span>
+            {position < STEPS.length && (
+              <span
+                aria-hidden="true"
+                className={cx('h-px flex-1', done ? 'bg-high-border' : 'bg-hairline')}
+              />
             )}
-
-            <div className="flex items-center justify-between gap-3">
-              <p aria-live="polite" className="text-sm text-muted">
-                {cities.length === 0
-                  ? 'Choose at least one city to continue.'
-                  : `${cities.length} selected`}
-              </p>
-              <Button type="button" disabled={cities.length === 0} onClick={() => setStep(2)}>
-                Continue
-              </Button>
-            </div>
-          </>
-        )}
-
-        {step === 2 && (
-          <>
-            <p className="text-sm text-muted">
-              Picking a few raises the weight of the matching skills. You can tune every weight
-              individually later — this is just a faster start than a blank table.
-            </p>
-
-            <fieldset className="flex flex-wrap gap-2">
-              <legend className="sr-only">Role focus</legend>
-              {ROLE_KEYWORDS.map((role) => (
-                <Chip
-                  key={role.value}
-                  name="role"
-                  checked={roles.includes(role.value)}
-                  onChange={() => toggle(roles, role.value, setRoles)}
-                >
-                  {role.label}
-                </Chip>
-              ))}
-            </fieldset>
-
-            <div className="flex items-center justify-between gap-3">
-              <Button type="button" variant="ghost" onClick={() => setStep(1)}>
-                Back
-              </Button>
-              <Button
-                type="button"
-                onClick={() => void goToStep3()}
-                disabled={saveProfile.isPending}
-              >
-                {saveProfile.isPending ? 'Saving…' : 'Continue'}
-              </Button>
-            </div>
-          </>
-        )}
-
-        {step === 3 && (
-          <>
-            <div aria-live="polite" className="flex flex-col gap-2 text-sm">
-              <p>
-                Your profile is saved for{' '}
-                <strong>
-                  {cities.length} {cities.length === 1 ? 'city' : 'cities'}
-                </strong>
-                {roles.length > 0 && (
-                  <>
-                    {' '}
-                    with <strong>{roles.length}</strong> role{roles.length === 1 ? '' : 's'}{' '}
-                    weighted up
-                  </>
-                )}
-                .
-              </p>
-              {triggerRun.isPending && (
-                <p className="text-muted">Fetching jobs from every source…</p>
-              )}
-              {triggerRun.isSuccess && (
-                <p className="text-muted">
-                  A run has started. New postings appear on your dashboard as it finishes.
-                </p>
-              )}
-              {triggerRun.isError && (
-                <p className="text-muted">
-                  Could not start a run just now — the next scheduled one will pick it up, and you
-                  can trigger one from the Runs screen.
-                </p>
-              )}
-            </div>
-
-            <Button type="button" onClick={() => finish.mutate()} disabled={finish.isPending}>
-              {finish.isPending ? 'Opening…' : 'Go to my dashboard'}
-            </Button>
-          </>
-        )}
-      </Panel>
-
-      {step < 3 && (
-        <p className="text-center text-sm text-muted">
-          <button
-            type="button"
-            onClick={() => finish.mutate()}
-            className="underline underline-offset-2"
-          >
-            Skip for now
-          </button>{' '}
-          — the defaults ({DEFAULT_CITIES.join(', ')}) already work.
-          {user?.email ? '' : ''}
-        </p>
-      )}
-    </main>
+          </li>
+        )
+      })}
+    </ol>
   )
 }

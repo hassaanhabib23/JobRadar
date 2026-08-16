@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 
 import { ApiError } from '../api/client'
 import { useAuth } from '../auth/AuthProvider'
-import { Button, Field, FormError, Panel } from '../components/ui'
+import { AuthLayout } from '../components/AuthLayout'
+import { Button, Field, FormError } from '../components/ui'
 
 export default function Register() {
   const { register } = useAuth()
@@ -39,52 +40,48 @@ export default function Register() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-6 p-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Create your account</h1>
-        <p className="mt-1 text-sm text-muted">
-          Two minutes to set up. You pick your cities on the next screen.
-        </p>
-      </div>
+    <AuthLayout
+      title="Create your account"
+      subtitle="Two minutes to set up. You pick your cities on the next screen."
+      footer={
+        <>
+          Already have an account?{' '}
+          <Link to="/login" className="font-medium text-accent underline underline-offset-2">
+            Sign in
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+        <FormError>{error}</FormError>
 
-      <Panel>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
-          <FormError>{error}</FormError>
+        <Field
+          label="Email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          autoFocus
+          required
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          errors={fieldErrors.email}
+        />
+        <Field
+          label="Password"
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          required
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          errors={fieldErrors.password}
+          hint="At least 8 characters, and not one everybody else uses."
+        />
 
-          <Field
-            label="Email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            errors={fieldErrors.email}
-          />
-          <Field
-            label="Password"
-            name="password"
-            type="password"
-            autoComplete="new-password"
-            required
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            errors={fieldErrors.password}
-            hint="At least 8 characters, and not a password everyone else uses."
-          />
-
-          <Button type="submit" disabled={submitting}>
-            {submitting ? 'Creating…' : 'Create account'}
-          </Button>
-        </form>
-      </Panel>
-
-      <p className="text-center text-sm text-muted">
-        Already have an account?{' '}
-        <Link to="/login" className="font-medium text-accent underline underline-offset-2">
-          Sign in
-        </Link>
-      </p>
-    </main>
+        <Button type="submit" disabled={submitting} className="mt-1">
+          {submitting ? 'Creating…' : 'Create account'}
+        </Button>
+      </form>
+    </AuthLayout>
   )
 }

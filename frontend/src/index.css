@@ -1,67 +1,138 @@
+/* Self-hosted, bundled by Vite. No CDN at runtime, on purpose — the app has to
+   work on a flaky connection, and a webfont from someone else's server is the
+   first thing to fail. */
+@import '@fontsource/fira-sans/300.css';
+@import '@fontsource/fira-sans/400.css';
+@import '@fontsource/fira-sans/500.css';
+@import '@fontsource/fira-sans/600.css';
+@import '@fontsource/fira-code/400.css';
+@import '@fontsource/fira-code/500.css';
+
+@import './styles/tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/*
- * Theme via CSS custom properties, not two Tailwind themes, so light and dark
- * stay in one place as the UI grows.
- *
- * Colour never carries meaning alone — every state that uses one of these also
- * carries a text label.
- */
-:root {
-  color-scheme: light dark;
+@layer base {
+  * {
+    border-color: var(--border);
+  }
 
-  --bg: #ffffff;
-  --surface: #f7f8fa;
-  --surface-strong: #eef0f4;
-  --fg: #16181d;
-  --muted: #5b616e;
-  --border: #e3e5e9;
+  html {
+    /* Never disable zoom, and never fix the root size in px. */
+    -webkit-text-size-adjust: 100%;
+  }
 
-  --accent: #2563eb;
-  --accent-strong: #1d4ed8;
-  --high: #15803d;
-  --medium: #b45309;
-  --stretch: #7c3aed;
-  --danger: #dc2626;
-}
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family:
+      'Fira Sans',
+      system-ui,
+      -apple-system,
+      'Segoe UI',
+      sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0f1115;
-    --surface: #161920;
-    --surface-strong: #1d212a;
-    --fg: #e6e8ec;
-    --muted: #969ba7;
-    --border: #262a33;
+  /* Numbers that change in place must not jitter. Scores, counts, durations. */
+  .tabular {
+    font-family: 'Fira Code', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
 
-    --accent: #3b82f6;
-    --accent-strong: #60a5fa;
-    --high: #4ade80;
-    --medium: #fbbf24;
-    --stretch: #c084fc;
-    --danger: #f87171;
+  h1,
+  h2,
+  h3,
+  h4 {
+    /* Stops a two-word heading breaking into a lonely orphan line. */
+    text-wrap: balance;
+    letter-spacing: -0.011em;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* The browser default is invisible against several of these surfaces. */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Anything clickable says so. */
+  button:not(:disabled),
+  a[href],
+  summary {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--fg-on-accent);
+  }
+
+  /* Scrollbars that match the surface rather than punching a hole in it. */
+  * {
+    scrollbar-color: var(--border-strong) transparent;
+    scrollbar-width: thin;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: var(--radius-full);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--fg-subtle);
+    background-clip: content-box;
   }
 }
 
-body {
-  background: var(--bg);
-  color: var(--fg);
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
+@layer components {
+  /* Loading placeholders, shaped like the content they stand in for so the
+     layout does not jump when the data lands. */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--surface-strong) 25%,
+      var(--surface-hover) 37%,
+      var(--surface-strong) 63%
+    );
+    background-size: 400% 100%;
+    animation: skeleton 1.4s ease infinite;
+    border-radius: var(--radius);
+  }
+
+  @keyframes skeleton {
+    0% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0 50%;
+    }
+  }
 }
 
-/* Never rely on the browser default — this is a keyboard-first tool. */
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
+/* Motion is decoration here, never information. Removing it costs nothing. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -70,5 +141,9 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .skeleton {
+    animation: none;
   }
 }

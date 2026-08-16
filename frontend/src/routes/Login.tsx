@@ -3,7 +3,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { ApiError } from '../api/client'
 import { useAuth } from '../auth/AuthProvider'
-import { Button, Field, FormError, Panel } from '../components/ui'
+import { AuthLayout } from '../components/AuthLayout'
+import { Button, Field, FormError } from '../components/ui'
 
 interface LocationState {
   from?: { pathname: string; search?: string }
@@ -36,7 +37,9 @@ export default function Login() {
       navigate(user.onboardingComplete ? destination : '/welcome', { replace: true })
     } catch (caught) {
       if (caught instanceof ApiError) {
-        setError(caught.detail)
+        setError(
+          caught.status === 429 ? 'Too many attempts. Wait a minute and try again.' : caught.detail,
+        )
         setFieldErrors(caught.fieldErrors)
       } else {
         setError('Could not reach the server. Check your connection and try again.')
@@ -47,49 +50,47 @@ export default function Login() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-6 p-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Sign in</h1>
-        <p className="mt-1 text-sm text-muted">Your job list, scored for you.</p>
-      </div>
+    <AuthLayout
+      title="Sign in"
+      subtitle="Your ranked shortlist is waiting."
+      footer={
+        <>
+          No account?{' '}
+          <Link to="/register" className="font-medium text-accent underline underline-offset-2">
+            Create one
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+        <FormError>{error}</FormError>
 
-      <Panel>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
-          <FormError>{error}</FormError>
+        <Field
+          label="Email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          autoFocus
+          required
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          errors={fieldErrors.email}
+        />
+        <Field
+          label="Password"
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          required
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          errors={fieldErrors.password}
+        />
 
-          <Field
-            label="Email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            errors={fieldErrors.email}
-          />
-          <Field
-            label="Password"
-            name="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            errors={fieldErrors.password}
-          />
-
-          <Button type="submit" disabled={submitting}>
-            {submitting ? 'Signing in…' : 'Sign in'}
-          </Button>
-        </form>
-      </Panel>
-
-      <p className="text-center text-sm text-muted">
-        No account?{' '}
-        <Link to="/register" className="font-medium text-accent underline underline-offset-2">
-          Create one
-        </Link>
-      </p>
-    </main>
+        <Button type="submit" disabled={submitting} className="mt-1">
+          {submitting ? 'Signing in…' : 'Sign in'}
+        </Button>
+      </form>
+    </AuthLayout>
   )
 }

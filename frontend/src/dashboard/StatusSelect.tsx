@@ -1,9 +1,9 @@
 /**
  * Inline application status.
  *
- * A native `<select>` rather than a custom menu: it is keyboard-operable,
- * screen-reader correct and touch-friendly for free, and there is nothing here
- * a custom widget would do better.
+ * A native `<select>` rather than a custom menu: keyboard-operable,
+ * screen-reader correct and touch-friendly for free, and there is nothing a
+ * custom widget would do better here.
  *
  * The update is optimistic and **visibly** rolls back. A control that silently
  * reverts teaches the user not to trust it.
@@ -13,27 +13,33 @@ import { useEffect, useState } from 'react'
 
 import { useUpdateJob } from '../api/queries'
 import type { ApplicationStatus, Job, StatusChoice } from '../api/types'
+import { IconAlert } from '../components/icons'
 import { cx } from '../components/ui'
+
+/** Applied and beyond are worth seeing at a glance in a long list. */
+const ACTIVE: ApplicationStatus[] = ['applied', 'assessment', 'interviewing', 'offer']
 
 export function StatusSelect({
   job,
   choices,
-  compact = false,
+  className,
 }: {
   job: Job
   choices: StatusChoice[]
-  compact?: boolean
+  className?: string
 }) {
   const update = useUpdateJob()
   const [failed, setFailed] = useState(false)
 
-  // Clear the warning once the row settles on a new value.
   useEffect(() => {
     if (update.isSuccess) setFailed(false)
   }, [update.isSuccess])
 
+  const engaged = ACTIVE.includes(job.status)
+  const rejected = job.status === 'rejected'
+
   return (
-    <div className="flex flex-col gap-1">
+    <div className={cx('flex flex-col gap-1', className)}>
       <label className="sr-only" htmlFor={`status-${job.id}`}>
         Application status for {job.title} at {job.company}
       </label>
@@ -49,9 +55,12 @@ export function StatusSelect({
           )
         }}
         className={cx(
-          'min-h-[44px] rounded-lg border bg-surface px-2 text-sm',
-          compact ? 'w-full' : 'w-[150px]',
-          failed ? 'border-danger' : 'border-hairline',
+          'h-9 min-h-[36px] w-full rounded border bg-surface px-2 text-sm',
+          'transition-colors duration-fast disabled:opacity-60',
+          failed && 'border-danger text-danger',
+          !failed && engaged && 'border-high-border bg-high-bg text-high font-medium',
+          !failed && rejected && 'border-hairline text-subtle',
+          !failed && !engaged && !rejected && 'border-hairline text-muted',
         )}
       >
         {choices.map((choice) => (
@@ -61,7 +70,8 @@ export function StatusSelect({
         ))}
       </select>
       {failed && (
-        <p role="alert" className="text-[11px] text-danger">
+        <p role="alert" className="flex items-center gap-1 text-2xs text-danger">
+          <IconAlert size={11} />
           Could not save — reverted
         </p>
       )}

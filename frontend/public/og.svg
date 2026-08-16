@@ -1,24 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
-  <rect width="1200" height="630" fill="#0f1115"/>
-  <g transform="translate(80,150)">
-    <circle cx="40" cy="40" r="34" fill="none" stroke="#3b82f6" stroke-width="5" opacity=".5"/>
-    <circle cx="40" cy="40" r="15" fill="none" stroke="#3b82f6" stroke-width="5" opacity=".8"/>
-    <circle cx="62" cy="21" r="10" fill="#3b82f6"/>
-    <text x="0" y="150" fill="#e6e8ec" font-family="system-ui,sans-serif" font-size="60" font-weight="600">
-      Every junior dev job in your city,
-    </text>
-    <text x="0" y="225" fill="#e6e8ec" font-family="system-ui,sans-serif" font-size="60" font-weight="600">
-      scored against your CV.
-    </text>
-    <text x="0" y="300" fill="#969ba7" font-family="system-ui,sans-serif" font-size="32">
-      Company boards and feeds, ranked daily — and you always see why.
-    </text>
-    <g transform="translate(0,350)">
-      <rect width="420" height="10" rx="5" fill="#262a33"/>
-      <rect width="170" height="10" rx="5" fill="#3b82f6"/>
-      <rect x="174" width="100" height="10" rx="5" fill="#4ade80"/>
-      <rect x="278" width="84" height="10" rx="5" fill="#c084fc"/>
-      <rect x="366" width="54" height="10" rx="5" fill="#fbbf24"/>
+  <rect width="1200" height="630" fill="#020617"/>
+  <g stroke="#1e293b" stroke-width="1" opacity=".6">
+    <path d="M0 90h1200M0 180h1200M0 270h1200M0 360h1200M0 450h1200M0 540h1200"/>
+    <path d="M100 0v630M220 0v630M340 0v630M460 0v630M580 0v630M700 0v630M820 0v630M940 0v630M1060 0v630"/>
+  </g>
+
+  <g transform="translate(88,120)">
+    <g fill="none" stroke="#3b82f6" stroke-width="3.5" stroke-linecap="round">
+      <circle cx="22" cy="24" r="19" opacity=".45"/>
+      <circle cx="22" cy="24" r="8" opacity=".9"/>
+      <path d="M22 24 38 10" opacity=".9"/>
+    </g>
+    <circle cx="39" cy="9" r="6" fill="#3b82f6"/>
+    <text x="62" y="34" fill="#f1f5f9" font-family="'Fira Sans',system-ui,sans-serif" font-size="30" font-weight="600">JobRadar</text>
+
+    <text y="130" fill="#f1f5f9" font-family="'Fira Sans',system-ui,sans-serif" font-size="58" font-weight="600">Every junior dev job in your city,</text>
+    <text y="200" fill="#f1f5f9" font-family="'Fira Sans',system-ui,sans-serif" font-size="58" font-weight="600">scored against your CV.</text>
+    <text y="256" fill="#94a3b8" font-family="'Fira Sans',system-ui,sans-serif" font-size="27">Company boards and feeds, ranked daily — and you always see why.</text>
+
+    <g transform="translate(0,310)">
+      <rect width="620" height="12" rx="6" fill="#1a2337"/>
+      <rect width="176" height="12" rx="6" fill="#3b82f6"/>
+      <rect x="180" width="147" height="12" rx="6" fill="#4ade80"/>
+      <rect x="331" width="124" height="12" rx="6" fill="#c084fc"/>
+      <rect x="459" width="93" height="12" rx="6" fill="#fbbf24"/>
+
+      <text y="52" fill="#64748b" font-family="'Fira Code',monospace" font-size="19">Stack 28.4/40   Level 23.8/25   Location 20/20   Fresh 15/15</text>
+      <text y="92" fill="#f1f5f9" font-family="'Fira Code',monospace" font-size="30" font-weight="500">87 / 100 · High</text>
     </g>
   </g>
 </svg>

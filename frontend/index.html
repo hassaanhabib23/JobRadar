@@ -9,7 +9,9 @@
       name="description"
       content="JobRadar reads company job boards and feeds daily, scores every posting against a profile you control, and shows you exactly why it ranked where it did."
     />
-    <meta name="theme-color" content="#2563eb" />
+    <!-- Matches the app chrome in each mode, so the browser UI does not fight it. -->
+    <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#020617" media="(prefers-color-scheme: dark)" />
 
     <!-- Open Graph. Self-hosted image, no CDN. -->
     <meta property="og:type" content="website" />

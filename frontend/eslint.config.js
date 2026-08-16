@@ -26,7 +26,12 @@ export default tseslint.config(
     // Shared primitives and the auth provider intentionally export helpers
     // alongside components; fast refresh is a dev-server nicety, not a rule
     // worth contorting the module layout for.
-    files: ['src/components/ui.tsx', 'src/auth/AuthProvider.tsx', 'src/dashboard/*.tsx'],
+    files: [
+      'src/components/ui.tsx',
+      'src/components/ThemeToggle.tsx',
+      'src/auth/AuthProvider.tsx',
+      'src/dashboard/*.tsx',
+    ],
     rules: {
       'react-refresh/only-export-components': 'off',
     },

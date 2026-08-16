@@ -118,10 +118,19 @@ describe('signing in', () => {
     await signIn()
     await screen.findByRole('heading', { name: /^jobs$/i })
 
-    // Anything an injected script can read, it can exfiltrate.
-    expect(window.localStorage.length).toBe(0)
-    expect(window.sessionStorage.length).toBe(0)
-    expect(getAccessToken()).toBeTruthy()
+    // Anything an injected script can read, it can exfiltrate — so no token may
+    // reach either storage. A display preference like the theme is fine there;
+    // asserting storage is *empty* would fail for the wrong reason.
+    const stored = [
+      ...Object.entries({ ...window.localStorage }),
+      ...Object.entries({ ...window.sessionStorage }),
+    ]
+    const token = getAccessToken()
+    expect(token).toBeTruthy()
+    for (const [key, value] of stored) {
+      expect(value, `${key} must not hold the access token`).not.toContain(token)
+      expect(key.toLowerCase()).not.toMatch(/token|auth|jwt|access|refresh/)
+    }
   })
 
   it('sends a user who has not onboarded to /welcome', async () => {
