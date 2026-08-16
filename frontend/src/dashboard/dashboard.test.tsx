@@ -46,12 +46,33 @@ describe('the job list', () => {
     expect(summary).toBeInTheDocument()
   })
 
-  it('labels a first-run job "New today", never just "New"', async () => {
-    // It means the first run it appeared in for this user, not that it was
-    // posted recently — and "New" would be read as the latter.
+  it('labels a first-run job "New to you", never "New today"', async () => {
+    // It means the first run it appeared in *for this user*, not that it was
+    // posted recently. "Posted today" is a separate filter backed by the
+    // employer's own date, and conflating the two makes one of them a lie.
     await openDashboard()
 
-    expect(await screen.findByText('New today')).toBeInTheDocument()
+    // Appears on the row badge and on the stat tile, and nowhere does the app
+    // claim a job was posted today when it only means "new to your list".
+    expect((await screen.findAllByText('New to you')).length).toBeGreaterThan(0)
+    expect(screen.queryByText('New today')).not.toBeInTheDocument()
+  })
+
+  it('offers "posted today" and "new to you" as separate filters', async () => {
+    await openDashboard()
+
+    expect(await screen.findByRole('checkbox', { name: /posted today/i })).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: /new to you/i })).toBeInTheDocument()
+  })
+
+  it('names the board a job came from, not the library that read it', async () => {
+    await openDashboard()
+
+    // "Greenhouse" is a board; "jobspy" is the library that reads some of them
+    // and has no business appearing in front of a reader. It shows up both in
+    // the Source column and in the filter dropdown, hence findAll.
+    expect((await screen.findAllByText('Greenhouse')).length).toBeGreaterThan(0)
+    expect(screen.queryByText(/jobspy/i)).not.toBeInTheDocument()
   })
 
   it('warns about a ghost posting', async () => {
@@ -63,7 +84,8 @@ describe('the job list', () => {
   it('shows that a merged posting was seen elsewhere', async () => {
     await openDashboard()
 
-    expect(await screen.findByText(/also on jobspy/i)).toBeInTheDocument()
+    // Labelled, not raw: "also on LinkedIn", never "also on linkedin".
+    expect(await screen.findByText(/also on LinkedIn/)).toBeInTheDocument()
   })
 })
 
@@ -113,15 +135,26 @@ describe('filters in the URL', () => {
 })
 
 describe('sorting', () => {
+  it('defaults to newest first', async () => {
+    // What you open this for each morning is "what appeared since yesterday".
+    await openDashboard()
+    await screen.findByText('Associate Software Engineer')
+
+    const postedHeader = screen.getByRole('columnheader', { name: /posted/i })
+    expect(postedHeader).toHaveAttribute('aria-sort', 'descending')
+    await waitFor(() => expect(state.lastJobQuery).toContain('ordering=-posted_at'))
+  })
+
   it('reports its direction to screen readers', async () => {
     const user = await openDashboard()
     await screen.findByText('Associate Software Engineer')
 
     const scoreHeader = screen.getByRole('columnheader', { name: /score/i })
-    expect(scoreHeader).toHaveAttribute('aria-sort', 'descending')
+    // Not the active column yet.
+    expect(scoreHeader).toHaveAttribute('aria-sort', 'none')
 
     await user.click(within(scoreHeader).getByRole('button'))
-    await waitFor(() => expect(scoreHeader).toHaveAttribute('aria-sort', 'ascending'))
+    await waitFor(() => expect(scoreHeader).toHaveAttribute('aria-sort', 'descending'))
   })
 
   it('sorts on the server', async () => {

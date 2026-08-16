@@ -111,7 +111,10 @@ class TestScraping:
         with patched([FakeFrame([row()])]):
             posting = fetch(spec(config={"sites": ["indeed"]}))[0]
 
-        assert posting.source == "jobspy"
+        # The board it actually came from, not the library that read it.
+        # Filed under "jobspy", every scraped job looks like one source and you
+        # cannot ask for LinkedIn results specifically.
+        assert posting.source == "indeed"
         assert posting.company == "Systems Limited"
         assert posting.title == "Associate Software Engineer"
         assert posting.posted_at == date(2026, 8, 14)
@@ -255,6 +258,28 @@ class TestAdditiveOnly:
     def test_jobspy_never_triggers_closed_detection(self) -> None:
         """A keyword search is not a full listing of anyone's board."""
         assert spec().is_additive
+
+    @pytest.mark.parametrize("board", ["indeed", "linkedin", "bayt", "google", "glassdoor"])
+    def test_every_scraped_board_is_additive(self, board: str) -> None:
+        """Each board is now recorded under its own name, so each has to be
+        marked additive individually — miss one and a quiet day on that board
+        would close every job it ever found."""
+        from sources.base import ADDITIVE_KINDS
+
+        assert board in ADDITIVE_KINDS
+
+    def test_the_board_is_recorded_per_row(self) -> None:
+        """One scrape spans several boards; each row keeps its own."""
+        frames = [FakeFrame([row(site="linkedin"), row(site="indeed")])]
+
+        with patched(frames):
+            postings = fetch(spec(config={"sites": ["linkedin"]}))
+
+        assert {p.source for p in postings} == {"linkedin", "indeed"}
+
+    def test_a_missing_site_column_falls_back_to_the_scraped_site(self) -> None:
+        with patched([FakeFrame([row(site=NAN)])]):
+            assert fetch(spec(config={"sites": ["bayt"]}))[0].source == "bayt"
 
 
 class FakeProfile:

@@ -139,7 +139,7 @@ def fetch_jobspy(spec: SourceSpec, *, today: date | None = None) -> list[RawPost
             failures.append(f"{site}: {note or detail}"[:200])
             continue
 
-        postings.extend(_rows_to_postings(frame, spec, location, today))
+        postings.extend(_rows_to_postings(frame, spec, location, today, site))
 
     if not postings:
         # Recorded against the source and visible in the run history. It closes
@@ -153,7 +153,21 @@ def fetch_jobspy(spec: SourceSpec, *, today: date | None = None) -> list[RawPost
     return postings
 
 
-def _rows_to_postings(frame: Any, spec: SourceSpec, location: str, today: date) -> list[RawPosting]:
+#: What each board is called in the UI. The user picked "LinkedIn", not the name
+#: of the Python library that reads it.
+BOARD_LABELS = {
+    "indeed": "Indeed",
+    "linkedin": "LinkedIn",
+    "bayt": "Bayt",
+    "google": "Google Jobs",
+    "glassdoor": "Glassdoor",
+    "zip_recruiter": "ZipRecruiter",
+}
+
+
+def _rows_to_postings(
+    frame: Any, spec: SourceSpec, location: str, today: date, site: str
+) -> list[RawPosting]:
     if frame is None or getattr(frame, "empty", True):
         return []
 
@@ -169,9 +183,14 @@ def _rows_to_postings(frame: Any, spec: SourceSpec, location: str, today: date) 
         # answer than nothing, and it is the city the user actually asked for.
         row_location = clean(row.get("location")) or location
 
+        # The board this posting actually came from, not the name of the
+        # library that fetched it. Without this every scraped job is filed
+        # under "jobspy" and you cannot ask for LinkedIn results specifically.
+        board = (clean(row.get("site")) or site).lower().strip() or "jobspy"
+
         postings.append(
             RawPosting(
-                source="jobspy",
+                source=board,
                 company=company,
                 title=title,
                 location=row_location,

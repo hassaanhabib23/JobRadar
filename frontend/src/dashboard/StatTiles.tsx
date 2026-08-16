@@ -31,9 +31,9 @@ export function StatTiles({ stats }: { stats: Stats }) {
       />
       <Tile
         icon={<IconSparkle size={15} />}
-        label="New today"
+        label="New to you"
         value={stats.newToday}
-        note="since the last run"
+        note="first seen on the last run"
         emphasis={stats.newToday > 0}
       />
       <Tile

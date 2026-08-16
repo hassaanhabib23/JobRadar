@@ -125,7 +125,7 @@ function createState(): MockState {
         tier: 'Medium',
         isNew: false,
         flags: ['ghost?'],
-        alsoSeenOn: ['jobspy'],
+        alsoSeenOn: ['linkedin'],
         trackingDays: 30,
         detail: {
           stack: 18,

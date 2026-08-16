@@ -6,11 +6,13 @@ which rules out fetching everything and filtering in the browser.
 
 from __future__ import annotations
 
+from datetime import timedelta
 from typing import Any
 
 import django_filters
 from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import F, Q, QuerySet
+from django.utils import timezone
 
 from jobs.models import ApplicationStatus, SourceKind, UserJob
 from scoring import locations as location_catalogue
@@ -26,6 +28,8 @@ class JobFilter(django_filters.FilterSet):
     min_score = django_filters.NumberFilter(field_name="score", lookup_expr="gte")
     max_score = django_filters.NumberFilter(field_name="score", lookup_expr="lte")
     is_new = django_filters.BooleanFilter(field_name="is_new")
+    posted_today = django_filters.BooleanFilter(method="filter_posted_today")
+    posted_within = django_filters.NumberFilter(method="filter_posted_within")
     pinned = django_filters.BooleanFilter(field_name="pinned")
     has_date = django_filters.BooleanFilter(method="filter_has_date")
     location = django_filters.CharFilter(method="filter_location")
@@ -52,6 +56,33 @@ class JobFilter(django_filters.FilterSet):
             .annotate(rank=SearchRank(F("job__search_vector"), query))
             .order_by("-rank", "-score")
         )
+
+    def filter_posted_today(self, queryset: QuerySet, name: str, value: bool) -> QuerySet:
+        """Published today, by the employer's own date.
+
+        Deliberately distinct from `is_new`, which means "first appeared in your
+        list on the last run". A job posted three weeks ago is new *to you* the
+        day you sign up — both facts are useful, and conflating them makes one of
+        them a lie.
+
+        Undated postings are excluded: with no date there is no evidence it was
+        posted today, and including them would fill a "today" view with results
+        that might be months old.
+        """
+        if not value:
+            return queryset
+        return queryset.filter(job__posted_at=timezone.localdate())
+
+    def filter_posted_within(self, queryset: QuerySet, name: str, value: float) -> QuerySet:
+        """Published within the last N days."""
+        try:
+            days = int(value)
+        except (TypeError, ValueError):
+            return queryset
+        if days < 0:
+            return queryset
+        cutoff = timezone.localdate() - timedelta(days=days)
+        return queryset.filter(job__posted_at__gte=cutoff)
 
     def filter_has_date(self, queryset: QuerySet, name: str, value: bool) -> QuerySet:
         """ "Has a real date" must exclude inferred ages as well as nulls.
@@ -90,7 +121,10 @@ class JobFilter(django_filters.FilterSet):
 ORDERING_MAP: dict[str, tuple[str, ...]] = {
     "score": ("score", "-first_seen_by_user"),
     "-score": ("-score", "-first_seen_by_user"),
-    "posted_at": ("job__posted_at", "-score"),
+    # Undated postings sort last in both directions. Nulls-first would put every
+    # scraped result — which often carries no date — at the top of a date sort,
+    # which is the opposite of what "newest first" is asking for.
+    "posted_at": (F("job__posted_at").asc(nulls_last=True), "-score"),  # type: ignore[dict-item]
     "-posted_at": (F("job__posted_at").desc(nulls_last=True), "-score"),  # type: ignore[dict-item]
     "first_seen": ("first_seen_by_user", "-score"),
     "-first_seen": ("-first_seen_by_user", "-score"),
@@ -100,7 +134,15 @@ ORDERING_MAP: dict[str, tuple[str, ...]] = {
     "-title": ("-job__title", "-score"),
 }
 
-DEFAULT_ORDERING: tuple[str, ...] = ("-score", "-first_seen_by_user")
+#: Newest first, best-scoring first within the same day.
+#:
+#: The score still decides the order inside a date, so a strong match does not
+#: get buried under a weak one posted the same morning — but the thing you open
+#: this for is "what appeared since yesterday", and that should be at the top.
+DEFAULT_ORDERING: tuple[Any, ...] = (
+    F("job__posted_at").desc(nulls_last=True),
+    "-score",
+)
 
 
 def apply_ordering(queryset: QuerySet, ordering: str | None) -> QuerySet:

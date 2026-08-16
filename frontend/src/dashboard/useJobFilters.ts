@@ -19,6 +19,7 @@ export interface JobFilters {
   flag: string
   minScore: string
   isNew: boolean
+  postedToday: boolean
   hasDate: boolean
   pinned: boolean
   includeClosed: boolean
@@ -36,10 +37,13 @@ export const DEFAULT_FILTERS: JobFilters = {
   flag: '',
   minScore: '',
   isNew: false,
+  postedToday: false,
   hasDate: false,
   pinned: false,
   includeClosed: false,
-  ordering: '-score',
+  // Newest first. Score still breaks ties within a day, so a strong match
+  // is not buried under a weak one posted the same morning.
+  ordering: '-posted_at',
   page: 1,
   pageSize: 50,
 }
@@ -54,6 +58,7 @@ const PARAM: Record<keyof JobFilters, string> = {
   flag: 'flag',
   minScore: 'min_score',
   isNew: 'is_new',
+  postedToday: 'posted_today',
   hasDate: 'has_date',
   pinned: 'pinned',
   includeClosed: 'include_closed',
@@ -78,6 +83,7 @@ export function useJobFilters() {
       flag: read('flag') ?? '',
       minScore: read('minScore') ?? '',
       isNew: flag('isNew'),
+      postedToday: flag('postedToday'),
       hasDate: flag('hasDate'),
       pinned: flag('pinned'),
       includeClosed: flag('includeClosed'),
@@ -123,6 +129,7 @@ export function useJobFilters() {
     if (filters.flag) params.set('flag', filters.flag)
     if (filters.minScore) params.set('min_score', filters.minScore)
     if (filters.isNew) params.set('is_new', 'true')
+    if (filters.postedToday) params.set('posted_today', 'true')
     if (filters.hasDate) params.set('has_date', 'true')
     if (filters.pinned) params.set('pinned', 'true')
     if (filters.includeClosed) params.set('include_closed', 'true')

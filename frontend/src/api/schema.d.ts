@@ -1015,7 +1015,7 @@ export interface operations {
         /** @description Excludes inferred ages as well as nulls */
         has_date?: boolean
         include_closed?: boolean
-        /** @description New since this user's last run */
+        /** @description First appeared in this user's list on the last run */
         is_new?: boolean
         /** @description A location catalogue key */
         location?: string
@@ -1026,6 +1026,10 @@ export interface operations {
         /** @description A page number within the paginated result set. */
         page?: number
         pinned?: boolean
+        /** @description Published today by the employer */
+        posted_today?: boolean
+        /** @description Published within the last N days */
+        posted_within?: number
         /** @description Full-text over title, company, location */
         search?: string
         source?: string
@@ -1136,6 +1140,8 @@ export interface operations {
         /** @description A page number within the paginated result set. */
         page?: number
         pinned?: boolean
+        posted_today?: boolean
+        posted_within?: number
         search?: string
         /**
          * @description * `greenhouse` - Greenhouse

@@ -220,7 +220,12 @@ class Job(models.Model):
 
     key = models.CharField(max_length=255, unique=True)
 
-    source = models.CharField(max_length=32, choices=SourceKind.choices)
+    #: Which board this posting came from — an ATS vendor for a company feed,
+    #: or the individual job board for a scrape ("linkedin", "indeed"). Not
+    #: constrained to `SourceKind`: a single jobspy *source* produces postings
+    #: from several boards, and filing them all under the adapter's name would
+    #: put the name of a Python library in front of the user.
+    source = models.CharField(max_length=32, db_index=True)
     #: The specific feed, e.g. "greenhouse:careem". Closed-detection scopes by
     #: this rather than by `source`, so one failing board cannot close another
     #: board's jobs just because they share a vendor.

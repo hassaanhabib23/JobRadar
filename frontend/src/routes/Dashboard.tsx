@@ -76,6 +76,7 @@ export default function Dashboard() {
           reset={reset}
           activeCount={activeCount}
           statuses={statuses.data ?? []}
+          sources={stats.data?.bySource ?? {}}
           resultCount={jobs.data?.count}
         />
 

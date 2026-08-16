@@ -19,7 +19,20 @@ from scoring.domain import RawPosting
 #: Adapters whose absence from a run's results proves nothing. A keyword search
 #: is not a full listing of anyone's board, so a job missing from today's scrape
 #: may well still be open. These must never trigger closed-detection.
-ADDITIVE_KINDS: frozenset[str] = frozenset({"jobspy", "rss"})
+ADDITIVE_KINDS: frozenset[str] = frozenset(
+    {
+        "jobspy",
+        "rss",
+        # Each scraped board is recorded under its own name, and every one of
+        # them is a keyword search rather than a full listing.
+        "indeed",
+        "linkedin",
+        "bayt",
+        "google",
+        "glassdoor",
+        "zip_recruiter",
+    }
+)
 
 
 @dataclass(frozen=True, slots=True)

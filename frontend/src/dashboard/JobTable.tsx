@@ -16,6 +16,7 @@ import { IconArrowDown, IconArrowUp, IconExternal, IconSort } from '../component
 import { WIDE_SCREEN, useMediaQuery } from '../components/useMediaQuery'
 import { Badge, cx } from '../components/ui'
 import { Badges } from './badges'
+import { sourceLabel } from './FilterBar'
 import { ScoreBar, TIER_TONE } from './ScoreBar'
 import { StatusSelect } from './StatusSelect'
 import type { JobFilters } from './useJobFilters'
@@ -25,6 +26,7 @@ const COLUMNS: { key: string; label: string; ordering?: string; className?: stri
   { key: 'score', label: 'Score', ordering: 'score', className: 'w-[150px]' },
   { key: 'role', label: 'Role' },
   { key: 'company', label: 'Company', ordering: 'company', className: 'w-[150px]' },
+  { key: 'source', label: 'Source', className: 'w-[118px]' },
   { key: 'posted', label: 'Posted', ordering: 'posted_at', className: 'w-[92px]' },
   { key: 'status', label: 'Status', className: 'w-[150px]' },
   { key: 'apply', label: '', className: 'w-[76px]' },
@@ -89,7 +91,7 @@ export function JobTable({
             <ScoreBar detail={job.detail} score={job.score} className="mt-3" />
 
             <p className="mt-2.5 text-xs text-subtle">
-              {job.company} · <PostedCell job={job} />
+              {job.company} · via {sourceLabel(job.source)} · <PostedCell job={job} />
             </p>
 
             <div className="mt-3 flex items-center gap-2">
@@ -197,6 +199,10 @@ export function JobTable({
               </td>
 
               <td className="px-3 py-3 text-muted">{job.company}</td>
+
+              <td className="px-3 py-3">
+                <Badge>{sourceLabel(job.source)}</Badge>
+              </td>
 
               <td className="px-3 py-3 text-subtle">
                 <PostedCell job={job} />

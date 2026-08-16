@@ -291,7 +291,7 @@
                         "schema": {
                             "type": "boolean"
                         },
-                        "description": "New since this user's last run"
+                        "description": "First appeared in this user's list on the last run"
                     },
                     {
                         "in": "query",
@@ -338,6 +338,22 @@
                         "schema": {
                             "type": "boolean"
                         }
+                    },
+                    {
+                        "in": "query",
+                        "name": "posted_today",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "description": "Published today by the employer"
+                    },
+                    {
+                        "in": "query",
+                        "name": "posted_within",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Published within the last N days"
                     },
                     {
                         "in": "query",
@@ -585,6 +601,21 @@
                         "name": "pinned",
                         "schema": {
                             "type": "boolean"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "posted_today",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "posted_within",
+                        "schema": {
+                            "type": "number",
+                            "format": "double"
                         }
                     },
                     {

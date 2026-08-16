@@ -101,7 +101,11 @@ class JobViewSet(
             OpenApiParameter("status", str),
             OpenApiParameter("min_score", int),
             OpenApiParameter("max_score", int),
-            OpenApiParameter("is_new", bool, description="New since this user's last run"),
+            OpenApiParameter(
+                "is_new", bool, description="First appeared in this user's list on the last run"
+            ),
+            OpenApiParameter("posted_today", bool, description="Published today by the employer"),
+            OpenApiParameter("posted_within", int, description="Published within the last N days"),
             OpenApiParameter(
                 "has_date", bool, description="Excludes inferred ages as well as nulls"
             ),

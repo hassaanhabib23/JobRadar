@@ -16,18 +16,35 @@ import { IconClose, IconSearch } from '../components/icons'
 import { Button, Chip, cx } from '../components/ui'
 import type { JobFilters } from './useJobFilters'
 
-const SOURCES = [
-  'greenhouse',
-  'lever',
-  'workable',
-  'breezy',
-  'ashby',
-  'smartrecruiters',
-  'recruitee',
-  'workday',
-  'rss',
-  'jobspy',
-]
+/**
+ * Human names for the places jobs come from.
+ *
+ * The dropdown is built from the sources actually present in your data, so it
+ * never offers a filter that would return nothing — and it never shows the name
+ * of a Python library where a job board belongs.
+ */
+export const SOURCE_LABELS: Record<string, string> = {
+  linkedin: 'LinkedIn',
+  indeed: 'Indeed',
+  bayt: 'Bayt',
+  google: 'Google Jobs',
+  glassdoor: 'Glassdoor',
+  zip_recruiter: 'ZipRecruiter',
+  greenhouse: 'Greenhouse',
+  lever: 'Lever',
+  workable: 'Workable',
+  breezy: 'Breezy',
+  ashby: 'Ashby',
+  smartrecruiters: 'SmartRecruiters',
+  recruitee: 'Recruitee',
+  workday: 'Workday',
+  rss: 'RSS feed',
+  jobspy: 'Job boards',
+}
+
+export function sourceLabel(value: string): string {
+  return SOURCE_LABELS[value] ?? value
+}
 
 const CITIES = [
   { value: 'islamabad', label: 'Islamabad' },
@@ -43,6 +60,7 @@ export function FilterBar({
   reset,
   activeCount,
   statuses,
+  sources,
   resultCount,
 }: {
   filters: JobFilters
@@ -50,6 +68,8 @@ export function FilterBar({
   reset: () => void
   activeCount: number
   statuses: StatusChoice[]
+  /** Sources present in this user's data, with counts, from /api/stats/. */
+  sources: Record<string, number>
   resultCount: number | undefined
 }) {
   const [searchDraft, setSearchDraft] = useState(filters.search)
@@ -111,11 +131,14 @@ export function FilterBar({
           onChange={(source) => setFilters({ source })}
         >
           <option value="">Any source</option>
-          {SOURCES.map((source) => (
-            <option key={source} value={source}>
-              {source}
-            </option>
-          ))}
+          {Object.entries(sources)
+            // Most jobs first: the useful filters sit at the top of the list.
+            .sort((a, b) => b[1] - a[1])
+            .map(([source, count]) => (
+              <option key={source} value={source}>
+                {sourceLabel(source)} ({count})
+              </option>
+            ))}
         </Compact>
 
         <Compact
@@ -149,8 +172,17 @@ export function FilterBar({
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-hairline pt-3">
+        <Chip checked={filters.postedToday} onChange={(postedToday) => setFilters({ postedToday })}>
+          <span title="Published today, by the employer's own date. Undated postings are excluded — with no date there is no evidence.">
+            Posted today
+          </span>
+        </Chip>
         <Chip checked={filters.isNew} onChange={(isNew) => setFilters({ isNew })}>
-          <span title="Appeared for the first time on the last run">New today</span>
+          {/* Deliberately not called "new today": a job posted three weeks ago
+              is new *to you* the day it first reaches your list. */}
+          <span title="First appeared in your list on the last run — regardless of when it was posted">
+            New to you
+          </span>
         </Chip>
         <Chip checked={filters.hasDate} onChange={(hasDate) => setFilters({ hasDate })}>
           <span title="Excludes undated postings and estimated ages">Has real date</span>

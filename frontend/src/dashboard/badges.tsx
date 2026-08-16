@@ -15,6 +15,7 @@ import {
   IconSparkle,
 } from '../components/icons'
 import { Badge, type BadgeTone } from '../components/ui'
+import { sourceLabel } from './FilterBar'
 
 export interface JobBadge {
   key: string
@@ -30,10 +31,12 @@ export function badgesFor(job: Job): JobBadge[] {
   if (job.isNew) {
     badges.push({
       key: 'new',
-      // "New today", never "New": it means the first run this job appeared in
-      // for this user, not that the job was posted recently.
-      label: 'New today',
-      title: 'First appeared in your list on the most recent run',
+      // Not "New today": this means the first run the job appeared in *for this
+      // user*, not that it was posted recently. A job posted three weeks ago is
+      // new to you the day you sign up, and calling that "new today" is a lie.
+      // "Posted today" is a separate filter, backed by the employer's own date.
+      label: 'New to you',
+      title: 'First appeared in your list on the most recent run — not necessarily posted recently',
       tone: 'accent',
       icon: <IconSparkle size={11} />,
     })
@@ -82,7 +85,9 @@ export function badgesFor(job: Job): JobBadge[] {
     badges.push({
       key: 'also-seen',
       // Without this the row reads as thin coverage from a single source.
-      label: `also on ${alsoSeenOn.join(', ')}`,
+      // Names go through the same label map as everywhere else — "also on
+      // LinkedIn", never "also on jobspy".
+      label: `also on ${alsoSeenOn.map(sourceLabel).join(', ')}`,
       title: 'Found on more than one source and merged into one row',
       tone: 'neutral',
       icon: <IconLayers size={11} />,
