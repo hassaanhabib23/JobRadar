@@ -85,11 +85,19 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "celery", "-A", "config", "inspect", "ping", "-d", "celery@$$HOSTNAME"]
+      # CMD-SHELL, not CMD: the exec form runs no shell, so `$$HOSTNAME` reaches
+      # celery as a literal string and it hunts for a node by that name forever.
+      # No destination is needed anyway — there is one worker, and asking it to
+      # identify itself by hostname only adds a way to be wrong.
+      #
+      # This matters more than a normal healthcheck: a worker that dies takes
+      # the daily run with it and nothing else notices. A check that is
+      # permanently red is worse than none, because it teaches you to ignore it.
+      test: ["CMD-SHELL", "celery -A config inspect ping | grep -q pong"]
       interval: 60s
       timeout: 15s
       retries: 3
-      start_period: 30s
+      start_period: 40s
 
   beat:
     image: jobradar-backend
