@@ -85,7 +85,12 @@ export function FilterBar({
   }, [searchDraft, filters.search, setFilters])
 
   return (
-    <section aria-label="Filters" className="rounded-lg border border-hairline bg-surface p-3">
+    // Deliberately not sticky: the bulk-action bar below it already pins to the
+    // same offset, and two elements at one offset overlap.
+    <section
+      aria-label="Filters"
+      className="glass-strong rounded-lg border border-hairline p-3.5 shadow-e1"
+    >
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-[220px] flex-1">
           <label htmlFor="job-search" className="sr-only">
@@ -101,7 +106,7 @@ export function FilterBar({
             placeholder="Search title, company or location"
             value={searchDraft}
             onChange={(event) => setSearchDraft(event.target.value)}
-            className="h-9 w-full rounded border border-hairline bg-bg pl-9 pr-3 text-base placeholder:text-subtle"
+            className="h-10 w-full rounded-sm border border-hairline-strong bg-surface-inset pl-9 pr-3 text-base transition-all duration-fast placeholder:text-subtle focus:border-accent focus:bg-surface focus:shadow-ring focus:outline-none"
           />
         </div>
 
@@ -166,7 +171,7 @@ export function FilterBar({
             placeholder="0"
             value={filters.minScore}
             onChange={(event) => setFilters({ minScore: event.target.value })}
-            className="tabular h-9 w-[68px] rounded border border-hairline bg-bg px-2 text-sm"
+            className="tabular h-10 w-[68px] rounded-sm border border-hairline-strong bg-surface-inset px-2 text-sm transition-all duration-fast focus:border-accent focus:bg-surface focus:shadow-ring focus:outline-none"
           />
         </div>
       </div>
@@ -215,7 +220,7 @@ export function FilterBar({
             'Loading…'
           ) : (
             <>
-              <span className="tabular font-medium text-fg">{resultCount}</span> job
+              <span className="tabular text-md font-extrabold text-fg">{resultCount}</span> job
               {resultCount === 1 ? '' : 's'}
             </>
           )}
@@ -248,8 +253,11 @@ function Compact({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className={cx(
-          'h-9 rounded border bg-bg px-2 text-sm',
-          value ? 'border-accent-border text-accent' : 'border-hairline text-muted',
+          'h-10 rounded-sm border px-2.5 text-sm font-medium transition-all duration-fast',
+          'focus:shadow-ring focus:outline-none',
+          value
+            ? 'border-accent-border bg-accent-subtle text-accent shadow-e0'
+            : 'border-hairline-strong bg-surface-inset text-muted hover:text-fg',
         )}
       >
         {children}

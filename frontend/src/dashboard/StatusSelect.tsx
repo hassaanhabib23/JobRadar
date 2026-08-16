@@ -55,12 +55,16 @@ export function StatusSelect({
           )
         }}
         className={cx(
-          'h-9 min-h-[36px] w-full rounded border bg-surface px-2 text-sm',
-          'transition-colors duration-fast disabled:opacity-60',
-          failed && 'border-danger text-danger',
-          !failed && engaged && 'border-high-border bg-high-bg text-high font-medium',
-          !failed && rejected && 'border-hairline text-subtle',
-          !failed && !engaged && !rejected && 'border-hairline text-muted',
+          'h-9 min-h-[36px] w-full rounded-sm border px-2.5 text-sm font-medium',
+          'shadow-e0 transition-all duration-fast ease-out disabled:opacity-60',
+          'focus:shadow-ring focus:outline-none',
+          failed && 'border-danger bg-danger-bg text-danger',
+          !failed && engaged && 'border-high-border bg-high-bg font-bold text-high',
+          !failed && rejected && 'border-hairline-strong bg-surface-inset text-subtle',
+          !failed &&
+            !engaged &&
+            !rejected &&
+            'border-hairline-strong bg-surface text-muted hover:text-fg',
         )}
       >
         {choices.map((choice) => (

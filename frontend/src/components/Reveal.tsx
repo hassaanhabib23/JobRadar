@@ -6,8 +6,13 @@
  * connection, to do something twelve lines of CSS already does.
  *
  * Motion here is decoration, never information: `prefers-reduced-motion` skips
- * straight to the final state, and so does the no-JavaScript path, because the
- * element starts visible and is only hidden once the observer is attached.
+ * straight to the final state.
+ *
+ * **It fails visible, in three ways.** Without `IntersectionObserver` it never
+ * hides at all; if the element is already on screen when it mounts it reveals
+ * on the spot; and a timer reveals it regardless after a second. An entrance
+ * animation that can strand the copy at `opacity: 0` is worse than no animation
+ * — the page would simply have a hole in it.
  */
 
 import { useEffect, useRef, useState, type ReactNode } from 'react'
@@ -25,7 +30,8 @@ export function Reveal({
   className?: string
 }) {
   const ref = useRef<HTMLDivElement>(null)
-  const [shown, setShown] = useState(false)
+  // Visible by default where the observer does not exist to hide it.
+  const [shown, setShown] = useState(() => typeof IntersectionObserver === 'undefined')
 
   useEffect(() => {
     const element = ref.current
@@ -50,7 +56,19 @@ export function Reveal({
     )
 
     observer.observe(element)
-    return () => observer.disconnect()
+
+    // The backstop. If the observer has not fired within a second — a page
+    // captured full-height, a viewport resized past it, anything unusual — the
+    // copy appears anyway rather than staying invisible forever.
+    const fallback = setTimeout(() => {
+      setShown(true)
+      observer.disconnect()
+    }, 1000)
+
+    return () => {
+      clearTimeout(fallback)
+      observer.disconnect()
+    }
   }, [])
 
   return (

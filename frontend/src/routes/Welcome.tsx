@@ -19,7 +19,7 @@ import { ROLE_KEYWORDS, type Location, type Profile, type User } from '../api/ty
 import { useAuth } from '../auth/AuthProvider'
 import { AuthLayout } from '../components/AuthLayout'
 import { IconCheck, IconMapPin, IconRadar } from '../components/icons'
-import { Button, Chip, Panel, Skeleton, cx } from '../components/ui'
+import { Button, Chip, Skeleton, cx } from '../components/ui'
 
 const DEFAULT_CITIES = ['islamabad', 'rawalpindi']
 const STEPS = ['Cities', 'Focus', 'Done'] as const
@@ -88,10 +88,10 @@ export default function Welcome() {
 
   return (
     <AuthLayout title={titles[step]} subtitle={subtitles[step]} wide>
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-6">
         <Progress current={step} />
 
-        <Panel className="p-5">
+        <div>
           {step === 1 && (
             <div className="flex flex-col gap-5">
               {locations.isPending && (
@@ -141,7 +141,7 @@ export default function Welcome() {
                     ? 'Choose at least one city to continue'
                     : `${cities.length} selected`}
                 </p>
-                <Button disabled={cities.length === 0} onClick={() => setStep(2)}>
+                <Button size="lg" disabled={cities.length === 0} onClick={() => setStep(2)}>
                   Continue
                 </Button>
               </div>
@@ -168,7 +168,7 @@ export default function Welcome() {
                 <Button variant="ghost" onClick={() => setStep(1)}>
                   Back
                 </Button>
-                <Button onClick={() => void goToStep3()} disabled={saveProfile.isPending}>
+                <Button size="lg" onClick={() => void goToStep3()} disabled={saveProfile.isPending}>
                   {saveProfile.isPending ? 'Saving…' : 'Continue'}
                 </Button>
               </div>
@@ -180,13 +180,13 @@ export default function Welcome() {
               <ul aria-live="polite" className="space-y-3 text-sm">
                 <Done>
                   Profile saved for{' '}
-                  <strong className="font-medium text-fg">
+                  <strong className="font-bold text-fg">
                     {cities.length} {cities.length === 1 ? 'city' : 'cities'}
                   </strong>
                   {roles.length > 0 && (
                     <>
                       {' '}
-                      with <strong className="font-medium text-fg">{roles.length}</strong> role
+                      with <strong className="font-bold text-fg">{roles.length}</strong> role
                       {roles.length === 1 ? '' : 's'} weighted up
                     </>
                   )}
@@ -215,13 +215,18 @@ export default function Welcome() {
               </ul>
 
               <div className="border-t border-hairline pt-4">
-                <Button onClick={() => finish.mutate()} disabled={finish.isPending}>
+                <Button
+                  size="lg"
+                  className="w-full"
+                  onClick={() => finish.mutate()}
+                  disabled={finish.isPending}
+                >
                   {finish.isPending ? 'Opening…' : 'Go to my dashboard'}
                 </Button>
               </div>
             </div>
           )}
-        </Panel>
+        </div>
 
         {step < 3 && (
           <p className="text-center text-sm text-subtle">
@@ -263,15 +268,16 @@ function Progress({ current }: { current: Step }) {
           <li key={label} className="flex flex-1 items-center gap-2">
             <span
               className={cx(
-                'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-2xs font-medium',
-                done && 'bg-high-bg text-high',
-                active && 'bg-accent text-on-accent',
-                !done && !active && 'bg-surface-strong text-subtle',
+                'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-2xs font-bold',
+                'transition-all duration-fast ease-out',
+                done && 'bg-high-bg text-high ring-1 ring-high-border',
+                active && 'bg-grad-accent text-on-accent shadow-e1',
+                !done && !active && 'bg-surface-inset text-subtle ring-1 ring-hairline',
               )}
             >
               {done ? <IconCheck size={12} /> : position}
             </span>
-            <span className={cx('text-xs', active ? 'font-medium text-fg' : 'text-subtle')}>
+            <span className={cx('text-xs font-semibold', active ? 'text-fg' : 'text-subtle')}>
               {label}
             </span>
             {position < STEPS.length && (

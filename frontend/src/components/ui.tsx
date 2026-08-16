@@ -1,14 +1,16 @@
 /**
  * Shared primitives.
  *
- * Flat by design: no gradients, no decorative shadows, colour used to carry
- * meaning rather than to decorate. This is a tool that gets scanned in two
- * minutes each morning, so restraint is the feature.
+ * Layered depth rather than flat fills: surfaces sit at defined elevations with
+ * a faint top sheen, chrome is translucent, and the primary action carries a
+ * gradient. The point is that a card should read as a lit object, not as a
+ * rectangle with a border drawn round it.
  *
- * Every interactive element here is at least 44px on its smallest axis, keeps a
+ * Every interactive element is at least 44px on its smallest axis, keeps a
  * visible focus ring, and pairs any colour signal with a word.
  */
 
+import { useEffect, useRef, useState } from 'react'
 import type {
   ButtonHTMLAttributes,
   InputHTMLAttributes,
@@ -17,6 +19,7 @@ import type {
 } from 'react'
 
 import { IconAlert, IconCheck, IconPlus } from './icons'
+import { useReducedMotion } from './motion'
 
 export function cx(...classes: (string | false | null | undefined)[]): string {
   return classes.filter(Boolean).join(' ')
@@ -24,22 +27,27 @@ export function cx(...classes: (string | false | null | undefined)[]): string {
 
 /* --- Button ------------------------------------------------------------- */
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
-type ButtonSize = 'sm' | 'md'
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'glass' | 'danger'
+type ButtonSize = 'sm' | 'md' | 'lg'
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'bg-accent text-on-accent hover:bg-accent-hover border border-transparent',
+  // Gradient, not a flat fill, with a lift and a coloured shadow on hover.
+  primary:
+    'bg-grad-accent text-on-accent shadow-e1 border border-transparent ' +
+    'hover:bg-grad-accent-hover hover:shadow-glow hover:-translate-y-px active:translate-y-0',
   secondary:
-    'bg-surface text-fg border border-hairline hover:bg-surface-hover hover:border-hairline-strong',
+    'surface text-fg hover:bg-surface-hover hover:border-hairline-strong ' +
+    'hover:shadow-e2 hover:-translate-y-px active:translate-y-0',
   ghost: 'text-muted hover:text-fg hover:bg-surface-hover border border-transparent',
+  glass: 'glass border text-fg hover:bg-surface-hover',
   danger:
     'bg-danger-bg text-danger border border-danger-border hover:bg-danger hover:text-on-accent',
 }
 
 const BUTTON_SIZES: Record<ButtonSize, string> = {
-  // Both clear the 44px touch target on their smallest axis.
-  sm: 'h-9 min-h-[36px] px-3 text-sm gap-1.5',
-  md: 'h-11 min-h-[44px] px-4 text-base gap-2',
+  sm: 'h-9 min-h-[36px] px-3.5 text-sm gap-1.5 rounded-sm',
+  md: 'h-11 min-h-[44px] px-5 text-base gap-2 rounded',
+  lg: 'h-12 min-h-[48px] px-6 text-md gap-2 rounded',
 }
 
 export function Button({
@@ -56,9 +64,9 @@ export function Button({
     <button
       type={type}
       className={cx(
-        'inline-flex items-center justify-center rounded font-medium',
-        'transition-colors duration-fast',
-        'disabled:opacity-50 disabled:pointer-events-none',
+        'relative inline-flex items-center justify-center font-semibold',
+        'transition-all duration-fast ease-out',
+        'disabled:opacity-50 disabled:pointer-events-none disabled:shadow-none',
         BUTTON_SIZES[size],
         BUTTON_VARIANTS[variant],
         className,
@@ -71,8 +79,9 @@ export function Button({
 /* --- Form fields -------------------------------------------------------- */
 
 const CONTROL =
-  'w-full rounded border bg-surface px-3 text-base text-fg placeholder:text-subtle ' +
-  'transition-colors duration-fast focus:border-accent'
+  'w-full rounded border bg-surface-inset px-3.5 text-base text-fg placeholder:text-subtle ' +
+  'transition-all duration-fast focus:border-accent focus:bg-surface focus:shadow-ring ' +
+  'focus:outline-none'
 
 interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string
@@ -88,10 +97,10 @@ export function Field({ label, errors, hint, id, className, ...props }: FieldPro
   const invalid = Boolean(errors?.length)
 
   return (
-    <div className="flex flex-col gap-1.5">
-      {/* A visible label, always. A placeholder disappears the moment you
-          start typing, which is exactly when you need it. */}
-      <label htmlFor={inputId} className="text-sm font-medium text-fg">
+    <div className="flex flex-col gap-2">
+      {/* A visible label, always. A placeholder disappears the moment you start
+          typing, which is exactly when you need it. */}
+      <label htmlFor={inputId} className="text-sm font-semibold text-fg">
         {label}
       </label>
       <input
@@ -100,8 +109,8 @@ export function Field({ label, errors, hint, id, className, ...props }: FieldPro
         aria-describedby={cx(invalid && errorId, hint && hintId) || undefined}
         className={cx(
           CONTROL,
-          'h-11 min-h-[44px]',
-          invalid ? 'border-danger' : 'border-hairline',
+          'h-12 min-h-[48px]',
+          invalid ? 'border-danger' : 'border-hairline-strong',
           className,
         )}
         {...props}
@@ -114,7 +123,7 @@ export function Field({ label, errors, hint, id, className, ...props }: FieldPro
       {invalid && (
         // Beside the field it belongs to, not collected in a banner at the top
         // where you have to work out which input it refers to.
-        <p id={errorId} className="flex items-start gap-1.5 text-xs text-danger">
+        <p id={errorId} className="flex items-start gap-1.5 text-xs font-medium text-danger">
           <IconAlert size={13} className="mt-0.5" />
           <span>{errors!.join(' ')}</span>
         </p>
@@ -133,40 +142,17 @@ export function Select({
 }: SelectHTMLAttributes<HTMLSelectElement> & { label: string; hideLabel?: boolean }) {
   const selectId = id ?? props.name ?? label.toLowerCase().replace(/\s+/g, '-')
   return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={selectId} className={cx('text-sm font-medium', hideLabel && 'sr-only')}>
+    <div className="flex flex-col gap-2">
+      <label htmlFor={selectId} className={cx('text-sm font-semibold', hideLabel && 'sr-only')}>
         {label}
       </label>
       <select
         id={selectId}
-        className={cx(CONTROL, 'h-11 min-h-[44px] border-hairline pr-8', className)}
+        className={cx(CONTROL, 'h-12 min-h-[48px] border-hairline-strong pr-8', className)}
         {...props}
       >
         {children}
       </select>
-    </div>
-  )
-}
-
-export function Textarea({
-  label,
-  hint,
-  id,
-  className,
-  ...props
-}: InputHTMLAttributes<HTMLTextAreaElement> & { label: string; hint?: string }) {
-  const areaId = id ?? props.name ?? label.toLowerCase().replace(/\s+/g, '-')
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={areaId} className="text-sm font-medium">
-        {label}
-      </label>
-      <textarea
-        id={areaId}
-        className={cx(CONTROL, 'py-2.5 leading-relaxed', className)}
-        {...(props as object)}
-      />
-      {hint && <p className="text-xs text-muted">{hint}</p>}
     </div>
   )
 }
@@ -176,9 +162,9 @@ export function FormError({ children }: { children: ReactNode }) {
   return (
     <p
       role="alert"
-      className="flex items-start gap-2 rounded border border-danger-border bg-danger-bg p-3 text-sm text-danger"
+      className="flex items-start gap-2.5 rounded border border-danger-border bg-danger-bg p-3.5 text-sm font-medium text-danger"
     >
-      <IconAlert size={15} className="mt-0.5" />
+      <IconAlert size={16} className="mt-0.5 shrink-0" />
       <span>{children}</span>
     </p>
   )
@@ -186,17 +172,36 @@ export function FormError({ children }: { children: ReactNode }) {
 
 /* --- Surfaces ----------------------------------------------------------- */
 
+type Elevation = 'flat' | 'raised' | 'high' | 'glass'
+
+const ELEVATIONS: Record<Elevation, string> = {
+  flat: 'bg-surface border border-hairline rounded-lg',
+  raised: 'surface',
+  high: 'surface surface-2',
+  glass: 'glass border rounded-lg shadow-e2',
+}
+
 export function Panel({
   children,
   className,
+  elevation = 'raised',
+  edge = false,
   as: Tag = 'section',
 }: {
   children: ReactNode
   className?: string
-  as?: 'section' | 'div' | 'article'
+  /** Defaults to `raised`, so every existing usage lifts without an edit. */
+  elevation?: Elevation
+  /** A gradient hairline along the top edge. For the cards that matter most. */
+  edge?: boolean
+  as?: 'section' | 'div' | 'article' | 'li'
 }) {
   return (
-    <Tag className={cx('rounded-lg border border-hairline bg-surface', className)}>{children}</Tag>
+    // Children are rendered directly, not inside a wrapper: callers put
+    // `flex`/`grid` on the Panel itself and a wrapper div would swallow it.
+    <Tag className={cx('relative', ELEVATIONS[elevation], edge && 'edge-top', className)}>
+      {children}
+    </Tag>
   )
 }
 
@@ -210,10 +215,10 @@ export function PanelHeader({
   action?: ReactNode
 }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-3 border-b border-hairline px-5 py-4">
+    <div className="flex flex-wrap items-start justify-between gap-4 border-b border-hairline px-5 py-4">
       <div className="min-w-0">
-        <h2 className="text-md font-semibold">{title}</h2>
-        {description && <p className="mt-0.5 max-w-measure text-sm text-muted">{description}</p>}
+        <h2 className="text-md font-bold tracking-tight">{title}</h2>
+        {description && <p className="mt-1 max-w-measure text-sm text-muted">{description}</p>}
       </div>
       {action}
     </div>
@@ -237,12 +242,12 @@ export function Chip({
   return (
     <label
       className={cx(
-        'inline-flex min-h-[40px] cursor-pointer select-none items-center gap-2 rounded-full',
-        'border px-3.5 text-sm transition-colors duration-fast',
+        'inline-flex min-h-[42px] cursor-pointer select-none items-center gap-2 rounded-full',
+        'border px-4 text-sm font-medium transition-all duration-fast ease-out',
         'focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-accent',
         checked
-          ? 'border-accent-border bg-accent-subtle font-medium text-accent'
-          : 'border-hairline text-muted hover:border-hairline-strong hover:text-fg',
+          ? 'border-accent-border bg-accent-subtle text-accent shadow-e1'
+          : 'border-hairline bg-surface text-muted hover:-translate-y-px hover:border-hairline-strong hover:text-fg hover:shadow-e1',
       )}
     >
       <input
@@ -262,7 +267,7 @@ export function Chip({
 export type BadgeTone = 'neutral' | 'accent' | 'high' | 'medium' | 'stretch' | 'danger'
 
 const BADGE_TONES: Record<BadgeTone, string> = {
-  neutral: 'border-hairline text-muted',
+  neutral: 'border-hairline bg-surface-inset text-muted',
   accent: 'border-accent-border bg-accent-subtle text-accent',
   high: 'border-high-border bg-high-bg text-high',
   medium: 'border-medium-border bg-medium-bg text-medium',
@@ -287,7 +292,7 @@ export function Badge({
     <span
       title={title}
       className={cx(
-        'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-2xs font-medium',
+        'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-2xs font-bold uppercase tracking-wide',
         // A badge that wraps mid-word looks broken; it truncates instead.
         'max-w-full whitespace-nowrap',
         BADGE_TONES[tone],
@@ -304,10 +309,10 @@ export function Badge({
 
 export function Spinner({ label = 'Loading' }: { label?: string }) {
   return (
-    <span role="status" className="inline-flex items-center gap-2 text-sm text-muted">
+    <span role="status" className="inline-flex items-center gap-2.5 text-sm text-muted">
       <span
         aria-hidden="true"
-        className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-hairline-strong border-t-accent"
+        className="h-4 w-4 animate-spin rounded-full border-2 border-hairline-strong border-t-accent"
       />
       {label}…
     </span>
@@ -330,15 +335,15 @@ export function EmptyState({
   action?: ReactNode
 }) {
   return (
-    <Panel className="flex flex-col items-center gap-3 px-5 py-7 text-center">
+    <Panel className="flex flex-col items-center gap-4 px-5 py-7 text-center">
       {icon && (
-        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-strong text-muted">
+        <span className="flex h-14 w-14 items-center justify-center rounded-full border border-hairline bg-surface-inset text-muted shadow-e1">
           {icon}
         </span>
       )}
       <div>
-        <h2 className="text-md font-semibold">{title}</h2>
-        <p className="mx-auto mt-1 max-w-measure text-sm text-muted">{description}</p>
+        <h2 className="text-lg font-bold tracking-tight">{title}</h2>
+        <p className="mx-auto mt-1.5 max-w-measure text-muted">{description}</p>
       </div>
       {action}
     </Panel>
@@ -347,14 +352,70 @@ export function EmptyState({
 
 export function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <Panel className="flex flex-wrap items-center justify-between gap-3 p-4">
-      <p role="alert" className="flex items-center gap-2 text-sm">
-        <IconAlert size={15} className="text-danger" />
+    <Panel className="flex flex-wrap items-center justify-between gap-4 p-4">
+      <p role="alert" className="flex items-center gap-2.5 font-medium">
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-danger-bg text-danger">
+          <IconAlert size={16} />
+        </span>
         {message}
       </p>
       <Button variant="secondary" size="sm" onClick={onRetry}>
         Try again
       </Button>
     </Panel>
+  )
+}
+
+/* --- Motion ------------------------------------------------------------- */
+
+/**
+ * A number that counts up to its value.
+ *
+ * Rendered inside the element that would have held the plain number, so the
+ * layout is identical whether it animates or not.
+ */
+export function CountUp({
+  value,
+  duration = 900,
+  className,
+}: {
+  value: number
+  duration?: number
+  className?: string
+}) {
+  const reduced = useReducedMotion()
+  const [shown, setShown] = useState(reduced ? value : 0)
+  const frame = useRef<number>()
+
+  useEffect(() => {
+    if (reduced) {
+      setShown(value)
+      return
+    }
+
+    const start = performance.now()
+    const from = 0
+
+    const step = (now: number) => {
+      const progress = Math.min(1, (now - start) / duration)
+      // Ease-out cubic: fast at first, settles gently — the opposite feels
+      // sluggish because the interesting part is the arrival.
+      const eased = 1 - Math.pow(1 - progress, 3)
+      setShown(Math.round(from + (value - from) * eased))
+      if (progress < 1) frame.current = requestAnimationFrame(step)
+    }
+
+    frame.current = requestAnimationFrame(step)
+    return () => {
+      if (frame.current) cancelAnimationFrame(frame.current)
+    }
+  }, [value, duration, reduced])
+
+  // The final value is always in the DOM for assistive tech, even mid-animation.
+  return (
+    <span className={className}>
+      <span aria-hidden="true">{shown}</span>
+      <span className="sr-only">{value}</span>
+    </span>
   )
 }

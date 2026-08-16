@@ -13,6 +13,7 @@ import { Link } from 'react-router-dom'
 
 import type { Job, StatusChoice } from '../api/types'
 import { IconArrowDown, IconArrowUp, IconExternal, IconSort } from '../components/icons'
+import { stagger } from '../components/motion'
 import { WIDE_SCREEN, useMediaQuery } from '../components/useMediaQuery'
 import { Badge, cx } from '../components/ui'
 import { Badges } from './badges'
@@ -71,17 +72,22 @@ export function JobTable({
   if (!wide) {
     return (
       <ul className="flex flex-col gap-2.5">
-        {jobs.map((job) => (
+        {jobs.map((job, index) => (
           <li
             key={job.id}
-            className="rounded-lg border border-hairline bg-surface p-4 transition-colors duration-fast"
+            style={stagger(index, 30)}
+            className={cx(
+              'surface lift-sm page-enter p-4',
+              // A High-tier card earns the gradient edge; the rest stay quiet.
+              job.tier === 'High' && 'edge-top',
+            )}
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <RoleCell job={job} />
               </div>
               <div className="flex flex-col items-end gap-1.5">
-                <span className="tabular text-lg font-semibold leading-none">{job.score}</span>
+                <span className="tabular text-xl font-extrabold leading-none">{job.score}</span>
                 <Badge tone={TIER_TONE[job.tier as keyof typeof TIER_TONE] ?? 'neutral'}>
                   {job.tier}
                 </Badge>
@@ -115,20 +121,22 @@ export function JobTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-hairline bg-surface">
+    <div className="surface overflow-x-auto">
       <table className="w-full border-collapse text-sm">
         <caption className="sr-only">
           Your jobs, sorted by {filters.ordering.replace('-', '')}
         </caption>
         <thead>
-          <tr className="border-b border-hairline bg-bg-subtle text-left">
+          {/* Not sticky: the filter bar directly above it already is, and two
+              elements pinned to the same offset overlap. */}
+          <tr className="border-b border-hairline bg-surface-inset text-left">
             {COLUMNS.map((column) => (
               <th
                 key={column.key}
                 scope="col"
                 aria-sort={ariaSort(column.ordering)}
                 className={cx(
-                  'px-3 py-2 text-2xs font-medium uppercase tracking-wide text-subtle',
+                  'px-3.5 py-3 text-2xs font-bold uppercase tracking-wide text-subtle',
                   column.className,
                 )}
               >
@@ -166,12 +174,12 @@ export function JobTable({
             <tr
               key={job.id}
               className={cx(
-                'border-b border-hairline align-top last:border-0',
+                'group border-b border-hairline align-top last:border-0',
                 'transition-colors duration-fast hover:bg-surface-hover',
                 selected.has(job.id) && 'bg-accent-subtle',
               )}
             >
-              <td className="px-3 py-3">
+              <td className="px-3.5 py-4">
                 <label className="sr-only" htmlFor={`select-${job.id}`}>
                   Select {job.title}
                 </label>
@@ -184,9 +192,9 @@ export function JobTable({
                 />
               </td>
 
-              <td className="px-3 py-3">
+              <td className="px-3.5 py-4">
                 <div className="flex items-baseline gap-2">
-                  <span className="tabular text-md font-semibold leading-none">{job.score}</span>
+                  <span className="tabular text-lg font-extrabold leading-none">{job.score}</span>
                   <Badge tone={TIER_TONE[job.tier as keyof typeof TIER_TONE] ?? 'neutral'}>
                     {job.tier}
                   </Badge>
@@ -194,25 +202,25 @@ export function JobTable({
                 <ScoreBar detail={job.detail} score={job.score} className="mt-2" />
               </td>
 
-              <td className="px-3 py-3">
+              <td className="px-3.5 py-4">
                 <RoleCell job={job} />
               </td>
 
-              <td className="px-3 py-3 text-muted">{job.company}</td>
+              <td className="px-3.5 py-4 text-muted">{job.company}</td>
 
-              <td className="px-3 py-3">
+              <td className="px-3.5 py-4">
                 <Badge>{sourceLabel(job.source)}</Badge>
               </td>
 
-              <td className="px-3 py-3 text-subtle">
+              <td className="px-3.5 py-4 text-subtle">
                 <PostedCell job={job} />
               </td>
 
-              <td className="px-3 py-3">
+              <td className="px-3.5 py-4">
                 <StatusSelect job={job} choices={statuses} />
               </td>
 
-              <td className="px-3 py-3">
+              <td className="px-3.5 py-4">
                 <ApplyLink job={job} />
               </td>
             </tr>
@@ -231,7 +239,7 @@ function RoleCell({ job }: { job: Job }) {
     <div className="flex min-w-0 flex-col gap-1">
       <Link
         to={`/app/jobs/${job.id}`}
-        className="font-medium text-fg underline-offset-2 hover:text-accent hover:underline"
+        className="text-base font-bold leading-snug text-fg underline-offset-2 transition-colors duration-fast hover:text-accent hover:underline"
       >
         {job.title}
       </Link>
@@ -281,9 +289,9 @@ function ApplyLink({ job }: { job: Job }) {
       target="_blank"
       rel="noopener noreferrer"
       className={cx(
-        'inline-flex h-9 min-h-[36px] items-center gap-1.5 rounded border border-hairline px-2.5',
-        'text-sm text-muted transition-colors duration-fast',
-        'hover:border-accent-border hover:bg-accent-subtle hover:text-accent',
+        'inline-flex h-9 min-h-[36px] items-center gap-1.5 rounded-sm border border-hairline bg-surface px-3',
+        'text-sm font-semibold text-muted shadow-e0 transition-all duration-fast ease-out',
+        'hover:-translate-y-px hover:border-accent-border hover:bg-accent-subtle hover:text-accent hover:shadow-e1',
       )}
     >
       Apply

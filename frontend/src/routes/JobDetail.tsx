@@ -68,11 +68,11 @@ export default function JobDetail() {
 
         {data && (
           <>
-            <Panel className="p-5">
+            <Panel edge elevation="high" className="p-4 sm:p-6">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0">
-                  <h1 className="text-xl font-semibold">{data.title}</h1>
-                  <p className="mt-1 text-muted">
+                  <h1 className="text-2xl font-extrabold tracking-tight">{data.title}</h1>
+                  <p className="mt-2 text-md text-muted">
                     {data.company}
                     {data.location && ` · ${data.location}`}
                   </p>
@@ -88,7 +88,7 @@ export default function JobDetail() {
                       href={data.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex h-11 min-h-[44px] items-center gap-2 rounded bg-accent px-4 text-base font-medium text-on-accent transition-colors duration-fast hover:bg-accent-hover"
+                      className="inline-flex h-11 min-h-[44px] items-center gap-2 rounded bg-grad-accent px-5 text-base font-semibold text-on-accent shadow-e1 transition-all duration-fast ease-out hover:-translate-y-px hover:shadow-glow"
                     >
                       Apply
                       <IconExternal size={14} />
@@ -104,7 +104,7 @@ export default function JobDetail() {
                 description="Every number here comes from a weight you control."
                 action={
                   <div className="flex items-baseline gap-2">
-                    <span className="tabular text-2xl font-semibold leading-none">
+                    <span className="tabular text-3xl font-extrabold leading-none">
                       {data.score}
                     </span>
                     <span className="text-sm text-subtle">/ 100</span>
@@ -116,7 +116,7 @@ export default function JobDetail() {
               />
 
               <div className="p-5">
-                <ScoreBar detail={data.detail} score={data.score} className="h-2" />
+                <ScoreBar detail={data.detail} score={data.score} className="!h-3" />
 
                 {data.detail && (
                   <dl className="mt-4 grid gap-4 sm:grid-cols-4">
@@ -133,7 +133,7 @@ export default function JobDetail() {
                           {segment.label}
                         </dt>
                         <dd className="tabular mt-1.5">
-                          <span className="text-md font-semibold">
+                          <span className="text-lg font-extrabold">
                             {data.detail![segment.key].toFixed(1)}
                           </span>
                           <span className="text-subtle"> / {MAXIMUMS[segment.key]}</span>
@@ -156,7 +156,7 @@ export default function JobDetail() {
 
                 {data.detail?.skillsHit?.length ? (
                   <div className="mt-4 border-t border-hairline pt-4">
-                    <h3 className="text-2xs font-medium uppercase tracking-wide text-subtle">
+                    <h3 className="text-2xs font-bold uppercase tracking-wide text-subtle">
                       Matched skills
                     </h3>
                     <ul className="mt-2 flex flex-wrap gap-1.5">
@@ -267,7 +267,7 @@ function NotesPanel({ jobId, initial }: { jobId: number; initial: string }) {
           value={notes}
           onChange={(event) => setNotes(event.target.value)}
           placeholder="Who referred you, what you tailored, when to follow up…"
-          className="w-full rounded border border-hairline bg-bg p-3 text-base leading-relaxed placeholder:text-subtle"
+          className="w-full rounded border border-hairline-strong bg-surface-inset p-3.5 text-base leading-relaxed transition-all duration-fast placeholder:text-subtle focus:border-accent focus:bg-surface focus:shadow-ring focus:outline-none"
         />
       </div>
     </Panel>
@@ -277,8 +277,8 @@ function NotesPanel({ jobId, initial }: { jobId: number; initial: string }) {
 function Fact({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-2xs uppercase tracking-wide text-subtle">{label}</dt>
-      <dd className="mt-1">{value}</dd>
+      <dt className="text-2xs font-bold uppercase tracking-wide text-subtle">{label}</dt>
+      <dd className="mt-1.5 font-semibold">{value}</dd>
     </div>
   )
 }

@@ -7,9 +7,14 @@
  *
  * Segment widths are each component's share of the 100 available points, so the
  * bar reads as "how full is this score, and with what".
+ *
+ * The segments grow from zero on first paint. That is decoration, not
+ * information — the aria-label carries the real numbers from the first frame,
+ * and under reduced motion the bar renders full immediately.
  */
 
 import type { ScoreDetail } from '../api/types'
+import { useMounted, useReducedMotion } from '../components/motion'
 import { cx } from '../components/ui'
 
 export const MAXIMUMS = { stack: 40, level: 25, location: 20, fresh: 15 } as const
@@ -42,22 +47,34 @@ export function ScoreBar({
   score: number
   className?: string
 }) {
+  const mounted = useMounted()
+  const reduced = useReducedMotion()
+  const grown = mounted || reduced
+
   if (!detail) return null
 
   return (
     <div
-      className={cx('flex h-1.5 gap-px overflow-hidden rounded-full bg-surface-strong', className)}
+      className={cx(
+        'flex h-2 gap-px overflow-hidden rounded-full bg-surface-strong shadow-e0',
+        className,
+      )}
       // One labelled image, not four anonymous divs: a screen reader gets the
       // numbers rather than nothing at all.
       role="img"
       aria-label={`Score ${score} of 100. ${summarise(detail)}.`}
       title={summarise(detail)}
     >
-      {SEGMENTS.map((segment) => (
+      {SEGMENTS.map((segment, index) => (
         <div
           key={segment.key}
-          className={segment.colour}
-          style={{ flex: `0 0 ${detail[segment.key]}%` }}
+          className={cx(segment.colour, 'transition-[flex-basis] duration-slow ease-out')}
+          style={{
+            flex: `0 0 ${grown ? detail[segment.key] : 0}%`,
+            // Left to right, so the bar reads as filling rather than as four
+            // things appearing at once.
+            transitionDelay: `${index * 70}ms`,
+          }}
         />
       ))}
     </div>

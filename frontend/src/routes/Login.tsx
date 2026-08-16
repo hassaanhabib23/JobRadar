@@ -87,7 +87,7 @@ export default function Login() {
           errors={fieldErrors.password}
         />
 
-        <Button type="submit" disabled={submitting} className="mt-1">
+        <Button type="submit" size="lg" disabled={submitting} className="mt-2 w-full">
           {submitting ? 'Signing in…' : 'Sign in'}
         </Button>
       </form>

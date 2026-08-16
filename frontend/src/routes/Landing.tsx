@@ -81,18 +81,20 @@ export default function Landing() {
   const signedIn = status === 'authenticated'
 
   return (
-    <div className="min-h-screen bg-bg">
+    <div className="mesh min-h-screen bg-bg">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded focus:bg-accent focus:px-4 focus:py-2 focus:text-on-accent"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded focus:bg-grad-accent focus:px-4 focus:py-2 focus:font-semibold focus:text-on-accent focus:shadow-e2"
       >
         Skip to content
       </a>
 
-      <header className="sticky top-0 z-20 border-b border-hairline bg-bg/85 backdrop-blur">
+      <header className="glass sticky top-0 z-20 border-b">
         <div className="mx-auto flex h-topbar max-w-6xl items-center gap-3 px-5">
-          <span className="flex items-center gap-2 font-semibold tracking-tight">
-            <IconRadar size={19} className="text-accent" />
+          <span className="flex items-center gap-2.5 text-md font-extrabold tracking-tight">
+            <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-grad-accent text-on-accent shadow-e1">
+              <IconRadar size={17} />
+            </span>
             JobRadar
           </span>
 
@@ -144,8 +146,12 @@ export default function Landing() {
                 Free and self-hostable
               </Badge>
 
-              <h1 className="mt-4 text-3xl font-semibold leading-[1.12] tracking-tight sm:text-4xl">
-                Every junior dev job in your city, scored against your CV, in one place.
+              <h1 className="mt-5 text-3xl font-extrabold leading-[1.08] tracking-tight sm:text-4xl">
+                Every junior dev job in your city,{' '}
+                <span className="bg-grad-edge bg-clip-text text-transparent">
+                  scored against your CV
+                </span>
+                , in one place.
               </h1>
 
               <p className="mt-4 max-w-measure text-md text-muted">
@@ -155,10 +161,12 @@ export default function Landing() {
 
               <div className="mt-6 flex flex-wrap items-center gap-3">
                 <Link to="/register">
-                  <Button className="px-5">Get started</Button>
+                  <Button size="lg">Get started</Button>
                 </Link>
                 <Link to="/login">
-                  <Button variant="secondary">Sign in</Button>
+                  <Button size="lg" variant="secondary">
+                    Sign in
+                  </Button>
                 </Link>
               </div>
 
@@ -175,16 +183,14 @@ export default function Landing() {
         </section>
 
         {/* --- The problem --------------------------------------------- */}
-        <section className="border-b border-hairline bg-bg-subtle">
+        <section className="border-b border-hairline bg-bg-deep">
           <div className="mx-auto max-w-6xl px-5 py-7">
-            <h2 className="text-xl font-semibold">The morning routine this replaces</h2>
+            <h2 className="text-2xl font-extrabold">The morning routine this replaces</h2>
             <ul className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {PROBLEMS.map((problem, index) => (
                 <li key={problem}>
                   <Reveal delay={index * 60}>
-                    <p className="h-full rounded-lg border border-hairline bg-surface p-4 text-sm text-muted">
-                      {problem}
-                    </p>
+                    <p className="surface lift h-full p-5 text-sm text-muted">{problem}</p>
                   </Reveal>
                 </li>
               ))}
@@ -195,23 +201,20 @@ export default function Landing() {
         {/* --- How it works -------------------------------------------- */}
         <section className="border-b border-hairline">
           <div className="mx-auto max-w-6xl px-5 py-7">
-            <h2 className="text-xl font-semibold">How it works</h2>
+            <h2 className="text-2xl font-extrabold">How it works</h2>
             <ol className="mt-5 grid gap-4 lg:grid-cols-3">
               {STEPS.map((step, index) => (
                 <li key={step.title}>
-                  <Reveal
-                    delay={index * 80}
-                    className="h-full rounded-lg border border-hairline bg-surface p-5"
-                  >
+                  <Reveal delay={index * 80} className="surface lift h-full p-5">
                     <div className="flex items-center gap-3">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-subtle text-accent">
-                        <step.Icon size={17} />
+                      <span className="flex h-11 w-11 items-center justify-center rounded-sm bg-grad-accent text-on-accent shadow-e1">
+                        <step.Icon size={19} />
                       </span>
                       <span className="tabular text-xs text-subtle">
                         Step {index + 1} of {STEPS.length}
                       </span>
                     </div>
-                    <h3 className="mt-3.5 font-semibold">{step.title}</h3>
+                    <h3 className="mt-4 text-md font-bold">{step.title}</h3>
                     <p className="mt-1.5 text-sm text-muted">{step.body}</p>
                   </Reveal>
                 </li>
@@ -221,16 +224,16 @@ export default function Landing() {
         </section>
 
         {/* --- What it reads, named honestly --------------------------- */}
-        <section className="border-b border-hairline bg-bg-subtle">
+        <section className="border-b border-hairline bg-bg-deep">
           <div className="mx-auto max-w-6xl px-5 py-7">
-            <h2 className="text-xl font-semibold">What it actually reads</h2>
+            <h2 className="text-2xl font-extrabold">What it actually reads</h2>
             <p className="mt-2 max-w-measure text-sm text-muted">
               Not "every job on the internet". Specifically these, and nothing it cannot reach:
             </p>
 
             <div className="mt-5 grid gap-4 lg:grid-cols-2">
-              <article className="rounded-lg border border-hairline bg-surface p-5">
-                <h3 className="flex items-center gap-2 font-semibold">
+              <article className="surface lift edge-top p-5 sm:p-6">
+                <h3 className="flex items-center gap-2 text-md font-bold">
                   <IconLayers size={16} className="text-accent" />
                   Company job boards
                 </h3>
@@ -247,8 +250,8 @@ export default function Landing() {
                 </ul>
               </article>
 
-              <article className="rounded-lg border border-hairline bg-surface p-5">
-                <h3 className="flex items-center gap-2 font-semibold">
+              <article className="surface lift edge-top p-5 sm:p-6">
+                <h3 className="flex items-center gap-2 text-md font-bold">
                   <IconRadar size={16} className="text-accent" />
                   Boards and feeds
                 </h3>
@@ -271,14 +274,14 @@ export default function Landing() {
         {/* --- CTA ----------------------------------------------------- */}
         <section className="border-b border-hairline">
           <div className="mx-auto max-w-6xl px-5 py-[3.5rem] text-center">
-            <h2 className="text-2xl font-semibold">Stop opening eight tabs</h2>
+            <h2 className="text-3xl font-extrabold">Stop opening eight tabs</h2>
             <p className="mx-auto mt-3 max-w-measure text-md text-muted">
               Free, open, and self-hostable — one command on your own machine, and your job list and
               notes never leave it.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Link to="/register">
-                <Button className="px-6">Get started</Button>
+                <Button size="lg">Get started</Button>
               </Link>
               <a
                 href="https://github.com"
@@ -286,7 +289,7 @@ export default function Landing() {
                 rel="noopener noreferrer"
                 className="inline-flex"
               >
-                <Button variant="secondary">
+                <Button size="lg" variant="secondary">
                   View the source
                   <IconExternal size={14} />
                 </Button>
@@ -299,7 +302,7 @@ export default function Landing() {
       <footer className="mx-auto max-w-6xl px-5 py-7 text-sm text-muted">
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
-            <p className="flex items-center gap-2 font-medium text-fg">
+            <p className="flex items-center gap-2 font-bold text-fg">
               <IconRadar size={16} className="text-accent" />
               JobRadar
             </p>
@@ -310,9 +313,9 @@ export default function Landing() {
           </div>
           <div className="space-y-2.5">
             <p>
-              <strong className="font-medium text-fg">Worth knowing:</strong> scraped sources
+              <strong className="font-bold text-fg">Worth knowing:</strong> scraped sources
               (LinkedIn, Indeed) can rate-limit or block, so coverage from them varies.{' '}
-              <strong className="font-medium text-fg">Glassdoor is not supported</strong> — it does
+              <strong className="font-bold text-fg">Glassdoor is not supported</strong> — it does
               not serve Pakistan, so the data simply is not there.
             </p>
             <p>
@@ -334,9 +337,9 @@ export default function Landing() {
  */
 function ScoredRowDemo() {
   return (
-    <figure className="rounded-lg border border-hairline bg-surface shadow">
+    <figure className="surface surface-3 edge-top">
       <figcaption className="flex items-center justify-between gap-3 border-b border-hairline px-4 py-2.5">
-        <span className="text-xs font-medium uppercase tracking-wide text-subtle">
+        <span className="text-2xs font-bold uppercase tracking-wide text-subtle">
           One row from your list
         </span>
         <Badge tone="accent">New today</Badge>
@@ -345,11 +348,11 @@ function ScoredRowDemo() {
       <div className="p-4">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="font-semibold">Associate Software Engineer</p>
+            <p className="text-md font-bold">Associate Software Engineer</p>
             <p className="mt-0.5 text-sm text-muted">Careem · Islamabad, Pakistan · 2d ago</p>
           </div>
           <div className="text-right">
-            <span className="tabular text-2xl font-semibold leading-none">87</span>
+            <span className="tabular text-3xl font-extrabold leading-none">87</span>
             <span className="mt-1.5 block">
               <Badge tone="high">High</Badge>
             </span>
@@ -357,7 +360,7 @@ function ScoredRowDemo() {
         </div>
 
         <div
-          className="mt-4 flex h-2 gap-0.5 overflow-hidden rounded-full bg-surface-strong"
+          className="mt-5 flex h-2.5 gap-0.5 overflow-hidden rounded-full bg-surface-strong shadow-e0"
           role="img"
           aria-label="Score 87 of 100. Stack 28.4 of 40, Level 23.8 of 25, Location 20 of 20, Freshness 15 of 15."
         >
