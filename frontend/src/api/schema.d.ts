@@ -1143,29 +1143,7 @@ export interface operations {
         posted_today?: boolean
         posted_within?: number
         search?: string
-        /**
-         * @description * `greenhouse` - Greenhouse
-         *     * `lever` - Lever
-         *     * `workable` - Workable
-         *     * `breezy` - Breezy
-         *     * `ashby` - Ashby
-         *     * `smartrecruiters` - SmartRecruiters
-         *     * `recruitee` - Recruitee
-         *     * `workday` - Workday
-         *     * `rss` - RSS / Atom
-         *     * `jobspy` - Job boards (jobspy)
-         */
-        source?:
-          | 'ashby'
-          | 'breezy'
-          | 'greenhouse'
-          | 'jobspy'
-          | 'lever'
-          | 'recruitee'
-          | 'rss'
-          | 'smartrecruiters'
-          | 'workable'
-          | 'workday'
+        source?: string
         /**
          * @description * `not_started` - Not started
          *     * `researching` - Researching

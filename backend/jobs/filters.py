@@ -14,7 +14,7 @@ from django.contrib.postgres.search import SearchQuery, SearchRank
 from django.db.models import F, Q, QuerySet
 from django.utils import timezone
 
-from jobs.models import ApplicationStatus, SourceKind, UserJob
+from jobs.models import ApplicationStatus, UserJob
 from scoring import locations as location_catalogue
 
 
@@ -23,7 +23,13 @@ class JobFilter(django_filters.FilterSet):
 
     search = django_filters.CharFilter(method="filter_search")
     tier = django_filters.CharFilter(field_name="tier", lookup_expr="iexact")
-    source = django_filters.ChoiceFilter(field_name="job__source", choices=SourceKind.choices)
+    #: Not a `ChoiceFilter`. `Job.source` records the *board* a posting was on
+    #: ("linkedin", "indeed"), which is deliberately not constrained to
+    #: `SourceKind` — that enum names the *adapter* that fetched a feed, and one
+    #: jobspy adapter yields postings from several boards. Validating against the
+    #: enum rejected every scraped board with a 400, while the dashboard built
+    #: its dropdown from the boards actually present in the data.
+    source = django_filters.CharFilter(field_name="job__source", lookup_expr="iexact")
     status = django_filters.ChoiceFilter(field_name="status", choices=ApplicationStatus.choices)
     min_score = django_filters.NumberFilter(field_name="score", lookup_expr="gte")
     max_score = django_filters.NumberFilter(field_name="score", lookup_expr="lte")

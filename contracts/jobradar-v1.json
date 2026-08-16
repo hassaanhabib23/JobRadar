@@ -629,21 +629,8 @@
                         "in": "query",
                         "name": "source",
                         "schema": {
-                            "type": "string",
-                            "enum": [
-                                "ashby",
-                                "breezy",
-                                "greenhouse",
-                                "jobspy",
-                                "lever",
-                                "recruitee",
-                                "rss",
-                                "smartrecruiters",
-                                "workable",
-                                "workday"
-                            ]
-                        },
-                        "description": "* `greenhouse` - Greenhouse\n* `lever` - Lever\n* `workable` - Workable\n* `breezy` - Breezy\n* `ashby` - Ashby\n* `smartrecruiters` - SmartRecruiters\n* `recruitee` - Recruitee\n* `workday` - Workday\n* `rss` - RSS / Atom\n* `jobspy` - Job boards (jobspy)"
+                            "type": "string"
+                        }
                     },
                     {
                         "in": "query",

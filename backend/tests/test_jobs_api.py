@@ -114,6 +114,44 @@ class TestFilters:
         assert client.get("/api/jobs/", {"min_score": 50}).json()["count"] == 1
         assert client.get("/api/jobs/", {"max_score": 50}).json()["count"] == 1
 
+    def test_by_source(self, client: APIClient, user) -> None:
+        make_user_job(user, make_job(source="greenhouse"))
+        make_user_job(user, make_job(source="linkedin"))
+
+        assert client.get("/api/jobs/", {"source": "greenhouse"}).json()["count"] == 1
+        assert client.get("/api/jobs/", {"source": "linkedin"}).json()["count"] == 1
+
+    @pytest.mark.parametrize(
+        "board", ["linkedin", "indeed", "bayt", "google", "glassdoor", "zip_recruiter"]
+    )
+    def test_by_source_accepts_any_board_not_just_ats_vendors(
+        self, client: APIClient, user, board: str
+    ) -> None:
+        """`Job.source` holds the board, which is not a `SourceKind`.
+
+        These names never appear in `SourceKind` — that enum describes which
+        *adapter* fetched a feed, while `Job.source` records which *board* the
+        posting was actually on. Validating the filter against the enum rejected
+        every scraped board with a 400, and the dashboard's source dropdown is
+        built from the boards present in the data, so it offered filters the API
+        then refused.
+        """
+        make_user_job(user, make_job(source=board))
+
+        response = client.get("/api/jobs/", {"source": board})
+
+        assert response.status_code == 200, response.json()
+        assert response.json()["count"] == 1
+
+    def test_by_unknown_source_is_empty_not_an_error(self, client: APIClient, user) -> None:
+        """A source with no rows is a legitimately empty list, not a 400."""
+        make_user_job(user, make_job(source="greenhouse"))
+
+        response = client.get("/api/jobs/", {"source": "nowhere"})
+
+        assert response.status_code == 200
+        assert response.json()["count"] == 0
+
     def test_by_status(self, client: APIClient, user) -> None:
         make_user_job(user, make_job(), status=ApplicationStatus.APPLIED)
         make_user_job(user, make_job())

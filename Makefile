@@ -76,7 +76,10 @@ format:  ## Autoformat both apps
 	cd frontend && npm run format
 
 gen-client:  ## Regenerate the frontend's types from the committed contract
-	cd frontend && npx openapi-typescript ../contracts/jobradar-v1.json -o src/api/schema.d.ts
+	# Formatted after generating: openapi-typescript v7 does not format, and
+	# `format:check` covers src/**/*.ts. Skipping this leaves CI unsatisfiable.
+	cd frontend && npx openapi-typescript ../contracts/jobradar-v1.json -o src/api/schema.d.ts \
+	  && npx prettier --write src/api/schema.d.ts
 
 gen-schema:  ## Write contracts/jobradar-v1.json from drf-spectacular
 	$(COMPOSE_DEV) run --rm -u root web sh -c "python manage.py spectacular \

@@ -64,7 +64,9 @@ export function Button({
     <button
       type={type}
       className={cx(
-        'relative inline-flex items-center justify-center font-semibold',
+        // `whitespace-nowrap`: a button label broken across two lines reads as
+        // a layout bug, and the fixed heights below would clip it anyway.
+        'relative inline-flex items-center justify-center whitespace-nowrap font-semibold',
         'transition-all duration-fast ease-out',
         'disabled:opacity-50 disabled:pointer-events-none disabled:shadow-none',
         BUTTON_SIZES[size],
