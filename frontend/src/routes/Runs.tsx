@@ -44,10 +44,9 @@ export default function Runs() {
     <AppShell
       topbar={
         <div className="flex flex-1 items-center justify-between gap-3">
-          <h1 className="text-md font-semibold">Runs</h1>
+          <h1 className="text-md font-extrabold tracking-tight">Runs</h1>
           <Button
             size="sm"
-            variant="secondary"
             onClick={() => triggerRun.mutate()}
             disabled={triggerRun.isPending || running}
           >
@@ -115,20 +114,25 @@ function RunRow({
   const failed = run.sourcesFailed > 0
 
   return (
-    <Panel className={cx(failed && 'border-medium-border')}>
-      <div className="flex flex-wrap items-center gap-3 px-4 py-3">
+    // `overflow-hidden`: the stats band inside is a full-bleed fill, and
+    // without clipping its square corners poke past the card's rounded ones.
+    <Panel
+      className={cx('overflow-hidden lift-sm', failed && 'border-medium-border')}
+      edge={failed}
+    >
+      <div className="flex flex-wrap items-center gap-3 px-5 py-4">
         <Badge tone={STATUS_TONE[run.status as keyof typeof STATUS_TONE] ?? 'neutral'}>
           {/* Spelled out, so the state is never carried by colour alone. */}
           {run.status}
         </Badge>
-        <span className="text-sm">{new Date(run.startedAt).toLocaleString()}</span>
+        <span className="text-sm font-semibold">{new Date(run.startedAt).toLocaleString()}</span>
         <span className="text-xs text-subtle">{run.triggeredBy}</span>
 
         <button
           type="button"
           onClick={onToggle}
           aria-expanded={expanded}
-          className="ml-auto inline-flex min-h-[36px] items-center gap-1.5 rounded px-2.5 text-sm text-muted transition-colors duration-fast hover:bg-surface-hover hover:text-fg"
+          className="ml-auto inline-flex min-h-[36px] items-center gap-1.5 rounded-sm px-3 text-sm font-semibold text-muted transition-colors duration-fast hover:bg-surface-hover hover:text-fg"
         >
           {expanded ? 'Hide sources' : 'Show sources'}
           <IconChevronDown
@@ -149,7 +153,7 @@ function RunRow({
         </p>
       )}
 
-      <dl className="grid grid-cols-2 gap-3 border-t border-hairline px-4 py-3 text-sm sm:grid-cols-5">
+      <dl className="grid grid-cols-2 gap-3 border-t border-hairline bg-surface-inset px-5 py-4 text-sm sm:grid-cols-5">
         <Fact
           label="Sources"
           value={`${run.sourcesTotal - run.sourcesFailed}/${run.sourcesTotal}`}
@@ -200,8 +204,8 @@ function RunRow({
 function Fact({ label, value }: { label: string; value: string | number }) {
   return (
     <div>
-      <dt className="text-2xs uppercase tracking-wide text-subtle">{label}</dt>
-      <dd className="tabular mt-0.5">{value}</dd>
+      <dt className="text-2xs font-bold uppercase tracking-wide text-subtle">{label}</dt>
+      <dd className="tabular mt-1 text-md font-bold">{value}</dd>
     </div>
   )
 }

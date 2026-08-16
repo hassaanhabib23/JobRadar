@@ -50,14 +50,16 @@ export default function Dashboard() {
   return (
     <AppShell
       topbar={
-        <div className="flex flex-1 flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <h1 className="text-md font-semibold">Jobs</h1>
+        // One row at every width. The bar has a fixed height, so anything that
+        // wraps here pushes the heading out of the top of it.
+        <div className="flex min-w-0 flex-1 items-center justify-between gap-2 sm:gap-3">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+            <h1 className="text-md font-extrabold tracking-tight">Jobs</h1>
             <LastRunIndicator lastRunAt={stats.data?.lastRunAt} />
           </div>
           <Button
             size="sm"
-            variant="secondary"
+            className="shrink-0"
             onClick={() => triggerRun.mutate()}
             disabled={triggerRun.isPending}
           >
@@ -101,7 +103,7 @@ export default function Dashboard() {
               Loading your jobs
             </span>
             {Array.from({ length: 8 }).map((_, index) => (
-              <Skeleton key={index} className="h-[76px]" />
+              <Skeleton key={index} className="h-[92px]" />
             ))}
           </div>
         )}
@@ -136,7 +138,7 @@ export default function Dashboard() {
 
             <nav
               aria-label="Pagination"
-              className="flex items-center justify-between gap-3 pb-2 text-sm"
+              className="surface flex items-center justify-between gap-3 p-3 text-sm"
             >
               <Button
                 variant="secondary"
@@ -183,9 +185,10 @@ function BulkBar({
   return (
     <Panel
       as="div"
-      className="sticky top-topbar z-10 flex flex-wrap items-center gap-3 border-accent-border bg-accent-subtle p-3"
+      elevation="glass"
+      className="sticky top-topbar z-10 flex flex-wrap items-center gap-3 border-accent-border bg-accent-subtle p-3.5 shadow-e2"
     >
-      <span aria-live="polite" className="text-sm font-medium">
+      <span aria-live="polite" className="text-sm font-bold text-accent">
         <span className="tabular">{count}</span> selected
       </span>
 
@@ -199,7 +202,7 @@ function BulkBar({
         onChange={(event) => {
           if (event.target.value) onApply(event.target.value as ApplicationStatus)
         }}
-        className="h-9 rounded border border-hairline bg-surface px-2 text-sm"
+        className="h-9 rounded-sm border border-hairline-strong bg-surface px-2.5 text-sm font-medium shadow-e0 focus:shadow-ring focus:outline-none"
       >
         <option value="">Set status…</option>
         {statuses.map((status) => (

@@ -78,7 +78,7 @@ export default function Register() {
           hint="At least 8 characters, and not one everybody else uses."
         />
 
-        <Button type="submit" disabled={submitting} className="mt-1">
+        <Button type="submit" size="lg" disabled={submitting} className="mt-2 w-full">
           {submitting ? 'Creating…' : 'Create account'}
         </Button>
       </form>

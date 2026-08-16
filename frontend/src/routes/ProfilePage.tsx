@@ -50,7 +50,7 @@ export default function ProfilePage() {
     <AppShell
       topbar={
         <div className="flex flex-1 items-center justify-between gap-3">
-          <h1 className="text-md font-semibold">Profile</h1>
+          <h1 className="text-md font-extrabold tracking-tight">Profile</h1>
           <span aria-live="polite" className="text-xs">
             {update.isPending && <span className="text-subtle">Saving…</span>}
             {update.isSuccess && !update.isPending && (
@@ -164,11 +164,15 @@ function ScorePreviewPanel() {
   const result = preview.data
 
   return (
-    <Panel>
+    <Panel edge>
       <PanelHeader
         title="Score preview"
         description="Paste a real posting and see exactly what your profile gives it. Change a weight below, run it again, watch it move."
-        action={<IconTarget size={18} className="text-accent" />}
+        action={
+          <span className="flex h-10 w-10 items-center justify-center rounded-sm bg-grad-accent text-on-accent shadow-e1">
+            <IconTarget size={18} />
+          </span>
+        }
       />
 
       <div className="grid gap-5 p-5 lg:grid-cols-2">
@@ -178,7 +182,7 @@ function ScorePreviewPanel() {
             <input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
-              className="h-11 min-h-[44px] rounded border border-hairline bg-bg px-3 text-base font-normal"
+              className="h-12 min-h-[48px] rounded-sm border border-hairline-strong bg-surface-inset px-3 text-base font-normal transition-all duration-fast focus:border-accent focus:bg-surface focus:shadow-ring focus:outline-none"
             />
           </label>
 
@@ -187,7 +191,7 @@ function ScorePreviewPanel() {
             <input
               value={location}
               onChange={(event) => setLocation(event.target.value)}
-              className="h-11 min-h-[44px] rounded border border-hairline bg-bg px-3 text-base font-normal"
+              className="h-12 min-h-[48px] rounded-sm border border-hairline-strong bg-surface-inset px-3 text-base font-normal transition-all duration-fast focus:border-accent focus:bg-surface focus:shadow-ring focus:outline-none"
             />
           </label>
 
@@ -197,7 +201,7 @@ function ScorePreviewPanel() {
               rows={4}
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              className="rounded border border-hairline bg-bg p-3 text-base font-normal leading-relaxed"
+              className="rounded-sm border border-hairline-strong bg-surface-inset p-3.5 text-base font-normal leading-relaxed transition-all duration-fast focus:border-accent focus:bg-surface focus:shadow-ring focus:outline-none"
             />
           </label>
 
@@ -212,7 +216,7 @@ function ScorePreviewPanel() {
 
         <div
           aria-live="polite"
-          className="flex min-h-[200px] flex-col justify-center rounded border border-hairline bg-bg-subtle p-4"
+          className="flex min-h-[200px] flex-col justify-center rounded-lg border border-hairline bg-surface-inset p-5 shadow-e0"
         >
           {!result && (
             <p className="text-center text-sm text-subtle">
@@ -234,12 +238,12 @@ function ScorePreviewPanel() {
           {result && !result.filtered && (
             <>
               <div className="flex items-baseline gap-2">
-                <span className="tabular text-3xl font-semibold leading-none">{result.score}</span>
+                <span className="tabular text-3xl font-extrabold leading-none">{result.score}</span>
                 <span className="text-sm text-subtle">/ 100</span>
-                <span className="ml-auto text-sm font-medium">{result.tier}</span>
+                <span className="ml-auto text-sm font-bold">{result.tier}</span>
               </div>
 
-              <ScoreBar detail={result.detail} score={result.score ?? 0} className="mt-3 h-2" />
+              <ScoreBar detail={result.detail} score={result.score ?? 0} className="mt-4 !h-3" />
 
               {result.detail && (
                 <dl className="mt-3 grid grid-cols-2 gap-2.5">
@@ -312,7 +316,7 @@ function WeightsPanel({
           {entries.map(([skill, weight]) => (
             <div
               key={skill}
-              className="flex items-center gap-2 rounded border border-transparent px-2 py-1 hover:border-hairline hover:bg-surface-hover"
+              className="flex items-center gap-2 rounded-sm border border-transparent px-2.5 py-1.5 transition-colors duration-fast hover:border-hairline hover:bg-surface-hover"
             >
               <label htmlFor={`skill-${skill}`} className="min-w-0 flex-1 truncate text-sm">
                 {skill}
@@ -326,7 +330,7 @@ function WeightsPanel({
                 onChange={(event) =>
                   setDraft({ ...draft, [skill]: Number(event.target.value) || 0 })
                 }
-                className="tabular h-9 w-[64px] rounded border border-hairline bg-bg px-2 text-sm"
+                className="tabular h-9 w-[64px] rounded-sm border border-hairline-strong bg-surface-inset px-2 text-sm transition-all duration-fast focus:border-accent focus:bg-surface focus:shadow-ring focus:outline-none"
               />
               <button
                 type="button"
@@ -353,7 +357,7 @@ function WeightsPanel({
             value={newSkill}
             placeholder="Add a keyword, e.g. kubernetes"
             onChange={(event) => setNewSkill(event.target.value)}
-            className="h-11 min-h-[44px] flex-1 rounded border border-hairline bg-bg px-3 text-base"
+            className="h-12 min-h-[48px] flex-1 rounded-sm border border-hairline-strong bg-surface-inset px-3 text-base font-normal transition-all duration-fast focus:border-accent focus:bg-surface focus:shadow-ring focus:outline-none"
           />
           <Button
             variant="secondary"
@@ -408,7 +412,7 @@ function BlocklistPanel({
         <ul className="flex flex-wrap gap-1.5">
           {draft.map((entry) => (
             <li key={entry}>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline py-1 pl-3 pr-1.5 text-sm text-muted">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-hairline bg-surface py-1.5 pl-3.5 pr-1.5 text-sm font-medium text-muted shadow-e0">
                 {entry}
                 <button
                   type="button"
@@ -433,7 +437,7 @@ function BlocklistPanel({
             value={term}
             placeholder="e.g. recruiter, graphic designer"
             onChange={(event) => setTerm(event.target.value)}
-            className="h-11 min-h-[44px] flex-1 rounded border border-hairline bg-bg px-3 text-base"
+            className="h-12 min-h-[48px] flex-1 rounded-sm border border-hairline-strong bg-surface-inset px-3 text-base font-normal transition-all duration-fast focus:border-accent focus:bg-surface focus:shadow-ring focus:outline-none"
           />
           <Button
             variant="secondary"

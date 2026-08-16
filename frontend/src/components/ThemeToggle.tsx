@@ -55,7 +55,7 @@ export function ThemeToggle() {
 
   return (
     <fieldset
-      className="flex items-center gap-0.5 rounded-full border border-hairline p-0.5"
+      className="flex items-center gap-0.5 rounded-full border border-hairline bg-surface-inset p-0.5 shadow-e0"
       aria-label="Colour theme"
     >
       {OPTIONS.map((option) => {
@@ -66,10 +66,10 @@ export function ThemeToggle() {
             title={option.label}
             className={cx(
               'flex h-8 w-8 cursor-pointer items-center justify-center rounded-full',
-              'transition-colors duration-fast',
+              'transition-all duration-fast ease-out',
               'focus-within:outline focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-accent',
               active
-                ? 'bg-accent-subtle text-accent'
+                ? 'bg-grad-accent text-on-accent shadow-e1'
                 : 'text-subtle hover:bg-surface-hover hover:text-fg',
             )}
           >

@@ -1,10 +1,11 @@
 /* Self-hosted, bundled by Vite. No CDN at runtime, on purpose — the app has to
    work on a flaky connection, and a webfont from someone else's server is the
-   first thing to fail. */
-@import '@fontsource/fira-sans/300.css';
-@import '@fontsource/fira-sans/400.css';
-@import '@fontsource/fira-sans/500.css';
-@import '@fontsource/fira-sans/600.css';
+   first thing to fail.
+
+   Manrope for the interface: geometric and modern where the previous Fira Sans
+   was utilitarian. Fira Code stays for numbers — scores, counts and durations
+   change in place, and proportional figures make them jitter. */
+@import '@fontsource-variable/manrope';
 @import '@fontsource/fira-code/400.css';
 @import '@fontsource/fira-code/500.css';
 
@@ -28,22 +29,22 @@
     background: var(--bg);
     color: var(--fg);
     font-family:
-      'Fira Sans',
+      'Manrope Variable',
       system-ui,
       -apple-system,
       'Segoe UI',
       sans-serif;
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 15px;
+    line-height: 1.55;
+    font-feature-settings: 'ss01', 'cv11';
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
 
-  /* Numbers that change in place must not jitter. Scores, counts, durations. */
   .tabular {
     font-family: 'Fira Code', ui-monospace, monospace;
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
   }
 
   h1,
@@ -52,21 +53,21 @@
   h4 {
     /* Stops a two-word heading breaking into a lonely orphan line. */
     text-wrap: balance;
-    letter-spacing: -0.011em;
+    font-weight: 700;
+    /* Large type needs to be pulled tighter or it reads loose and cheap. */
+    letter-spacing: -0.022em;
   }
 
   p {
     text-wrap: pretty;
   }
 
-  /* The browser default is invisible against several of these surfaces. */
   :focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
     border-radius: var(--radius-sm);
   }
 
-  /* Anything clickable says so. */
   button:not(:disabled),
   a[href],
   summary {
@@ -83,20 +84,19 @@
     color: var(--fg-on-accent);
   }
 
-  /* Scrollbars that match the surface rather than punching a hole in it. */
   * {
     scrollbar-color: var(--border-strong) transparent;
     scrollbar-width: thin;
   }
 
   ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
   }
 
   ::-webkit-scrollbar-thumb {
     background: var(--border-strong);
-    border: 3px solid transparent;
+    border: 3.5px solid transparent;
     background-clip: content-box;
     border-radius: var(--radius-full);
   }
@@ -108,8 +108,93 @@
 }
 
 @layer components {
-  /* Loading placeholders, shaped like the content they stand in for so the
-     layout does not jump when the data lands. */
+  /**
+   * Depth utilities.
+   *
+   * `.surface` is the workhorse: an elevated card with a faint top-to-bottom
+   * sheen and a lighter top edge, so it reads as lit from above rather than as
+   * flat paper with a border drawn on it.
+   */
+  .surface {
+    position: relative;
+    /* The sheen is a background *image* rather than a ::before overlay, so it
+       paints above the fill and below the content with no extra element — a
+       wrapper div would break every `flex` class a caller puts on the card. */
+    background-color: var(--surface-raised);
+    background-image: var(--grad-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--elev-1);
+  }
+
+  .surface-2 {
+    box-shadow: var(--elev-2);
+  }
+
+  .surface-3 {
+    box-shadow: var(--elev-3);
+  }
+
+  /** Translucent chrome. Content passes beneath it. */
+  .glass {
+    background-color: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    border-color: var(--glass-border);
+  }
+
+  .glass-strong {
+    background-color: var(--glass-bg-strong);
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    border-color: var(--glass-border);
+  }
+
+  /**
+   * A gradient hairline along the top edge of a card.
+   *
+   * The card clips it, so the bar follows the rounded corners instead of
+   * running straight past them and reading as a line floating above the card.
+   */
+  .edge-top {
+    overflow: hidden;
+  }
+
+  .edge-top::after {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: var(--grad-edge);
+    pointer-events: none;
+  }
+
+  /** The physical lift. Transform and shadow only — both compositor-friendly. */
+  .lift {
+    transition:
+      transform var(--dur) var(--ease-out),
+      box-shadow var(--dur) var(--ease-out),
+      background-color var(--dur-fast) var(--ease);
+    will-change: transform;
+  }
+
+  .lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--elev-2);
+  }
+
+  .lift-sm:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--elev-1);
+  }
+
+  /** The page-wide backdrop for hero and auth screens. */
+  .mesh {
+    background-image: var(--grad-mesh);
+    background-attachment: fixed;
+  }
+
+  /** Loading placeholders, shaped like the content they stand in for. */
   .skeleton {
     background: linear-gradient(
       90deg,
@@ -130,9 +215,26 @@
       background-position: 0 50%;
     }
   }
+
+  /** Route transition. Short enough not to be in the way. */
+  .page-enter {
+    animation: page-enter var(--dur-slow) var(--ease-out) both;
+  }
+
+  @keyframes page-enter {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
 }
 
-/* Motion is decoration here, never information. Removing it costs nothing. */
+/* Motion is decoration here, never information. Removing it costs nothing:
+   every animated element renders in its final state. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -145,5 +247,10 @@
 
   .skeleton {
     animation: none;
+  }
+
+  .lift:hover,
+  .lift-sm:hover {
+    transform: none;
   }
 }

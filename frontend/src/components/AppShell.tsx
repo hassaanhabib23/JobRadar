@@ -1,13 +1,12 @@
 /**
  * The authenticated shell.
  *
- * Full-bleed, not a centred column. A centred 1400px page wastes the right half
- * of a wide monitor on a screen whose whole job is fitting more rows on it —
- * and the job table is the densest thing here.
+ * Full-bleed, not a centred column. A centred page wastes the right half of a
+ * wide monitor on the one screen whose job is fitting more rows on it.
  *
- * Layout: fixed sidebar for navigation, sticky top bar for the things that
- * change (last-run age, run trigger), and the content fills whatever is left.
- * Under 1024px the sidebar becomes a slide-over.
+ * The chrome — sidebar and top bar — is translucent, and the content scrolls
+ * beneath it. That is what gives the app a sense of layers rather than of flat
+ * panes butted against each other.
  */
 
 import { useEffect, useState, type ReactNode } from 'react'
@@ -48,12 +47,12 @@ export function AppShell({
   useEffect(() => setNavOpen(false), [location.pathname])
 
   return (
-    <div className="min-h-screen bg-bg">
-      {/* Keyboard users should not have to tab through the whole sidebar to
-          reach the table on every single page. */}
+    <div className="mesh min-h-screen bg-bg">
+      {/* Keyboard users should not have to tab the whole sidebar to reach the
+          table on every page. */}
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded focus:bg-accent focus:px-4 focus:py-2 focus:text-on-accent"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-grad-accent focus:px-4 focus:py-2 focus:font-semibold focus:text-on-accent focus:shadow-e2"
       >
         Skip to content
       </a>
@@ -61,24 +60,26 @@ export function AppShell({
       {/* --- Sidebar --------------------------------------------------- */}
       <aside
         className={cx(
-          'fixed inset-y-0 left-0 z-40 flex w-sidebar flex-col border-r border-hairline bg-surface',
-          'transition-transform duration-200 lg:translate-x-0',
-          navOpen ? 'translate-x-0' : '-translate-x-full',
+          'glass-strong fixed inset-y-0 left-0 z-40 flex w-sidebar flex-col border-r',
+          'transition-transform duration-slow ease-out lg:translate-x-0',
+          navOpen ? 'translate-x-0 shadow-e3' : '-translate-x-full',
         )}
       >
-        <div className="flex h-topbar items-center gap-2 border-b border-hairline px-4">
-          <IconRadar size={20} className="text-accent" />
-          <span className="text-md font-semibold tracking-tight">JobRadar</span>
+        <div className="flex h-topbar items-center gap-2.5 px-5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-grad-accent text-on-accent shadow-e1">
+            <IconRadar size={17} />
+          </span>
+          <span className="text-md font-extrabold tracking-tight">JobRadar</span>
           <button
             type="button"
             onClick={() => setNavOpen(false)}
-            className="ml-auto rounded p-2 text-muted hover:bg-surface-hover hover:text-fg lg:hidden"
+            className="ml-auto rounded-sm p-2 text-muted transition-colors hover:bg-surface-hover hover:text-fg lg:hidden"
           >
             <IconClose title="Close navigation" size={18} />
           </button>
         </div>
 
-        <nav aria-label="Main" className="flex-1 space-y-0.5 p-2">
+        <nav aria-label="Main" className="flex-1 space-y-1 px-3 py-2">
           {NAV.map((item) => (
             <NavLink
               key={item.to}
@@ -86,33 +87,30 @@ export function AppShell({
               end={item.end}
               className={({ isActive }) =>
                 cx(
-                  'flex min-h-[44px] items-center gap-2.5 rounded px-3 text-base transition-colors duration-fast',
+                  'relative flex min-h-[44px] items-center gap-3 rounded px-3.5 font-semibold',
+                  'transition-all duration-fast ease-out',
                   isActive
-                    ? 'bg-accent-subtle font-medium text-accent'
+                    ? // A gradient pill, not a tinted rectangle.
+                      'bg-grad-accent text-on-accent shadow-e1'
                     : 'text-muted hover:bg-surface-hover hover:text-fg',
                 )
               }
             >
-              <item.icon size={17} />
+              <item.icon size={18} />
               {item.label}
             </NavLink>
           ))}
         </nav>
 
-        <div className="border-t border-hairline p-2">
-          <div className="px-3 pb-2 pt-1">
-            <p className="truncate text-xs text-subtle" title={user?.email}>
-              {user?.email}
-            </p>
-          </div>
-          <div className="flex items-center gap-1">
+        {/* Stacked, not side by side: the three-way theme switch and a labelled
+            button do not both fit in 244px without the label wrapping. */}
+        <div className="flex flex-col gap-2.5 border-t border-hairline p-3">
+          <p className="truncate px-1.5 text-xs text-subtle" title={user?.email}>
+            {user?.email}
+          </p>
+          <div className="flex items-center justify-between gap-2">
             <ThemeToggle />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => void logout()}
-              className="flex-1 justify-start"
-            >
+            <Button variant="ghost" size="sm" onClick={() => void logout()}>
               <IconLogout size={16} />
               Sign out
             </Button>
@@ -125,24 +123,24 @@ export function AppShell({
           type="button"
           aria-label="Close navigation"
           onClick={() => setNavOpen(false)}
-          className="fixed inset-0 z-30 bg-[var(--overlay)] lg:hidden"
+          className="fixed inset-0 z-30 bg-[var(--overlay)] backdrop-blur-sm lg:hidden"
         />
       )}
 
       {/* --- Content ---------------------------------------------------- */}
       <div className="lg:pl-sidebar">
-        <header className="sticky top-0 z-20 flex h-topbar items-center gap-3 border-b border-hairline bg-bg/90 px-4 backdrop-blur">
+        <header className="glass sticky top-0 z-20 flex h-topbar items-center gap-4 border-b px-5">
           <button
             type="button"
             onClick={() => setNavOpen(true)}
-            className="rounded p-2 text-muted hover:bg-surface-hover hover:text-fg lg:hidden"
+            className="rounded-sm p-2 text-muted transition-colors hover:bg-surface-hover hover:text-fg lg:hidden"
           >
             <IconMenu title="Open navigation" size={20} />
           </button>
           {topbar}
         </header>
 
-        <main id="main" className="px-4 py-5 sm:px-6">
+        <main id="main" className="page-enter px-4 py-5 sm:px-6 sm:py-6">
           {children}
         </main>
       </div>
@@ -153,9 +151,9 @@ export function AppShell({
 /**
  * A centred column for prose-shaped pages.
  *
- * The dashboard is full-bleed; a job description or a settings form is not —
- * a 200-character line is unreadable no matter how wide the monitor is.
+ * The dashboard is full-bleed; a job description or a settings form is not — a
+ * 200-character line is unreadable no matter how wide the monitor.
  */
 export function Column({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cx('mx-auto w-full max-w-4xl', className)}>{children}</div>
+  return <div className={cx('mx-auto w-full max-w-5xl', className)}>{children}</div>
 }

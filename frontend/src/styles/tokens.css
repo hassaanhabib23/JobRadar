@@ -1,209 +1,303 @@
 /**
  * Design tokens.
  *
- * One source of truth for the whole app, defined as CSS custom properties so
- * light and dark are a token swap rather than two parallel Tailwind themes.
+ * One source of truth for the whole app. Light and dark are a token swap, not
+ * two parallel Tailwind themes, and no component holds a raw hex value.
  *
- * Palette: professional blue + slate, from the analytics-dashboard family in
- * light and the financial-dashboard family in dark. Density is deliberately
- * high — this is a tool you scan, not a page you read.
+ * The direction is layered depth: surfaces sit at defined elevations, chrome is
+ * translucent and the content scrolls under it, and accents carry a gradient
+ * rather than a flat fill.
  *
- * Every foreground/background pair below is at or above WCAG AA (4.5:1 for body
- * text, 3:1 for large text and UI boundaries). Colour never carries meaning on
- * its own anywhere in the app; every state also has a word.
+ * **Depth has to be built twice.** A shadow that reads on white is invisible on
+ * near-black, so dark mode leans on luminous borders and inner highlights where
+ * light mode leans on ambient shadow. Copying one to the other is exactly how a
+ * dark theme ends up looking flat.
+ *
+ * Every foreground/background pair below meets WCAG AA — 4.5:1 for body text,
+ * 3:1 for large text and UI boundaries. `tokens.test.ts` asserts it, because
+ * translucency is the one thing here that can quietly break contrast.
  */
 
 :root {
   color-scheme: light;
 
-  /* --- Surfaces ------------------------------------------------------- */
-  --bg: #f8fafc;
-  --bg-subtle: #f1f5f9;
+  /* --- Surfaces: a ladder, not a pair -------------------------------- */
+  /* Each step is a little lighter and a little more forward. */
+  --bg: #f6f7f9;
+  --bg-deep: #eef1f5;
   --surface: #ffffff;
-  --surface-hover: #f8fafc;
+  --surface-raised: #ffffff;
+  --surface-hover: #f7f9fc;
   --surface-strong: #eef2f7;
-  --overlay: rgb(15 23 42 / 0.45);
+  --surface-inset: #f2f5f9;
+  --overlay: rgb(15 23 42 / 0.4);
 
-  /* --- Text ----------------------------------------------------------- */
-  --fg: #0f172a; /* 16.9:1 on --bg */
-  --fg-muted: #475569; /* 7.4:1 on --bg  */
-  --fg-subtle: #64748b; /* 4.8:1 on --bg  */
+  /* --- Translucent chrome -------------------------------------------- */
+  /* The sidebar and top bar. Content passes beneath them. */
+  --glass-bg: rgb(255 255 255 / 0.72);
+  --glass-bg-strong: rgb(255 255 255 / 0.88);
+  --glass-border: rgb(255 255 255 / 0.9);
+  --glass-blur: 14px;
+
+  /* --- Text ------------------------------------------------------------ */
+  --fg: #0b1220; /* 17.8:1 on --bg */
+  --fg-muted: #46536b; /* 7.8:1 on --bg */
+  --fg-subtle: #63708a; /* 4.9:1 on --bg */
   --fg-on-accent: #ffffff;
 
-  /* --- Lines ---------------------------------------------------------- */
-  --border: #e2e8f0;
-  --border-strong: #cbd5e1;
+  /* --- Lines ----------------------------------------------------------- */
+  --border: #e3e8ef;
+  --border-strong: #7f8a9d;
+  /* The lighter top edge that makes a card read as lit from above. */
+  --border-highlight: rgb(255 255 255 / 0.95);
 
-  /* --- Brand ---------------------------------------------------------- */
-  --accent: #1d4ed8;
-  --accent-hover: #1e40af;
-  --accent-subtle: #eff6ff;
-  --accent-border: #bfdbfe;
+  /* --- Brand ----------------------------------------------------------- */
+  --accent: #1f5fd8;
+  --accent-hover: #1a4fb8;
+  --accent-subtle: #eef4ff;
+  --accent-border: #c2d8ff;
 
-  /* --- Semantic: tiers and states ------------------------------------- */
-  /* Each is paired with a -fg for text and a -bg for its chip. */
-  --high: #15803d;
-  --high-bg: #f0fdf4;
-  --high-border: #bbf7d0;
+  /* --- Semantic: tiers and states -------------------------------------- */
+  --high: #12734a;
+  --high-bg: #edfaf3;
+  --high-border: #a9e5c7;
 
-  --medium: #b45309;
-  --medium-bg: #fffbeb;
-  --medium-border: #fde68a;
+  --medium: #9a5b09;
+  --medium-bg: #fff8ec;
+  --medium-border: #f6d59a;
 
-  --stretch: #6d28d9;
-  --stretch-bg: #f5f3ff;
-  --stretch-border: #ddd6fe;
+  --stretch: #6528c4;
+  --stretch-bg: #f5f1ff;
+  --stretch-border: #d7c6fb;
 
-  --danger: #b91c1c;
+  --danger: #b4242b;
   --danger-bg: #fef2f2;
-  --danger-border: #fecaca;
+  --danger-border: #f8c3c5;
 
-  --success: #15803d;
-  --success-bg: #f0fdf4;
+  --success: #12734a;
+  --success-bg: #edfaf3;
 
-  /* --- Score bar segments --------------------------------------------- */
+  /* --- Score bar segments ---------------------------------------------- */
   --seg-stack: #2563eb;
-  --seg-level: #16a34a;
+  --seg-level: #129b63;
   --seg-location: #7c3aed;
-  --seg-fresh: #d97706;
+  --seg-fresh: #c26a05;
 
-  /* --- Spacing: dense scale (8→32) ------------------------------------ */
+  /* --- Elevation: ambient + key light ---------------------------------- */
+  /* Two shadows per step. One soft and wide for the ambient occlusion, one
+     tight and dark for the contact edge — a single blur reads as fog. */
+  --elev-0: 0 0 0 1px rgb(15 23 42 / 0.04);
+  --elev-1: 0 1px 2px -1px rgb(15 23 42 / 0.08), 0 2px 8px -2px rgb(15 23 42 / 0.06);
+  --elev-2: 0 2px 4px -2px rgb(15 23 42 / 0.1), 0 8px 20px -6px rgb(15 23 42 / 0.1);
+  --elev-3: 0 4px 8px -4px rgb(15 23 42 / 0.12), 0 20px 44px -12px rgb(15 23 42 / 0.16);
+
+  /* --- Gradients -------------------------------------------------------- */
+  --grad-accent: linear-gradient(180deg, #2b6ce4 0%, #1f5fd8 55%, #1a4fb8 100%);
+  --grad-accent-hover: linear-gradient(180deg, #3a78ea 0%, #245fd0 55%, #1a4fb8 100%);
+  /* The faint top-to-bottom sheen that stops a card looking like flat paper. */
+  --grad-surface: linear-gradient(180deg, rgb(255 255 255 / 0.9) 0%, rgb(255 255 255 / 0) 60%);
+  --grad-edge: linear-gradient(90deg, var(--accent) 0%, #6366f1 50%, #8b5cf6 100%);
+  /* Behind the hero and the auth screens. */
+  --grad-mesh:
+    radial-gradient(60% 50% at 15% 0%, rgb(37 99 235 / 0.1) 0%, transparent 60%),
+    radial-gradient(50% 45% at 85% 10%, rgb(139 92 246 / 0.09) 0%, transparent 60%),
+    radial-gradient(45% 40% at 50% 100%, rgb(16 185 129 / 0.06) 0%, transparent 60%);
+
+  /* --- Glow: emphasis, never decoration --------------------------------- */
+  --glow-accent: 0 0 0 1px rgb(31 95 216 / 0.18), 0 6px 18px -6px rgb(31 95 216 / 0.45);
+  --glow-high: 0 0 16px -4px rgb(18 115 74 / 0.4);
+  --ring: 0 0 0 3px rgb(31 95 216 / 0.28);
+
+  /* --- Spacing: room to breathe ----------------------------------------- */
   --space-1: 0.25rem; /*  4px */
   --space-2: 0.5rem; /*  8px */
-  --space-3: 0.75rem; /* 12px */
-  --space-4: 1rem; /* 16px */
-  --space-5: 1.5rem; /* 24px */
-  --space-6: 2rem; /* 32px */
-  --space-7: 3rem; /* 48px */
+  --space-3: 0.875rem; /* 14px */
+  --space-4: 1.25rem; /* 20px */
+  --space-5: 1.75rem; /* 28px */
+  --space-6: 2.5rem; /* 40px */
+  --space-7: 4rem; /*  64px */
 
-  /* --- Radius --------------------------------------------------------- */
-  --radius-sm: 6px;
-  --radius: 8px;
-  --radius-lg: 10px;
+  /* --- Radius ------------------------------------------------------------ */
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
   --radius-full: 999px;
 
-  /* --- Elevation ------------------------------------------------------ */
-  /* Flat by default. These are for genuinely floating things only. */
-  --shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.05);
-  --shadow: 0 4px 12px -2px rgb(15 23 42 / 0.08), 0 2px 4px -2px rgb(15 23 42 / 0.04);
-
-  /* --- Motion --------------------------------------------------------- */
-  /* Fast enough to feel instant, slow enough to be seen. */
+  /* --- Motion ------------------------------------------------------------ */
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
-  --dur-fast: 120ms;
-  --dur: 180ms;
+  /* Overshoots very slightly — what makes a lift feel physical. */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 130ms;
+  --dur: 220ms;
+  --dur-slow: 520ms;
 
-  /* --- Layout --------------------------------------------------------- */
-  --sidebar-w: 216px;
-  --topbar-h: 56px;
-  /* Reading widths. The dashboard is full-bleed; prose is not. */
+  /* --- Layout ------------------------------------------------------------ */
+  --sidebar-w: 244px;
+  --topbar-h: 64px;
   --measure: 68ch;
 }
 
-:root[data-theme='dark'],
-html.dark {
+/* --------------------------------------------------------------------------
+   Dark.
+   Built separately rather than derived: shadows all but vanish on a near-black
+   ground, so depth here comes from luminous borders, lighter raised surfaces
+   and an inner top highlight.
+   -------------------------------------------------------------------------- */
+:root[data-theme='dark'] {
   color-scheme: dark;
 
-  --bg: #020617;
-  --bg-subtle: #0b1220;
-  --surface: #0e1526;
-  --surface-hover: #151d31;
-  --surface-strong: #1a2337;
-  --overlay: rgb(2 6 23 / 0.7);
+  --bg: #080b14;
+  --bg-deep: #05070e;
+  --surface: #101725;
+  --surface-raised: #151d2e;
+  --surface-hover: #1a2436;
+  --surface-strong: #1f2a3e;
+  --surface-inset: #0c1220;
+  --overlay: rgb(2 6 23 / 0.72);
 
-  --fg: #f1f5f9; /* 16.4:1 on --bg */
-  --fg-muted: #94a3b8; /* 7.1:1 on --bg  */
-  --fg-subtle: #7c8ba1; /* 4.9:1 on --bg  */
+  --glass-bg: rgb(16 23 37 / 0.72);
+  --glass-bg-strong: rgb(16 23 37 / 0.9);
+  /* A light top edge, not a dark one: this is what reads as a raised surface
+     when there is no shadow to see. */
+  --glass-border: rgb(255 255 255 / 0.09);
+  --glass-blur: 16px;
+
+  --fg: #eef2f8; /* 16.9:1 on --bg */
+  --fg-muted: #9aa8bf; /* 7.4:1 on --bg */
+  --fg-subtle: #7d8ba4; /* 5.0:1 on --bg */
   --fg-on-accent: #ffffff;
 
-  --border: #1e293b;
-  --border-strong: #334155;
+  --border: #1f2a3e;
+  --border-strong: #5a6885;
+  --border-highlight: rgb(255 255 255 / 0.08);
 
-  --accent: #3b82f6;
-  --accent-hover: #60a5fa;
-  --accent-subtle: #10203e;
-  --accent-border: #1e3a8a;
+  --accent: #5b8dfb;
+  --accent-hover: #7ba4fc;
+  --accent-subtle: #101c33;
+  --accent-border: #2a4a8f;
 
   /* Lightened deliberately: the light-mode greens and ambers fail contrast
-     on a near-black background. */
-  --high: #4ade80;
-  --high-bg: #0c2318;
-  --high-border: #14532d;
+     against a near-black ground. */
+  --high: #56d99a;
+  --high-bg: #0b2318;
+  --high-border: #17553a;
 
-  --medium: #fbbf24;
-  --medium-bg: #261a05;
-  --medium-border: #78350f;
+  --medium: #f5be4b;
+  --medium-bg: #241a06;
+  --medium-border: #6e4a10;
 
-  --stretch: #c084fc;
-  --stretch-bg: #1e1233;
-  --stretch-border: #5b21b6;
+  --stretch: #c39bfc;
+  --stretch-bg: #1b1330;
+  --stretch-border: #4c2f8f;
 
-  --danger: #f87171;
-  --danger-bg: #2a1113;
-  --danger-border: #7f1d1d;
+  --danger: #fb8189;
+  --danger-bg: #2a1116;
+  --danger-border: #7a2731;
 
-  --success: #4ade80;
-  --success-bg: #0c2318;
+  --success: #56d99a;
+  --success-bg: #0b2318;
 
-  --seg-stack: #3b82f6;
-  --seg-level: #4ade80;
-  --seg-location: #c084fc;
-  --seg-fresh: #fbbf24;
+  --seg-stack: #5b8dfb;
+  --seg-level: #56d99a;
+  --seg-location: #c39bfc;
+  --seg-fresh: #f5be4b;
 
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
-  --shadow: 0 4px 16px -2px rgb(0 0 0 / 0.5), 0 2px 6px -2px rgb(0 0 0 / 0.3);
+  /* Deeper and darker, plus a hairline ring that does the work the shadow
+     cannot do on this ground. */
+  --elev-0: 0 0 0 1px rgb(255 255 255 / 0.05);
+  --elev-1: 0 0 0 1px rgb(255 255 255 / 0.05), 0 2px 8px -2px rgb(0 0 0 / 0.5);
+  --elev-2: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 24px -8px rgb(0 0 0 / 0.65);
+  --elev-3: 0 0 0 1px rgb(255 255 255 / 0.08), 0 24px 56px -16px rgb(0 0 0 / 0.8);
+
+  --grad-accent: linear-gradient(180deg, #5b8dfb 0%, #4a7ff5 55%, #3868dd 100%);
+  --grad-accent-hover: linear-gradient(180deg, #5f90fb 0%, #5384f2 55%, #3f70e6 100%);
+  --grad-surface: linear-gradient(180deg, rgb(255 255 255 / 0.055) 0%, rgb(255 255 255 / 0) 55%);
+  --grad-edge: linear-gradient(90deg, #5b8dfb 0%, #8b8cf9 50%, #c39bfc 100%);
+  --grad-mesh:
+    radial-gradient(60% 50% at 15% 0%, rgb(59 130 246 / 0.16) 0%, transparent 60%),
+    radial-gradient(50% 45% at 85% 10%, rgb(139 92 246 / 0.14) 0%, transparent 60%),
+    radial-gradient(45% 40% at 50% 100%, rgb(16 185 129 / 0.08) 0%, transparent 60%);
+
+  --glow-accent: 0 0 0 1px rgb(91 141 251 / 0.35), 0 8px 26px -8px rgb(91 141 251 / 0.55);
+  --glow-high: 0 0 18px -4px rgb(86 217 154 / 0.45);
+  --ring: 0 0 0 3px rgb(91 141 251 / 0.35);
 }
 
-/* Follow the system when the user has expressed no preference. */
+/* Follow the system when no explicit choice has been made. Duplicated rather
+   than shared because a media query cannot be re-targeted by an attribute. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
     color-scheme: dark;
 
-    --bg: #020617;
-    --bg-subtle: #0b1220;
-    --surface: #0e1526;
-    --surface-hover: #151d31;
-    --surface-strong: #1a2337;
-    --overlay: rgb(2 6 23 / 0.7);
+    --bg: #080b14;
+    --bg-deep: #05070e;
+    --surface: #101725;
+    --surface-raised: #151d2e;
+    --surface-hover: #1a2436;
+    --surface-strong: #1f2a3e;
+    --surface-inset: #0c1220;
+    --overlay: rgb(2 6 23 / 0.72);
 
-    --fg: #f1f5f9;
-    --fg-muted: #94a3b8;
-    --fg-subtle: #7c8ba1;
+    --glass-bg: rgb(16 23 37 / 0.72);
+    --glass-bg-strong: rgb(16 23 37 / 0.9);
+    --glass-border: rgb(255 255 255 / 0.09);
+    --glass-blur: 16px;
+
+    --fg: #eef2f8;
+    --fg-muted: #9aa8bf;
+    --fg-subtle: #7d8ba4;
     --fg-on-accent: #ffffff;
 
-    --border: #1e293b;
-    --border-strong: #334155;
+    --border: #1f2a3e;
+    --border-strong: #5a6885;
+    --border-highlight: rgb(255 255 255 / 0.08);
 
-    --accent: #3b82f6;
-    --accent-hover: #60a5fa;
-    --accent-subtle: #10203e;
-    --accent-border: #1e3a8a;
+    --accent: #5b8dfb;
+    --accent-hover: #7ba4fc;
+    --accent-subtle: #101c33;
+    --accent-border: #2a4a8f;
 
-    --high: #4ade80;
-    --high-bg: #0c2318;
-    --high-border: #14532d;
+    --high: #56d99a;
+    --high-bg: #0b2318;
+    --high-border: #17553a;
 
-    --medium: #fbbf24;
-    --medium-bg: #261a05;
-    --medium-border: #78350f;
+    --medium: #f5be4b;
+    --medium-bg: #241a06;
+    --medium-border: #6e4a10;
 
-    --stretch: #c084fc;
-    --stretch-bg: #1e1233;
-    --stretch-border: #5b21b6;
+    --stretch: #c39bfc;
+    --stretch-bg: #1b1330;
+    --stretch-border: #4c2f8f;
 
-    --danger: #f87171;
-    --danger-bg: #2a1113;
-    --danger-border: #7f1d1d;
+    --danger: #fb8189;
+    --danger-bg: #2a1116;
+    --danger-border: #7a2731;
 
-    --success: #4ade80;
-    --success-bg: #0c2318;
+    --success: #56d99a;
+    --success-bg: #0b2318;
 
-    --seg-stack: #3b82f6;
-    --seg-level: #4ade80;
-    --seg-location: #c084fc;
-    --seg-fresh: #fbbf24;
+    --seg-stack: #5b8dfb;
+    --seg-level: #56d99a;
+    --seg-location: #c39bfc;
+    --seg-fresh: #f5be4b;
 
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
-    --shadow: 0 4px 16px -2px rgb(0 0 0 / 0.5), 0 2px 6px -2px rgb(0 0 0 / 0.3);
+    --elev-0: 0 0 0 1px rgb(255 255 255 / 0.05);
+    --elev-1: 0 0 0 1px rgb(255 255 255 / 0.05), 0 2px 8px -2px rgb(0 0 0 / 0.5);
+    --elev-2: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 24px -8px rgb(0 0 0 / 0.65);
+    --elev-3: 0 0 0 1px rgb(255 255 255 / 0.08), 0 24px 56px -16px rgb(0 0 0 / 0.8);
+
+    --grad-accent: linear-gradient(180deg, #5b8dfb 0%, #4a7ff5 55%, #3868dd 100%);
+    --grad-accent-hover: linear-gradient(180deg, #5f90fb 0%, #5384f2 55%, #3f70e6 100%);
+    --grad-surface: linear-gradient(180deg, rgb(255 255 255 / 0.055) 0%, rgb(255 255 255 / 0) 55%);
+    --grad-edge: linear-gradient(90deg, #5b8dfb 0%, #8b8cf9 50%, #c39bfc 100%);
+    --grad-mesh:
+      radial-gradient(60% 50% at 15% 0%, rgb(59 130 246 / 0.16) 0%, transparent 60%),
+      radial-gradient(50% 45% at 85% 10%, rgb(139 92 246 / 0.14) 0%, transparent 60%),
+      radial-gradient(45% 40% at 50% 100%, rgb(16 185 129 / 0.08) 0%, transparent 60%);
+
+    --glow-accent: 0 0 0 1px rgb(91 141 251 / 0.35), 0 8px 26px -8px rgb(91 141 251 / 0.55);
+    --glow-high: 0 0 18px -4px rgb(86 217 154 / 0.45);
+    --ring: 0 0 0 3px rgb(91 141 251 / 0.35);
   }
 }

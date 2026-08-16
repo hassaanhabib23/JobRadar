@@ -244,3 +244,17 @@ export const IconMapPin = (props: IconProps) => (
     <circle cx="12" cy="10" r="2.6" />
   </Icon>
 )
+
+export const IconShield = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6L12 3Z" />
+    <path d="m9 12 2 2 4-4" />
+  </Icon>
+)
+
+export const IconTrend = (props: IconProps) => (
+  <Icon {...props}>
+    <path d="m3 17 6-6 4 4 8-8" />
+    <path d="M15 7h6v6" />
+  </Icon>
+)
