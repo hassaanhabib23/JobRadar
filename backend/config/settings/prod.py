@@ -5,7 +5,7 @@ hardening below can be quietly forgotten.
 """
 
 from .base import *
-from .base import env, env_list
+from .base import env, env_bool, env_list
 
 DEBUG = False
 
@@ -17,9 +17,13 @@ ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS")
 if not ALLOWED_HOSTS:
     raise RuntimeError("DJANGO_ALLOWED_HOSTS must be set in production")
 
-# Behind a TLS-terminating reverse proxy.
+# Behind a TLS-terminating reverse proxy. Redirect is opt-out, not hardcoded:
+# it depends on the proxy chain actually forwarding a trustworthy
+# X-Forwarded-Proto, which isn't true on every host (e.g. Cloudflare in
+# "Flexible" mode always connects to the origin over plain HTTP regardless of
+# what the visitor used, making this loop instead of redirect once).
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-SECURE_SSL_REDIRECT = True
+SECURE_SSL_REDIRECT = env_bool("DJANGO_SECURE_SSL_REDIRECT", True)
 SECURE_HSTS_SECONDS = 31_536_000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
