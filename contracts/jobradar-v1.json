@@ -1099,6 +1099,91 @@
                 }
             }
         },
+        "/api/resume/": {
+            "get": {
+                "operationId": "resumeGet",
+                "tags": [
+                    "resume"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Resume"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "404": {
+                        "description": "No response body"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "resumeUpload",
+                "tags": [
+                    "resume"
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ResumeUpload"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ResumeUpload"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Resume"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "resumeDelete",
+                "tags": [
+                    "resume"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    },
+                    "404": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
         "/api/runs/": {
             "get": {
                 "operationId": "runsList",
@@ -1489,6 +1574,17 @@
                     "ids",
                     "status"
                 ]
+            },
+            "DetectedSeniorityEnum": {
+                "enum": [
+                    "junior",
+                    "mid",
+                    "senior",
+                    "lead",
+                    "unknown"
+                ],
+                "type": "string",
+                "description": "* `junior` - Junior\n* `mid` - Mid\n* `senior` - Senior\n* `lead` - Lead\n* `unknown` - Unknown"
             },
             "EmailVerify": {
                 "type": "object",
@@ -2110,6 +2206,55 @@
                 "required": [
                     "email",
                     "password"
+                ]
+            },
+            "Resume": {
+                "type": "object",
+                "properties": {
+                    "detectedSkills": {
+                        "readOnly": true
+                    },
+                    "detectedRoleKeywords": {
+                        "readOnly": true
+                    },
+                    "detectedSeniority": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/DetectedSeniorityEnum"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "uploadedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "parsedAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "nullable": true
+                    }
+                },
+                "required": [
+                    "detectedRoleKeywords",
+                    "detectedSeniority",
+                    "detectedSkills",
+                    "parsedAt",
+                    "uploadedAt"
+                ]
+            },
+            "ResumeUpload": {
+                "type": "object",
+                "properties": {
+                    "file": {
+                        "type": "string",
+                        "format": "uri"
+                    }
+                },
+                "required": [
+                    "file"
                 ]
             },
             "Run": {

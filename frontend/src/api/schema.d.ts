@@ -390,6 +390,22 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/api/resume/': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get: operations['resumeGet']
+    put?: never
+    post: operations['resumeUpload']
+    delete: operations['resumeDelete']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/api/runs/': {
     parameters: {
       query?: never
@@ -559,6 +575,15 @@ export interface components {
       ids: number[]
       status: components['schemas']['ApplicationStatusEnum']
     }
+    /**
+     * @description * `junior` - Junior
+     *     * `mid` - Mid
+     *     * `senior` - Senior
+     *     * `lead` - Lead
+     *     * `unknown` - Unknown
+     * @enum {string}
+     */
+    DetectedSeniorityEnum: 'junior' | 'mid' | 'senior' | 'lead' | 'unknown'
     EmailVerify: {
       uid: string
       token: string
@@ -821,6 +846,19 @@ export interface components {
       locations?: string[]
       /** @description Onboarding role chips that pre-weight the matching skills. */
       roleKeywords?: string[]
+    }
+    Resume: {
+      readonly detectedSkills: unknown
+      readonly detectedRoleKeywords: unknown
+      readonly detectedSeniority: components['schemas']['DetectedSeniorityEnum']
+      /** Format: date-time */
+      readonly uploadedAt: string
+      /** Format: date-time */
+      readonly parsedAt: string | null
+    }
+    ResumeUpload: {
+      /** Format: uri */
+      file: string
     }
     Run: {
       readonly id: number
@@ -1593,6 +1631,81 @@ export interface operations {
         content: {
           'application/json': components['schemas']['ScorePreviewResponse']
         }
+      }
+    }
+  }
+  resumeGet: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Resume']
+        }
+      }
+      /** @description No response body */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  resumeUpload: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'multipart/form-data': components['schemas']['ResumeUpload']
+        'application/x-www-form-urlencoded': components['schemas']['ResumeUpload']
+      }
+    }
+    responses: {
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Resume']
+        }
+      }
+    }
+  }
+  resumeDelete: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      /** @description No response body */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
       }
     }
   }
