@@ -50,6 +50,7 @@ export interface Job {
   status: ApplicationStatus
   notes: string
   pinned: boolean
+  remindAt: string | null
   isNew: boolean
   flags: string[]
   detail: ScoreDetail | null
@@ -62,6 +63,8 @@ export interface User {
   id: number
   email: string
   onboardingComplete: boolean
+  /** Soft gate: false only withholds the digest, never access to the app. */
+  emailVerified: boolean
   dateJoined: string
 }
 
@@ -172,6 +175,12 @@ export interface AuthResponse {
 export interface StatusChoice {
   value: ApplicationStatus
   label: string
+}
+
+export interface StatusEvent {
+  fromStatus: ApplicationStatus | ''
+  toStatus: ApplicationStatus
+  changedAt: string
 }
 
 export interface ScorePreview {

@@ -20,15 +20,21 @@ export interface MockState {
     id: number
     email: string
     onboardingComplete: boolean
+    emailVerified: boolean
     dateJoined: string
   }
   /** Access tokens the API will accept. */
   validTokens: Set<string>
   refreshCount: number
   runsTriggered: number
+  /** Addresses passed to the reset-request endpoint, in order. */
+  resetRequests: string[]
+  /** How many times a fresh verification link was asked for. */
+  verifyResends: number
   /** The query string of the most recent job list request. */
   lastJobQuery: string
   bulkUpdates: { ids: number[]; status: string }[]
+  statusHistory: Record<number, { fromStatus: string; toStatus: string; changedAt: string }[]>
   jobs: MockJob[]
 }
 
@@ -51,6 +57,7 @@ export interface MockJob {
   status: string
   notes: string
   pinned: boolean
+  remindAt: string | null
   isNew: boolean
   flags: string[]
   detail: Record<string, unknown> | null
@@ -79,6 +86,7 @@ function job(overrides: Partial<MockJob> = {}): MockJob {
     status: 'not_started',
     notes: '',
     pinned: false,
+    remindAt: null,
     isNew: true,
     flags: [],
     detail: {
@@ -107,13 +115,17 @@ function createState(): MockState {
       id: 1,
       email: 'dev@example.com',
       onboardingComplete: true,
+      emailVerified: true,
       dateJoined: '2026-08-01T00:00:00Z',
     },
     validTokens: new Set<string>(),
     refreshCount: 0,
     runsTriggered: 0,
+    resetRequests: [],
+    verifyResends: 0,
     lastJobQuery: '',
     bulkUpdates: [],
+    statusHistory: {},
     jobs: [
       job(),
       job({
@@ -209,6 +221,46 @@ export const handlers = [
     return new HttpResponse(null, { status: 204 })
   }),
 
+  // Mirrors the real endpoint's most important property: 204 whether or not
+  // the address is known, so a test can prove the UI does not leak it either.
+  http.post(`${API}/auth/password/reset/`, async ({ request }) => {
+    const body = (await request.json()) as { email?: string }
+    if (!body.email?.includes('@')) {
+      return HttpResponse.json({ email: ['Enter a valid email address.'] }, { status: 400 })
+    }
+    state.resetRequests.push(body.email)
+    return new HttpResponse(null, { status: 204 })
+  }),
+
+  http.post(`${API}/auth/password/reset/confirm/`, async ({ request }) => {
+    const body = (await request.json()) as { token?: string; password?: string }
+    if (body.token !== 'good-token') {
+      return HttpResponse.json(
+        { token: ['This link is invalid or has expired. Request a new one.'] },
+        { status: 400 },
+      )
+    }
+    if ((body.password ?? '').length < 8) {
+      return HttpResponse.json({ password: ['This password is too short.'] }, { status: 400 })
+    }
+    return new HttpResponse(null, { status: 204 })
+  }),
+
+  http.post(`${API}/auth/email/verify/`, async ({ request }) => {
+    const body = (await request.json()) as { token?: string }
+    if (body.token !== 'good-token') {
+      return HttpResponse.json({ token: ['This link is invalid.'] }, { status: 400 })
+    }
+    state.user = { ...state.user, emailVerified: true }
+    return new HttpResponse(null, { status: 204 })
+  }),
+
+  http.post(`${API}/auth/email/verify/resend/`, ({ request }) => {
+    if (!authed(request)) return unauthorized()
+    state.verifyResends += 1
+    return new HttpResponse(null, { status: 204 })
+  }),
+
   http.get(`${API}/auth/me/`, ({ request }) =>
     authed(request) ? HttpResponse.json(state.user) : unauthorized(),
   ),
@@ -289,6 +341,11 @@ export const handlers = [
       if (body.ids.includes(entry.id)) entry.status = body.status
     })
     return HttpResponse.json({ updated: body.ids.length })
+  }),
+
+  http.get(`${API}/jobs/:id/status_history/`, ({ request, params }) => {
+    if (!authed(request)) return unauthorized()
+    return HttpResponse.json(state.statusHistory[Number(params.id)] ?? [])
   }),
 
   http.get(`${API}/runs/`, ({ request }) =>

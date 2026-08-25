@@ -27,6 +27,7 @@ import type {
   Source,
   Stats,
   StatusChoice,
+  StatusEvent,
 } from './types'
 
 export const queryKeys = {
@@ -34,6 +35,7 @@ export const queryKeys = {
   job: (id: number) => ['job', id] as const,
   stats: () => ['stats'] as const,
   statuses: () => ['statuses'] as const,
+  statusHistory: (id: number) => ['job', id, 'status-history'] as const,
   locations: () => ['locations'] as const,
   profile: () => ['profile'] as const,
   runs: () => ['runs'] as const,
@@ -71,6 +73,13 @@ export function useStatuses(): UseQueryResult<StatusChoice[]> {
   })
 }
 
+export function useStatusHistory(id: number): UseQueryResult<StatusEvent[]> {
+  return useQuery({
+    queryKey: queryKeys.statusHistory(id),
+    queryFn: () => api.get<StatusEvent[]>(`/jobs/${id}/status_history/`),
+  })
+}
+
 export function useProfile(): UseQueryResult<Profile> {
   return useQuery({ queryKey: queryKeys.profile(), queryFn: () => api.get<Profile>('/profile/') })
 }
@@ -102,6 +111,7 @@ interface JobPatch {
   status?: ApplicationStatus
   notes?: string
   pinned?: boolean
+  remindAt?: string | null
 }
 
 /**
@@ -142,9 +152,10 @@ export function useUpdateJob(): UseMutationResult<Job, Error, JobPatch, { previo
       })
     },
 
-    onSettled: () => {
+    onSettled: (_data, _error, variables) => {
       void queryClient.invalidateQueries({ queryKey: ['jobs'] })
       void queryClient.invalidateQueries({ queryKey: queryKeys.stats() })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.statusHistory(variables.id) })
     },
   })
 }
