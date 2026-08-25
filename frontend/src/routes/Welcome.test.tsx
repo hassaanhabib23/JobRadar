@@ -18,8 +18,11 @@ async function startOnboarding() {
   state.refreshValid = true
   state.user.onboardingComplete = false
   renderWithProviders(<App />, { route: '/welcome' })
+  const user = userEvent.setup()
+  await screen.findByRole('heading', { name: /upload your cv/i })
+  await user.click(screen.getByRole('button', { name: /continue/i }))
   await screen.findByRole('heading', { name: /where do you want to work/i })
-  return userEvent.setup()
+  return user
 }
 
 describe('onboarding', () => {
@@ -104,9 +107,7 @@ describe('onboarding', () => {
 
     renderWithProviders(<App />, { route: '/app' })
 
-    expect(
-      await screen.findByRole('heading', { name: /where do you want to work/i }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /upload your cv/i })).toBeInTheDocument()
   })
 
   it('every control is reachable by keyboard alone', async () => {
@@ -121,5 +122,45 @@ describe('onboarding', () => {
 
     await user.keyboard(' ')
     expect(islamabad).not.toBeChecked()
+  })
+})
+
+describe('CV upload step', () => {
+  beforeEach(() => {
+    state.refreshValid = true
+    state.user.onboardingComplete = false
+  })
+
+  it('is the first screen', async () => {
+    renderWithProviders(<App />, { route: '/welcome' })
+
+    expect(await screen.findByRole('heading', { name: /upload your cv/i })).toBeInTheDocument()
+  })
+
+  it('uploading pre-checks the detected role and advances', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<App />, { route: '/welcome' })
+
+    const input = await screen.findByLabelText(/upload your cv/i)
+    await user.upload(input, new File(['fake pdf bytes'], 'cv.pdf', { type: 'application/pdf' }))
+
+    await screen.findByText(/react/i)
+    await user.click(screen.getByRole('button', { name: /continue/i }))
+
+    await screen.findByRole('heading', { name: /where do you want to work/i })
+    await user.click(screen.getByRole('button', { name: /continue/i }))
+
+    expect(await screen.findByRole('heading', { name: /what do you build/i })).toBeInTheDocument()
+    expect(screen.getByRole('checkbox', { name: /react/i })).toBeChecked()
+  })
+
+  it('skipping the whole flow from the CV step still lands on the dashboard', async () => {
+    const user = userEvent.setup()
+    renderWithProviders(<App />, { route: '/welcome' })
+
+    await user.click(await screen.findByRole('button', { name: /skip for now/i }))
+
+    expect(await screen.findByRole('heading', { name: /^jobs$/i })).toBeInTheDocument()
+    expect(state.user.onboardingComplete).toBe(true)
   })
 })

@@ -2,8 +2,8 @@
  * Onboarding.
  *
  * This matters more than it looks: a user whose first screen is an empty
- * dashboard leaves. Three short steps, and the last one triggers a run so their
- * first dashboard has jobs in it.
+ * dashboard leaves. Four short steps, and the last one triggers a run so
+ * their first dashboard has jobs in it.
  *
  * Progressive disclosure — one decision per screen, with a visible progress
  * indicator so nobody wonders how much more of this there is. Skippable
@@ -15,16 +15,23 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { api } from '../api/client'
-import { ROLE_KEYWORDS, type Location, type Profile, type User } from '../api/types'
+import { useUploadResume } from '../api/queries'
+import {
+  ROLE_KEYWORDS,
+  type Location,
+  type Profile,
+  type ResumeSignals,
+  type User,
+} from '../api/types'
 import { useAuth } from '../auth/AuthProvider'
 import { AuthLayout } from '../components/AuthLayout'
 import { IconCheck, IconMapPin, IconRadar } from '../components/icons'
 import { Button, Chip, Skeleton, cx } from '../components/ui'
 
 const DEFAULT_CITIES = ['islamabad', 'rawalpindi']
-const STEPS = ['Cities', 'Focus', 'Done'] as const
+const STEPS = ['CV', 'Cities', 'Focus', 'Done'] as const
 
-type Step = 1 | 2 | 3
+type Step = 1 | 2 | 3 | 4
 
 export default function Welcome() {
   const navigate = useNavigate()
@@ -34,6 +41,7 @@ export default function Welcome() {
   const [step, setStep] = useState<Step>(1)
   const [cities, setCities] = useState<string[]>(DEFAULT_CITIES)
   const [roles, setRoles] = useState<string[]>([])
+  const uploadResume = useUploadResume()
 
   const locations = useQuery({
     queryKey: ['locations'],
@@ -63,9 +71,9 @@ export default function Welcome() {
     },
   })
 
-  async function goToStep3() {
+  async function goToStep4() {
     await saveProfile.mutateAsync()
-    setStep(3)
+    setStep(4)
     // Kick a run so their first dashboard is not an empty state.
     triggerRun.mutate()
   }
@@ -75,15 +83,17 @@ export default function Welcome() {
   }
 
   const titles: Record<Step, string> = {
-    1: 'Where do you want to work?',
-    2: 'What do you build?',
-    3: "You're set up",
+    1: 'Upload your CV',
+    2: 'Where do you want to work?',
+    3: 'What do you build?',
+    4: "You're set up",
   }
 
   const subtitles: Record<Step, string> = {
-    1: 'This decides which jobs reach you and how they score. Change it any time.',
-    2: 'Picking a few raises the weight of the matching skills. Optional — you can tune every weight individually later.',
-    3: 'Your profile is saved and the first run is under way.',
+    1: "Optional. We'll pre-fill your skills and focus from it — nothing is sent anywhere but your own profile.",
+    2: 'This decides which jobs reach you and how they score. Change it any time.',
+    3: 'Picking a few raises the weight of the matching skills. Optional — you can tune every weight individually later.',
+    4: 'Your profile is saved and the first run is under way.',
   }
 
   return (
@@ -93,6 +103,55 @@ export default function Welcome() {
 
         <div>
           {step === 1 && (
+            <div className="flex flex-col gap-5">
+              <label htmlFor="resume-upload" className="text-sm font-medium">
+                Upload your CV
+              </label>
+              <input
+                id="resume-upload"
+                type="file"
+                accept=".pdf,.docx"
+                onChange={(event) => {
+                  const file = event.target.files?.[0]
+                  if (!file) return
+                  uploadResume.mutate(file, {
+                    onSuccess: (signals: ResumeSignals) => {
+                      setRoles((current) => [
+                        ...new Set([...current, ...signals.detectedRoleKeywords]),
+                      ])
+                    },
+                  })
+                }}
+                className="w-full rounded border border-hairline-strong bg-surface-inset p-3.5 text-sm"
+              />
+
+              {uploadResume.isPending && <p className="text-sm text-muted">Reading your CV…</p>}
+              {uploadResume.isError && (
+                <p role="alert" className="text-sm text-danger">
+                  Could not read that file — PDF and DOCX only, up to 5MB.
+                </p>
+              )}
+              {uploadResume.isSuccess && (
+                <p aria-live="polite" className="text-sm text-muted">
+                  Found:{' '}
+                  <strong className="font-bold text-fg">
+                    {Object.keys(uploadResume.data.detectedSkills).join(', ') ||
+                      'no specific skills'}
+                  </strong>
+                  {uploadResume.data.detectedSeniority !== 'unknown' &&
+                    ` · ${uploadResume.data.detectedSeniority}`}
+                </p>
+              )}
+
+              <div className="flex items-center justify-end gap-3 border-t border-hairline pt-4">
+                <Button size="lg" onClick={() => setStep(2)}>
+                  Continue
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
             <div className="flex flex-col gap-5">
               {locations.isPending && (
                 <div className="flex flex-wrap gap-2" aria-busy="true">
@@ -141,14 +200,14 @@ export default function Welcome() {
                     ? 'Choose at least one city to continue'
                     : `${cities.length} selected`}
                 </p>
-                <Button size="lg" disabled={cities.length === 0} onClick={() => setStep(2)}>
+                <Button size="lg" disabled={cities.length === 0} onClick={() => setStep(3)}>
                   Continue
                 </Button>
               </div>
             </div>
           )}
 
-          {step === 2 && (
+          {step === 3 && (
             <div className="flex flex-col gap-5">
               <fieldset className="flex flex-wrap gap-2">
                 <legend className="sr-only">Role focus</legend>
@@ -165,17 +224,17 @@ export default function Welcome() {
               </fieldset>
 
               <div className="flex items-center justify-between gap-3 border-t border-hairline pt-4">
-                <Button variant="ghost" onClick={() => setStep(1)}>
+                <Button variant="ghost" onClick={() => setStep(2)}>
                   Back
                 </Button>
-                <Button size="lg" onClick={() => void goToStep3()} disabled={saveProfile.isPending}>
+                <Button size="lg" onClick={() => void goToStep4()} disabled={saveProfile.isPending}>
                   {saveProfile.isPending ? 'Saving…' : 'Continue'}
                 </Button>
               </div>
             </div>
           )}
 
-          {step === 3 && (
+          {step === 4 && (
             <div className="flex flex-col gap-5">
               <ul aria-live="polite" className="space-y-3 text-sm">
                 <Done>
@@ -228,7 +287,7 @@ export default function Welcome() {
           )}
         </div>
 
-        {step < 3 && (
+        {step < 4 && (
           <p className="text-center text-sm text-subtle">
             <button
               type="button"

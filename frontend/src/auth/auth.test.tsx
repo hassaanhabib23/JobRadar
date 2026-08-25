@@ -140,9 +140,7 @@ describe('signing in', () => {
     await screen.findByRole('heading', { name: /sign in/i })
     await signIn()
 
-    expect(
-      await screen.findByRole('heading', { name: /where do you want to work/i }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /upload your cv/i })).toBeInTheDocument()
   })
 })
 
