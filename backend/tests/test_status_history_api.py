@@ -74,3 +74,53 @@ class TestBulkStatusLogsHistory:
         client.post("/api/jobs/bulk_status/", {"ids": [theirs.pk], "status": "applied"}, format="json")
 
         assert UserJobStatusEvent.objects.filter(user_job=theirs).count() == 0
+
+
+class TestStatusHistoryEndpoint:
+    def test_lists_events_newest_first(self, authed_client):
+        client, user = authed_client
+        user_job = UserJob.objects.create(user=user, job=_job())
+        client.patch(f"/api/jobs/{user_job.pk}/", {"status": "researching"}, format="json")
+        client.patch(f"/api/jobs/{user_job.pk}/", {"status": "applied"}, format="json")
+
+        response = client.get(f"/api/jobs/{user_job.pk}/status_history/")
+
+        assert response.status_code == 200
+        body = response.json()
+        assert [event["toStatus"] for event in body] == ["applied", "researching"]
+
+    def test_404s_for_another_users_job(self, authed_client, user_factory):
+        client, _user = authed_client
+        stranger = user_factory()
+        theirs = UserJob.objects.create(user=stranger, job=_job())
+
+        response = client.get(f"/api/jobs/{theirs.pk}/status_history/")
+
+        assert response.status_code == 404
+
+
+class TestRemindAt:
+    def test_can_be_set_via_patch(self, authed_client):
+        client, user = authed_client
+        user_job = UserJob.objects.create(user=user, job=_job())
+
+        response = client.patch(
+            f"/api/jobs/{user_job.pk}/", {"remindAt": "2026-09-01T09:00:00Z"}, format="json"
+        )
+
+        assert response.status_code == 200
+        user_job.refresh_from_db()
+        assert user_job.remind_at is not None
+
+    def test_changing_it_clears_reminder_sent_at(self, authed_client):
+        from django.utils import timezone
+
+        client, user = authed_client
+        user_job = UserJob.objects.create(
+            user=user, job=_job(), remind_at=timezone.now(), reminder_sent_at=timezone.now()
+        )
+
+        client.patch(f"/api/jobs/{user_job.pk}/", {"remindAt": "2026-09-01T09:00:00Z"}, format="json")
+
+        user_job.refresh_from_db()
+        assert user_job.reminder_sent_at is None

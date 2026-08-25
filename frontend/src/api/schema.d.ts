@@ -4,6 +4,52 @@
  */
 
 export interface paths {
+  '/api/auth/email/verify/': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * @description Confirm an address from the emailed link.
+     *
+     *     Unauthenticated on purpose: people open these links in whichever browser
+     *     their mail client hands them, which is frequently not the one they are
+     *     signed in to.
+     */
+    post: operations['authEmailVerify']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/auth/email/verify/resend/': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * @description Send another verification link to *your own* address.
+     *
+     *     Authenticated, and the address comes from the token rather than the body.
+     *     Taking it from the body would make this a way to mail arbitrary strangers
+     *     from your domain.
+     */
+    post: operations['authEmailVerifyResend']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/api/auth/login/': {
     parameters: {
       query?: never
@@ -65,6 +111,47 @@ export interface paths {
     get?: never
     put?: never
     post: operations['authPasswordChange']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/auth/password/reset/': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * @description Start a reset. Unauthenticated, by definition.
+     *
+     *     **Always answers 204**, whether or not the address belongs to an account.
+     *     Any difference — a different status, a different body, even a noticeably
+     *     different response time — turns this into an oracle for "is this person
+     *     registered?", which is precisely what `LoginView` already refuses to be.
+     */
+    post: operations['authPasswordReset']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/api/auth/password/reset/confirm/': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** @description Finish a reset with the emailed link. */
+    post: operations['authPasswordResetConfirm']
     delete?: never
     options?: never
     head?: never
@@ -183,6 +270,28 @@ export interface paths {
      *     simply is not there.
      */
     patch: operations['jobsPartialUpdate']
+    trace?: never
+  }
+  '/api/jobs/{id}/status_history/': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * @description Every recorded transition for this job, newest first.
+     *
+     *     `get_object` resolves against the user-scoped queryset, so another
+     *     user's id 404s here exactly as it does for retrieve.
+     */
+    get: operations['jobsStatusHistoryList']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
     trace?: never
   }
   '/api/jobs/bulk_status/': {
@@ -444,9 +553,15 @@ export interface components {
       | 'offer'
       | 'rejected'
       | 'skipped'
+    /** @enum {unknown} */
+    BlankEnum: ''
     BulkStatus: {
       ids: number[]
       status: components['schemas']['ApplicationStatusEnum']
+    }
+    EmailVerify: {
+      uid: string
+      token: string
     }
     /** @description A `UserJob` joined to its `Job`, flattened. */
     Job: {
@@ -472,6 +587,8 @@ export interface components {
       status?: components['schemas']['ApplicationStatusEnum']
       notes?: string
       pinned?: boolean
+      /** Format: date-time */
+      readonly remindAt: string | null
       readonly isNew: boolean
       readonly flags: unknown
       readonly detail: unknown
@@ -569,15 +686,51 @@ export interface components {
       previous?: string | null
       results: components['schemas']['StatusChoice'][]
     }
+    PaginatedUserJobStatusEventList: {
+      /** @example 123 */
+      count: number
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?page=4
+       */
+      next?: string | null
+      /**
+       * Format: uri
+       * @example http://api.example.org/accounts/?page=2
+       */
+      previous?: string | null
+      results: components['schemas']['UserJobStatusEvent'][]
+    }
     PasswordChange: {
       oldPassword: string
       newPassword: string
     }
-    /** @description The only three fields a user may write. */
+    /**
+     * @description A link plus the new password.
+     *
+     *     Validating the token here rather than in the view keeps the endpoint thin
+     *     and means a bad `uid`, a bad token and an expired token all surface the same
+     *     way — a 400 — without the view having to distinguish them. It should not
+     *     distinguish them: telling a caller *why* a link failed tells them whether
+     *     the account exists.
+     */
+    PasswordResetConfirm: {
+      uid: string
+      token: string
+      password: string
+    }
+    /** @description Just an address. Deliberately says nothing about whether it is known. */
+    PasswordResetRequest: {
+      /** Format: email */
+      email: string
+    }
+    /** @description The four fields a user may write. */
     PatchedJobUpdate: {
       status?: components['schemas']['ApplicationStatusEnum']
       notes?: string
       pinned?: boolean
+      /** Format: date-time */
+      remindAt?: string | null
     }
     /** @description The requesting user's own profile. `user` is never client-supplied. */
     PatchedProfile: {
@@ -628,6 +781,7 @@ export interface components {
        */
       readonly email?: string
       readonly onboardingComplete?: boolean
+      readonly emailVerified?: boolean
       /** Format: date-time */
       readonly dateJoined?: string
     }
@@ -808,8 +962,16 @@ export interface components {
        */
       readonly email: string
       readonly onboardingComplete: boolean
+      readonly emailVerified: boolean
       /** Format: date-time */
       readonly dateJoined: string
+    }
+    UserJobStatusEvent: {
+      fromStatus?:
+        components['schemas']['ApplicationStatusEnum'] | components['schemas']['BlankEnum']
+      toStatus: components['schemas']['ApplicationStatusEnum']
+      /** Format: date-time */
+      changedAt?: string
     }
   }
   responses: never
@@ -820,6 +982,46 @@ export interface components {
 }
 export type $defs = Record<string, never>
 export interface operations {
+  authEmailVerify: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['EmailVerify']
+      }
+    }
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  authEmailVerifyResend: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
   authLogin: {
     parameters: {
       query?: never
@@ -915,6 +1117,50 @@ export interface operations {
     requestBody: {
       content: {
         'application/json': components['schemas']['PasswordChange']
+      }
+    }
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  authPasswordReset: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PasswordResetRequest']
+      }
+    }
+    responses: {
+      /** @description No response body */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  authPasswordResetConfirm: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PasswordResetConfirm']
       }
     }
     responses: {
@@ -1097,6 +1343,66 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['Job']
+        }
+      }
+    }
+  }
+  jobsStatusHistoryList: {
+    parameters: {
+      query?: {
+        company?: string
+        flag?: string
+        has_date?: boolean
+        include_closed?: boolean
+        is_new?: boolean
+        location?: string
+        max_score?: number
+        min_score?: number
+        /** @description A page number within the paginated result set. */
+        page?: number
+        pinned?: boolean
+        posted_today?: boolean
+        posted_within?: number
+        search?: string
+        source?: string
+        /**
+         * @description * `not_started` - Not started
+         *     * `researching` - Researching
+         *     * `cv_tailored` - CV tailored
+         *     * `applied` - Applied
+         *     * `assessment` - Assessment
+         *     * `interviewing` - Interviewing
+         *     * `offer` - Offer
+         *     * `rejected` - Rejected
+         *     * `skipped` - Skipped
+         */
+        status?:
+          | 'applied'
+          | 'assessment'
+          | 'cv_tailored'
+          | 'interviewing'
+          | 'not_started'
+          | 'offer'
+          | 'rejected'
+          | 'researching'
+          | 'skipped'
+        tier?: string
+      }
+      header?: never
+      path: {
+        /** @description A unique integer value identifying this user job. */
+        id: number
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PaginatedUserJobStatusEventList']
         }
       }
     }

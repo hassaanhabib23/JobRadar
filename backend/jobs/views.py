@@ -31,6 +31,7 @@ from jobs.serializers import (
     SourceSerializer,
     StatsSerializer,
     StatusChoiceSerializer,
+    UserJobStatusEventSerializer,
 )
 from jobs.services import record_status_change, statuses
 from jobs.tasks import run_now
@@ -166,6 +167,17 @@ class JobViewSet(
     def statuses(self, request: Request) -> Response:
         """Human labels for every status, so the frontend never hardcodes them."""
         return Response(StatusChoiceSerializer(statuses(), many=True).data)
+
+    @extend_schema(responses={200: UserJobStatusEventSerializer(many=True)})
+    @action(detail=True, methods=["get"], url_path="status_history")
+    def status_history(self, request: Request, pk: str | None = None) -> Response:
+        """Every recorded transition for this job, newest first.
+
+        `get_object` resolves against the user-scoped queryset, so another
+        user's id 404s here exactly as it does for retrieve.
+        """
+        instance = self.get_object()
+        return Response(UserJobStatusEventSerializer(instance.status_history.all(), many=True).data)
 
 
 class SourceViewSet(viewsets.ModelViewSet):

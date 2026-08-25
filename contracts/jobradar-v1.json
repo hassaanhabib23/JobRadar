@@ -6,6 +6,52 @@
         "description": "Job aggregation, per-user scoring and application tracking."
     },
     "paths": {
+        "/api/auth/email/verify/": {
+            "post": {
+                "operationId": "authEmailVerify",
+                "description": "Confirm an address from the emailed link.\n\nUnauthenticated on purpose: people open these links in whichever browser\ntheir mail client hands them, which is frequently not the one they are\nsigned in to.",
+                "tags": [
+                    "auth"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmailVerify"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {}
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/auth/email/verify/resend/": {
+            "post": {
+                "operationId": "authEmailVerifyResend",
+                "description": "Send another verification link to *your own* address.\n\nAuthenticated, and the address comes from the token rather than the body.\nTaking it from the body would make this a way to mail arbitrary strangers\nfrom your domain.",
+                "tags": [
+                    "auth"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
         "/api/auth/login/": {
             "post": {
                 "operationId": "authLogin",
@@ -138,6 +184,60 @@
                     {
                         "jwtAuth": []
                     }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/auth/password/reset/": {
+            "post": {
+                "operationId": "authPasswordReset",
+                "description": "Start a reset. Unauthenticated, by definition.\n\n**Always answers 204**, whether or not the address belongs to an account.\nAny difference — a different status, a different body, even a noticeably\ndifferent response time — turns this into an oracle for \"is this person\nregistered?\", which is precisely what `LoginView` already refuses to be.",
+                "tags": [
+                    "auth"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PasswordResetRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {}
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/auth/password/reset/confirm/": {
+            "post": {
+                "operationId": "authPasswordResetConfirm",
+                "description": "Finish a reset with the emailed link.",
+                "tags": [
+                    "auth"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PasswordResetConfirm"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {}
                 ],
                 "responses": {
                     "204": {
@@ -481,6 +581,170 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/Job"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/jobs/{id}/status_history/": {
+            "get": {
+                "operationId": "jobsStatusHistoryList",
+                "description": "Every recorded transition for this job, newest first.\n\n`get_object` resolves against the user-scoped queryset, so another\nuser's id 404s here exactly as it does for retrieve.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "company",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "flag",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "has_date",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "A unique integer value identifying this user job.",
+                        "required": true
+                    },
+                    {
+                        "in": "query",
+                        "name": "include_closed",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "is_new",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "location",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "max_score",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "min_score",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "pinned",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "posted_today",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "posted_within",
+                        "schema": {
+                            "type": "number",
+                            "format": "double"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "search",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "source",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "in": "query",
+                        "name": "status",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "applied",
+                                "assessment",
+                                "cv_tailored",
+                                "interviewing",
+                                "not_started",
+                                "offer",
+                                "rejected",
+                                "researching",
+                                "skipped"
+                            ]
+                        },
+                        "description": "* `not_started` - Not started\n* `researching` - Researching\n* `cv_tailored` - CV tailored\n* `applied` - Applied\n* `assessment` - Assessment\n* `interviewing` - Interviewing\n* `offer` - Offer\n* `rejected` - Rejected\n* `skipped` - Skipped"
+                    },
+                    {
+                        "in": "query",
+                        "name": "tier",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "tags": [
+                    "jobs"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedUserJobStatusEventList"
                                 }
                             }
                         },
@@ -1203,6 +1467,11 @@
                 "type": "string",
                 "description": "* `not_started` - Not started\n* `researching` - Researching\n* `cv_tailored` - CV tailored\n* `applied` - Applied\n* `assessment` - Assessment\n* `interviewing` - Interviewing\n* `offer` - Offer\n* `rejected` - Rejected\n* `skipped` - Skipped"
             },
+            "BlankEnum": {
+                "enum": [
+                    ""
+                ]
+            },
             "BulkStatus": {
                 "type": "object",
                 "properties": {
@@ -1219,6 +1488,21 @@
                 "required": [
                     "ids",
                     "status"
+                ]
+            },
+            "EmailVerify": {
+                "type": "object",
+                "properties": {
+                    "uid": {
+                        "type": "string"
+                    },
+                    "token": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "token",
+                    "uid"
                 ]
             },
             "Job": {
@@ -1298,6 +1582,12 @@
                     "pinned": {
                         "type": "boolean"
                     },
+                    "remindAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true,
+                        "nullable": true
+                    },
                     "isNew": {
                         "type": "boolean",
                         "readOnly": true
@@ -1335,6 +1625,7 @@
                     "lastSeen",
                     "location",
                     "postedAt",
+                    "remindAt",
                     "score",
                     "seenCount",
                     "source",
@@ -1507,6 +1798,37 @@
                     }
                 }
             },
+            "PaginatedUserJobStatusEventList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/UserJobStatusEvent"
+                        }
+                    }
+                }
+            },
             "PasswordChange": {
                 "type": "object",
                 "properties": {
@@ -1524,9 +1846,43 @@
                     "oldPassword"
                 ]
             },
+            "PasswordResetConfirm": {
+                "type": "object",
+                "description": "A link plus the new password.\n\nValidating the token here rather than in the view keeps the endpoint thin\nand means a bad `uid`, a bad token and an expired token all surface the same\nway — a 400 — without the view having to distinguish them. It should not\ndistinguish them: telling a caller *why* a link failed tells them whether\nthe account exists.",
+                "properties": {
+                    "uid": {
+                        "type": "string"
+                    },
+                    "token": {
+                        "type": "string"
+                    },
+                    "password": {
+                        "type": "string",
+                        "writeOnly": true
+                    }
+                },
+                "required": [
+                    "password",
+                    "token",
+                    "uid"
+                ]
+            },
+            "PasswordResetRequest": {
+                "type": "object",
+                "description": "Just an address. Deliberately says nothing about whether it is known.",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    }
+                },
+                "required": [
+                    "email"
+                ]
+            },
             "PatchedJobUpdate": {
                 "type": "object",
-                "description": "The only three fields a user may write.",
+                "description": "The four fields a user may write.",
                 "properties": {
                     "status": {
                         "$ref": "#/components/schemas/ApplicationStatusEnum"
@@ -1536,6 +1892,11 @@
                     },
                     "pinned": {
                         "type": "boolean"
+                    },
+                    "remindAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "nullable": true
                     }
                 }
             },
@@ -1664,6 +2025,10 @@
                         "title": "Email address"
                     },
                     "onboardingComplete": {
+                        "type": "boolean",
+                        "readOnly": true
+                    },
+                    "emailVerified": {
                         "type": "boolean",
                         "readOnly": true
                     },
@@ -2226,6 +2591,10 @@
                         "type": "boolean",
                         "readOnly": true
                     },
+                    "emailVerified": {
+                        "type": "boolean",
+                        "readOnly": true
+                    },
                     "dateJoined": {
                         "type": "string",
                         "format": "date-time",
@@ -2235,8 +2604,34 @@
                 "required": [
                     "dateJoined",
                     "email",
+                    "emailVerified",
                     "id",
                     "onboardingComplete"
+                ]
+            },
+            "UserJobStatusEvent": {
+                "type": "object",
+                "properties": {
+                    "fromStatus": {
+                        "oneOf": [
+                            {
+                                "$ref": "#/components/schemas/ApplicationStatusEnum"
+                            },
+                            {
+                                "$ref": "#/components/schemas/BlankEnum"
+                            }
+                        ]
+                    },
+                    "toStatus": {
+                        "$ref": "#/components/schemas/ApplicationStatusEnum"
+                    },
+                    "changedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "required": [
+                    "toStatus"
                 ]
             }
         },

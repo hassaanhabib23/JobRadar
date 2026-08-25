@@ -10,7 +10,7 @@ from typing import Any
 
 from rest_framework import serializers
 
-from jobs.models import ApplicationStatus, Run, RunSource, Source, UserJob
+from jobs.models import ApplicationStatus, Run, RunSource, Source, UserJob, UserJobStatusEvent
 
 
 class JobSerializer(serializers.ModelSerializer):
@@ -54,6 +54,7 @@ class JobSerializer(serializers.ModelSerializer):
             "status",
             "notes",
             "pinned",
+            "remind_at",
             "is_new",
             "flags",
             "detail",
@@ -68,11 +69,18 @@ class JobSerializer(serializers.ModelSerializer):
 
 
 class JobUpdateSerializer(serializers.ModelSerializer):
-    """The only three fields a user may write."""
+    """The four fields a user may write."""
 
     class Meta:
         model = UserJob
-        fields = ("status", "notes", "pinned")
+        fields = ("status", "notes", "pinned", "remind_at")
+
+    def update(self, instance: UserJob, validated_data: dict) -> UserJob:
+        # A new reminder date means the old "already sent" fact no longer
+        # applies — otherwise moving the date forward would never re-fire.
+        if "remind_at" in validated_data and validated_data["remind_at"] != instance.remind_at:
+            validated_data["reminder_sent_at"] = None
+        return super().update(instance, validated_data)
 
 
 class BulkStatusSerializer(serializers.Serializer):
@@ -84,6 +92,12 @@ class StatusChoiceSerializer(serializers.Serializer):
     value = serializers.CharField()
     # Shadows the inherited `Field.label`; the wire name has to stay `label`.
     label = serializers.CharField()  # type: ignore[assignment]
+
+
+class UserJobStatusEventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserJobStatusEvent
+        fields = ("from_status", "to_status", "changed_at")
 
 
 class SourceSerializer(serializers.ModelSerializer):
