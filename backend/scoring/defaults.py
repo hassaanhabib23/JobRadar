@@ -199,6 +199,71 @@ def apply_role_keywords(
     return boosted
 
 
+#: A candidate's own tier, for comparing against a job title's signal.
+SENIORITY_ORDER: dict[str, int] = {"junior": 0, "mid": 1, "senior": 2, "lead": 3}
+
+#: Which DEFAULT_LEVEL_BONUS/PENALTY terms represent which tier on the
+#: candidate's own ladder. Deliberately partial: "specialist" and
+#: "consultant" describe a different job family rather than a seniority
+#: level (see DEVIATIONS.md #11), so they are absent here and therefore
+#: untouched by `apply_seniority` no matter the candidate's tier.
+LEVEL_TERM_TIERS: dict[str, int] = {
+    "junior": 0,
+    "jr": 0,
+    "entry": 0,
+    "fresh": 0,
+    "fresher": 0,
+    "associate": 0,
+    "graduate": 0,
+    "trainee": 0,
+    "apprentice": 0,
+    "intern": 0,
+    "senior": 2,
+    "sr": 2,
+    "expert": 2,
+    "manager": 2,
+    "lead": 3,
+    "principal": 3,
+    "staff": 3,
+    "architect": 3,
+    "head of": 3,
+    "director": 3,
+    "vp": 3,
+    "chief": 3,
+}
+
+
+def apply_seniority(
+    level_bonus: dict[str, float], level_penalty: dict[str, float], seniority: str
+) -> tuple[dict[str, float], dict[str, float]]:
+    """Re-bucket every ladder term relative to the candidate's own tier.
+
+    A term at or below the candidate's tier moves into (or stays in)
+    `level_bonus` at full weight — those titles are squarely within reach. A
+    term above it moves into `level_penalty`, halved for every tier of
+    distance, so a Lead candidate is not penalised at all for "Senior" but a
+    Junior candidate is heavily penalised for "Lead". `seniority="unknown"`
+    (or anything not in `SENIORITY_ORDER`) changes nothing — the tables the
+    defaults already assume a junior searcher (DEVIATIONS.md #5) stay as-is.
+    """
+    candidate_tier = SENIORITY_ORDER.get(seniority)
+    if candidate_tier is None:
+        return dict(level_bonus), dict(level_penalty)
+
+    new_bonus: dict[str, float] = {}
+    new_penalty: dict[str, float] = {}
+    for term, weight in {**level_bonus, **level_penalty}.items():
+        term_tier = LEVEL_TERM_TIERS.get(term)
+        if term_tier is None:
+            (new_bonus if term in level_bonus else new_penalty)[term] = weight
+        elif term_tier <= candidate_tier:
+            new_bonus[term] = 1.0
+        else:
+            new_penalty[term] = 0.5 ** (term_tier - candidate_tier)
+
+    return new_bonus, new_penalty
+
+
 def default_profile(locations: tuple[str, ...] = DEFAULT_LOCATIONS) -> Profile:
     """A working profile for a user who has just chosen their cities."""
     chosen = tuple(locations) or DEFAULT_LOCATIONS
