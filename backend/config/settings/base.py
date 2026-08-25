@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     # Local
     "users",
     "jobs",
+    "notifications",
 ]
 
 MIDDLEWARE = [
@@ -137,6 +138,10 @@ REST_FRAMEWORK = {
         # Credential-stuffing defence on the two endpoints that accept passwords.
         "register": env("THROTTLE_REGISTER", "5/hour"),
         "login": env("THROTTLE_LOGIN", "10/min"),
+        # Unauthenticated and it sends mail to an address the caller chooses.
+        # Without a tight limit it is an email bomb pointed at anyone.
+        "password_reset": env("THROTTLE_PASSWORD_RESET", "5/hour"),
+        "email_verify": env("THROTTLE_EMAIL_VERIFY", "5/hour"),
     },
 }
 
@@ -237,7 +242,52 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(hour="9", minute="0"),
         "kwargs": {"triggered_by": "schedule"},
     },
+    "job-reminders": {
+        "task": "jobs.send_due_reminders",
+        # Hourly: a date-level reminder does not need finer granularity, and
+        # this is 24x more sweeps than the run without being noisy.
+        "schedule": crontab(minute=0),
+    },
 }
+
+# --- Error tracking ----------------------------------------------------------
+# No DSN, no Sentry. Nothing is sent from a laptop or from CI.
+from config.observability import configure as _configure_sentry  # noqa: E402
+
+SENTRY_ENABLED = _configure_sentry(
+    dsn=env("SENTRY_DSN"),
+    environment=env("SENTRY_ENVIRONMENT", "development"),
+    release=env("SENTRY_RELEASE"),
+)
+
+# --- Email -----------------------------------------------------------------
+# Plain SMTP, configured entirely from the environment. Resend, SendGrid,
+# Mailgun, SES and Gmail all speak SMTP, so there is no provider SDK to depend
+# on and no vendor to migrate away from later.
+#
+# For Resend: EMAIL_HOST=smtp.resend.com, EMAIL_PORT=587, EMAIL_HOST_USER=resend,
+# EMAIL_HOST_PASSWORD=<api key>.
+#
+# dev.py prints to the console and test.py collects into `mail.outbox`, so the
+# whole feature is developable and testable with no account anywhere.
+EMAIL_BACKEND = env("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = env("EMAIL_HOST", "")
+EMAIL_PORT = int(env("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
+EMAIL_TIMEOUT = int(env("EMAIL_TIMEOUT", "10"))
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "JobRadar <noreply@localhost>")
+
+#: Absolute base for links in emails. A reset link has to work from an inbox,
+#: so it cannot be relative and cannot be guessed from the request host —
+#: `Host` is attacker-controlled, and trusting it turns a reset mail into a
+#: phishing vector pointing at someone else's server.
+PUBLIC_BASE_URL = env("PUBLIC_BASE_URL", "http://localhost:3000").rstrip("/")
+
+#: One hour, not Django's three-day default. A live password-reset link sitting
+#: valid in an inbox for three days is a much larger window than this needs.
+PASSWORD_RESET_TIMEOUT = int(env("PASSWORD_RESET_TIMEOUT", str(60 * 60)))
 
 LOGGING = {
     "version": 1,

@@ -1,0 +1,10 @@
+Follow-up reminders
+
+You asked to be reminded about these jobs:
+{% for reminder in reminders %}
+- {{ reminder.title }} at {{ reminder.company }}{% if reminder.notes %} — {{ reminder.notes }}{% endif %}
+  {{ reminder.url }}
+{% endfor %}
+
+--
+JobRadar

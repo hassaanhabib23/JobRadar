@@ -1,0 +1,33 @@
+{% extends "notifications/base_email.html" %}
+
+{% block title %}Follow-up reminders{% endblock %}
+
+{% block content %}
+  <h1 style="margin:0 0 12px 0; font-size:22px; font-weight:800; letter-spacing:-0.022em;
+             color:#0b1220;">Follow-up reminders</h1>
+
+  <p style="margin:0 0 20px 0; color:#46536b;">
+    You asked to be reminded about these jobs:
+  </p>
+
+  {% for reminder in reminders %}
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0"
+           style="margin:0 0 16px 0; width:100%;">
+      <tr>
+        <td>
+          <a href="{{ reminder.url }}" style="color:#1f5fd8; font-weight:600; text-decoration:none;">
+            {{ reminder.title }}
+          </a>
+          <div style="color:#63708a; font-size:13px;">{{ reminder.company }}</div>
+          {% if reminder.notes %}
+            <div style="color:#46536b; font-size:13px; margin-top:4px;">{{ reminder.notes }}</div>
+          {% endif %}
+        </td>
+      </tr>
+    </table>
+  {% endfor %}
+{% endblock %}
+
+{% block footer %}
+  You received this because you set a follow-up reminder on a job in JobRadar.
+{% endblock %}

@@ -88,6 +88,47 @@ def catch_up_if_stale() -> dict:
     return {"triggered": True, "last_run_at": last.started_at.isoformat() if last else None}
 
 
+@shared_task(name="jobs.send_due_reminders")
+def send_due_reminders() -> dict:
+    """Every reminder whose date has come, grouped into one email per user.
+
+    Marked sent *before* the email goes out: a slow or failing SMTP call must
+    never leave the row free for the next sweep to pick up again.
+    """
+    from collections import defaultdict
+
+    from jobs.models import UserJob
+    from notifications.tasks import send_job_reminders
+
+    now = timezone.now()
+    due = list(
+        UserJob.objects.filter(remind_at__lte=now, reminder_sent_at__isnull=True, is_open=True)
+        .select_related("job", "user")
+    )
+    if not due:
+        return {"sent_to": 0, "reminders": 0}
+
+    by_user: dict[int, list[UserJob]] = defaultdict(list)
+    for user_job in due:
+        by_user[user_job.user_id].append(user_job)
+
+    UserJob.objects.filter(pk__in=[user_job.pk for user_job in due]).update(reminder_sent_at=now)
+
+    for user_id, rows in by_user.items():
+        payload = [
+            {
+                "title": user_job.job.title,
+                "company": user_job.job.company,
+                "url": user_job.job.url,
+                "notes": user_job.notes,
+            }
+            for user_job in rows
+        ]
+        send_job_reminders.delay(user_id, payload)
+
+    return {"sent_to": len(by_user), "reminders": len(due)}
+
+
 @worker_ready.connect
 def _schedule_catch_up_on_startup(**kwargs: object) -> None:
     """Check for a missed run as soon as a worker comes up."""
