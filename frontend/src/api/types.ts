@@ -183,6 +183,16 @@ export interface StatusEvent {
   changedAt: string
 }
 
+export type Seniority = 'junior' | 'mid' | 'senior' | 'lead' | 'unknown'
+
+export interface ResumeSignals {
+  detectedSkills: Record<string, number>
+  detectedRoleKeywords: string[]
+  detectedSeniority: Seniority
+  uploadedAt: string
+  parsedAt: string | null
+}
+
 export interface ScorePreview {
   score: number | null
   tier: string | null

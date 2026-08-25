@@ -15,12 +15,13 @@ import {
   type UseQueryResult,
 } from '@tanstack/react-query'
 
-import { api } from './client'
+import { ApiError, api } from './client'
 import type {
   ApplicationStatus,
   Job,
   Paginated,
   Profile,
+  ResumeSignals,
   Run,
   RunDetail,
   ScorePreview,
@@ -41,6 +42,7 @@ export const queryKeys = {
   runs: () => ['runs'] as const,
   run: (id: number) => ['run', id] as const,
   sources: () => ['sources'] as const,
+  resume: () => ['resume'] as const,
 }
 
 export function useJobs(search: string): UseQueryResult<Paginated<Job>> {
@@ -209,6 +211,47 @@ export function useUpdateProfile(): UseMutationResult<Profile, Error, Partial<Pr
     onSuccess: (updated) => {
       queryClient.setQueryData(queryKeys.profile(), updated)
       void queryClient.invalidateQueries({ queryKey: ['jobs'] })
+    },
+  })
+}
+
+export function useResume(): UseQueryResult<ResumeSignals | null> {
+  return useQuery({
+    queryKey: queryKeys.resume(),
+    queryFn: async () => {
+      try {
+        return await api.get<ResumeSignals>('/resume/')
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 404) return null
+        throw error
+      }
+    },
+  })
+}
+
+export function useUploadResume(): UseMutationResult<ResumeSignals, Error, File> {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (file) => {
+      const form = new FormData()
+      form.append('file', file)
+      return api.post<ResumeSignals>('/resume/', form)
+    },
+    onSuccess: (signals) => {
+      queryClient.setQueryData(queryKeys.resume(), signals)
+      void queryClient.invalidateQueries({ queryKey: queryKeys.profile() })
+    },
+  })
+}
+
+export function useDeleteResume(): UseMutationResult<void, Error, void> {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: () => api.delete<void>('/resume/'),
+    onSuccess: () => {
+      queryClient.setQueryData(queryKeys.resume(), null)
     },
   })
 }

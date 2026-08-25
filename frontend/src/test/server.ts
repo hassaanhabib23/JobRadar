@@ -35,6 +35,13 @@ export interface MockState {
   lastJobQuery: string
   bulkUpdates: { ids: number[]; status: string }[]
   statusHistory: Record<number, { fromStatus: string; toStatus: string; changedAt: string }[]>
+  resume: {
+    detectedSkills: Record<string, number>
+    detectedRoleKeywords: string[]
+    detectedSeniority: string
+    uploadedAt: string
+    parsedAt: string | null
+  } | null
   jobs: MockJob[]
 }
 
@@ -126,6 +133,7 @@ function createState(): MockState {
     lastJobQuery: '',
     bulkUpdates: [],
     statusHistory: {},
+    resume: null,
     jobs: [
       job(),
       job({
@@ -346,6 +354,30 @@ export const handlers = [
   http.get(`${API}/jobs/:id/status_history/`, ({ request, params }) => {
     if (!authed(request)) return unauthorized()
     return HttpResponse.json(state.statusHistory[Number(params.id)] ?? [])
+  }),
+
+  http.get(`${API}/resume/`, ({ request }) => {
+    if (!authed(request)) return unauthorized()
+    return state.resume ? HttpResponse.json(state.resume) : HttpResponse.json({}, { status: 404 })
+  }),
+
+  http.post(`${API}/resume/`, ({ request }) => {
+    if (!authed(request)) return unauthorized()
+    state.resume = {
+      detectedSkills: { react: 6, typescript: 4 },
+      detectedRoleKeywords: ['react'],
+      detectedSeniority: 'senior',
+      uploadedAt: '2026-08-26T09:00:00Z',
+      parsedAt: '2026-08-26T09:00:00Z',
+    }
+    return HttpResponse.json(state.resume, { status: 201 })
+  }),
+
+  http.delete(`${API}/resume/`, ({ request }) => {
+    if (!authed(request)) return unauthorized()
+    if (!state.resume) return HttpResponse.json({}, { status: 404 })
+    state.resume = null
+    return new HttpResponse(null, { status: 204 })
   }),
 
   http.get(`${API}/runs/`, ({ request }) =>

@@ -130,8 +130,11 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
   const base = await apiBase()
 
   const send = async (): Promise<Response> => {
+    const isFormData = body instanceof FormData
     const headers: Record<string, string> = { Accept: 'application/json' }
-    if (body !== undefined) headers['Content-Type'] = 'application/json'
+    // A FormData body sets its own multipart boundary; declaring
+    // Content-Type by hand here would omit that boundary and break parsing.
+    if (body !== undefined && !isFormData) headers['Content-Type'] = 'application/json'
     if (accessToken && !anonymous) headers.Authorization = `Bearer ${accessToken}`
 
     // Built up rather than declared inline: `exactOptionalPropertyTypes` treats
@@ -142,7 +145,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
       // Sends the httpOnly refresh cookie on the auth routes it is scoped to.
       credentials: 'include',
     }
-    if (body !== undefined) init.body = JSON.stringify(body)
+    if (body !== undefined) init.body = isFormData ? body : JSON.stringify(body)
     if (signal) init.signal = signal
 
     return fetch(`${base}${path}`, init)
