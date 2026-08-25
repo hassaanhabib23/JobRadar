@@ -17,6 +17,7 @@ import { Badge, Panel, PanelHeader, Skeleton, cx } from '../components/ui'
 import { Badges } from '../dashboard/badges'
 import { MAXIMUMS, SEGMENTS, ScoreBar, TIER_TONE } from '../dashboard/ScoreBar'
 import { StatusSelect } from '../dashboard/StatusSelect'
+import { StatusTimeline } from '../dashboard/StatusTimeline'
 
 const HINTS: Record<string, string> = {
   stack: 'Weighted skills found in the title, location and description',
@@ -194,6 +195,8 @@ export default function JobDetail() {
                 </p>
               )}
             </Panel>
+
+            <StatusTimeline jobId={jobId} />
 
             <NotesPanel jobId={jobId} initial={data.notes} />
 
