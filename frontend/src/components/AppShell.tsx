@@ -14,6 +14,7 @@ import { NavLink, useLocation } from 'react-router-dom'
 
 import { useAuth } from '../auth/AuthProvider'
 import { ThemeToggle } from './ThemeToggle'
+import { VerifyBanner } from './VerifyBanner'
 import { Button, cx } from './ui'
 import {
   IconBriefcase,
@@ -139,6 +140,8 @@ export function AppShell({
           </button>
           {topbar}
         </header>
+
+        <VerifyBanner />
 
         <main id="main" className="page-enter px-4 py-5 sm:px-6 sm:py-6">
           {children}

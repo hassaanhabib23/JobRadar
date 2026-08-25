@@ -124,6 +124,38 @@ services:
     depends_on:
       - web
 
+  backup:
+    # A backup script nobody runs is not a backup. `make backup` existed and was
+    # tested; nothing ever invoked it, which meant the real protection on a
+    # live host was "remember to type it".
+    #
+    # The postgres image, because it is the one that already ships `pg_dump` at
+    # a version matching the server. A mismatched client refuses to dump.
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-jobradar}
+      POSTGRES_USER: ${POSTGRES_USER:-jobradar}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-jobradar}
+      POSTGRES_HOST: postgres
+      IN_CONTAINER: "1"
+      BACKUP_KEEP: ${BACKUP_KEEP:-14}
+      BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-86400}
+    volumes:
+      - ./scripts:/scripts:ro
+      - ./backups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # A plain loop rather than cron: one less daemon, and the output lands in
+    # `docker compose logs backup` like everything else. It dumps once on start
+    # so a fresh deploy is protected immediately instead of 24 hours later.
+    command: >
+      sh -c 'while true; do
+               /scripts/backup.sh /backups || echo "backup failed, will retry next cycle" >&2;
+               sleep "$${BACKUP_INTERVAL_SECONDS}";
+             done'
+
 volumes:
   pgdata:
   redisdata:

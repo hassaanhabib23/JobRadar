@@ -1,0 +1,11 @@
+Confirm your email address
+
+Confirm {{ email }} so JobRadar can send you your daily matches:
+
+{{ link }}
+
+You can keep using JobRadar without confirming — the only thing you'll miss is
+the morning digest.
+
+--
+JobRadar

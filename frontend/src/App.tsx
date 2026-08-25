@@ -23,6 +23,9 @@ const JobDetail = lazy(() => import('./routes/JobDetail'))
 const ProfilePage = lazy(() => import('./routes/ProfilePage'))
 const Runs = lazy(() => import('./routes/Runs'))
 const NotFound = lazy(() => import('./routes/NotFound'))
+const ForgotPassword = lazy(() => import('./routes/ForgotPassword'))
+const ResetPassword = lazy(() => import('./routes/ResetPassword'))
+const VerifyEmail = lazy(() => import('./routes/VerifyEmail'))
 
 function RouteFallback() {
   return (
@@ -46,7 +49,14 @@ export default function App() {
         <Route element={<RedirectIfAuthenticated />}>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
         </Route>
+
+        {/* Not behind RedirectIfAuthenticated: a signed-in user clicking the
+            link in their inbox must land here, not be bounced to /app with the
+            token discarded. Works signed out too. */}
+        <Route path="/verify-email" element={<VerifyEmail />} />
 
         {/* Authenticated */}
         <Route element={<RequireAuth />}>

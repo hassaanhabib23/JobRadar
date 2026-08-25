@@ -22,11 +22,15 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from notifications.tasks import send_email_verification, send_password_reset
 from scoring import locations as location_catalogue
-from users.models import Profile
+from users.models import Profile, User
 from users.serializers import (
+    EmailVerifySerializer,
     LocationSerializer,
     PasswordChangeSerializer,
+    PasswordResetConfirmSerializer,
+    PasswordResetRequestSerializer,
     ProfileSerializer,
     RefreshRequestSerializer,
     RegisterSerializer,
@@ -102,6 +106,10 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
+
+        # Queued, not sent inline: a slow or dead SMTP server must not be able
+        # to fail a registration that has already succeeded.
+        send_email_verification.delay(user.pk)
 
         access, refresh = _tokens_for(user)
         response = Response(
@@ -245,6 +253,112 @@ class PasswordChangeView(APIView):
         response = Response(status=status.HTTP_204_NO_CONTENT)
         _clear_refresh_cookie(response)
         return response
+
+
+class PasswordResetRequestView(APIView):
+    """Start a reset. Unauthenticated, by definition.
+
+    **Always answers 204**, whether or not the address belongs to an account.
+    Any difference — a different status, a different body, even a noticeably
+    different response time — turns this into an oracle for "is this person
+    registered?", which is precisely what `LoginView` already refuses to be.
+    """
+
+    authentication_classes: list[Any] = []
+    permission_classes = [AllowAny]
+    throttle_scope = "password_reset"
+
+    @extend_schema(
+        request=PasswordResetRequestSerializer,
+        responses={204: None},
+        operation_id="auth_password_reset",
+    )
+    def post(self, request: Request) -> Response:
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        # A malformed address is a client bug, not an enumeration risk — there
+        # is nothing to leak about a string that cannot be an email at all.
+        serializer.is_valid(raise_exception=True)
+
+        # `iexact`: addresses are stored as entered, and someone typing
+        # "Dev@Example.com" at the reset form means the same account.
+        user = User.objects.filter(email__iexact=serializer.validated_data["email"]).first()
+        if user is not None:
+            send_password_reset.delay(user.pk)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class PasswordResetConfirmView(APIView):
+    """Finish a reset with the emailed link."""
+
+    authentication_classes: list[Any] = []
+    permission_classes = [AllowAny]
+    throttle_scope = "password_reset"
+
+    @extend_schema(
+        request=PasswordResetConfirmSerializer,
+        responses={204: None},
+        operation_id="auth_password_reset_confirm",
+    )
+    def post(self, request: Request) -> Response:
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        # The password just changed, so any session elsewhere is stale.
+        response = Response(status=status.HTTP_204_NO_CONTENT)
+        _clear_refresh_cookie(response)
+        return response
+
+
+class EmailVerifyView(APIView):
+    """Confirm an address from the emailed link.
+
+    Unauthenticated on purpose: people open these links in whichever browser
+    their mail client hands them, which is frequently not the one they are
+    signed in to.
+    """
+
+    authentication_classes: list[Any] = []
+    permission_classes = [AllowAny]
+    throttle_scope = "email_verify"
+
+    @extend_schema(
+        request=EmailVerifySerializer,
+        responses={204: None},
+        operation_id="auth_email_verify",
+    )
+    def post(self, request: Request) -> Response:
+        serializer = EmailVerifySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class EmailVerifyResendView(APIView):
+    """Send another verification link to *your own* address.
+
+    Authenticated, and the address comes from the token rather than the body.
+    Taking it from the body would make this a way to mail arbitrary strangers
+    from your domain.
+    """
+
+    permission_classes = [IsAuthenticated]
+    throttle_scope = "email_verify"
+
+    @extend_schema(
+        request=None,
+        responses={204: None},
+        operation_id="auth_email_verify_resend",
+    )
+    def post(self, request: Request) -> Response:
+        user = _user(request)
+        if user.email_verified_at is None:
+            send_email_verification.delay(user.pk)
+
+        # 204 either way: whether a resend was needed is not worth a different
+        # status, and the client's next move is the same regardless.
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class LocationListView(APIView):

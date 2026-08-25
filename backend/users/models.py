@@ -60,6 +60,14 @@ class User(AbstractUser):
     # /api/auth/me/ to decide whether to show onboarding.
     onboarding_complete = models.BooleanField(default=False)
 
+    #: When this address was confirmed, or null.
+    #:
+    #: A **soft** gate on purpose. An unverified user gets the whole app; the
+    #: only thing they lose is the digest, because mailing an address nobody has
+    #: confirmed is how a sender's reputation gets destroyed. Blocking login
+    #: instead would mean a broken mail server stops all new signups.
+    email_verified_at = models.DateTimeField(null=True, blank=True)
+
     USERNAME_FIELD = "email"
     # Nothing beyond email and password — `createsuperuser` prompts for those only.
     REQUIRED_FIELDS: ClassVar[list[str]] = []
@@ -69,6 +77,10 @@ class User(AbstractUser):
     class Meta:
         verbose_name = _("user")
         verbose_name_plural = _("users")
+
+    @property
+    def email_verified(self) -> bool:
+        return self.email_verified_at is not None
 
     def __str__(self) -> str:
         return self.email

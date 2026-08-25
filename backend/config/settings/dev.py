@@ -13,3 +13,7 @@ REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"] = (
 )
 
 CELERY_TASK_EAGER_PROPAGATES = True
+
+# Every email prints to the worker's stdout. The whole reset and digest flow is
+# developable without an SMTP account anywhere — copy the link out of the log.
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

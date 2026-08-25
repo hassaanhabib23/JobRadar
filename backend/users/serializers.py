@@ -22,9 +22,11 @@ VALID_ROLE_KEYWORDS = set(defaults.ROLE_PRESETS)
 class UserSerializer(serializers.ModelSerializer):
     """The current user. Never exposes another user's row."""
 
+    email_verified = serializers.BooleanField(read_only=True)
+
     class Meta:
         model = User
-        fields = ("id", "email", "onboarding_complete", "date_joined")
+        fields = ("id", "email", "onboarding_complete", "email_verified", "date_joined")
         read_only_fields = fields
 
 
@@ -103,6 +105,74 @@ class PasswordChangeSerializer(serializers.Serializer):
         user = self.context["request"].user
         user.set_password(self.validated_data["new_password"])
         user.save(update_fields=["password"])
+        return user
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    """Just an address. Deliberately says nothing about whether it is known."""
+
+    email = serializers.EmailField()
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    """A link plus the new password.
+
+    Validating the token here rather than in the view keeps the endpoint thin
+    and means a bad `uid`, a bad token and an expired token all surface the same
+    way — a 400 — without the view having to distinguish them. It should not
+    distinguish them: telling a caller *why* a link failed tells them whether
+    the account exists.
+    """
+
+    uid = serializers.CharField()
+    token = serializers.CharField()
+    password = serializers.CharField(write_only=True, style={"input_type": "password"})
+
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
+        from users.tokens import decode_uid, password_reset_token
+
+        user = decode_uid(attrs["uid"])
+        if user is None or not password_reset_token.check_token(user, attrs["token"]):
+            raise serializers.ValidationError(
+                {"token": "This link is invalid or has expired. Request a new one."}
+            )
+
+        # Strength is checked against the resolved user so Django's similarity
+        # validator can compare against their own email.
+        password_validation.validate_password(attrs["password"], user)
+
+        attrs["user"] = user
+        return attrs
+
+    def save(self, **kwargs: Any) -> Any:
+        user = self.validated_data["user"]
+        user.set_password(self.validated_data["password"])
+        user.save(update_fields=["password"])
+        return user
+
+
+class EmailVerifySerializer(serializers.Serializer):
+    uid = serializers.CharField()
+    token = serializers.CharField()
+
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
+        from users.tokens import decode_uid, email_verification_token
+
+        user = decode_uid(attrs["uid"])
+        if user is None or not email_verification_token.check_token(user, attrs["token"]):
+            raise serializers.ValidationError(
+                {"token": "This link is invalid or has already been used."}
+            )
+
+        attrs["user"] = user
+        return attrs
+
+    def save(self, **kwargs: Any) -> Any:
+        from django.utils import timezone
+
+        user = self.validated_data["user"]
+        user.email_verified_at = timezone.now()
+        user.save(update_fields=["email_verified_at"])
         return user
 
 

@@ -17,8 +17,18 @@ PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 # mid-run. The real rates live in base.py and are asserted separately.
 REST_FRAMEWORK = {
     **REST_FRAMEWORK,
-    "DEFAULT_THROTTLE_RATES": {"register": "3/hour", "login": "3/min"},
+    "DEFAULT_THROTTLE_RATES": {
+        "register": "3/hour",
+        "login": "3/min",
+        "password_reset": "3/hour",
+        "email_verify": "3/hour",
+    },
 }
+
+# Collected in `django.core.mail.outbox` instead of sent. No test may touch a
+# real SMTP server, for the same reason none may touch a real job board.
+EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+PUBLIC_BASE_URL = "http://testserver"
 
 # Local memory is right here and wrong in production: the suite is one process,
 # and a shared Redis would leak throttle counters between test runs.

@@ -1,0 +1,55 @@
+{% comment %}
+The shell every HTML email uses.
+
+Tables and inline styles, which look like 2005 because email clients are 2005:
+Outlook renders with Word's engine, Gmail strips <style> blocks in some clients,
+and flexbox is not reliably supported anywhere. A <div> layout with a stylesheet
+would collapse in exactly the clients most people read mail in.
+
+Colours are hard-coded rather than tokenised for the same reason — CSS custom
+properties do not survive an email client.
+{% endcomment %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}JobRadar{% endblock %}</title>
+  </head>
+  <body style="margin:0; padding:0; background:#f6f7f9;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+           style="background:#f6f7f9; padding:24px 12px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                 style="max-width:560px; background:#ffffff; border:1px solid #e3e8ef;
+                        border-radius:16px; overflow:hidden;
+                        font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+            <tr>
+              <td style="height:3px; background:#1f5fd8; line-height:3px; font-size:0;">&nbsp;</td>
+            </tr>
+            <tr>
+              <td style="padding:28px 28px 8px 28px;">
+                <span style="font-size:17px; font-weight:800; color:#0b1220;
+                             letter-spacing:-0.02em;">JobRadar</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 28px 28px 28px; color:#0b1220; font-size:15px; line-height:1.55;">
+                {% block content %}{% endblock %}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:16px 28px; border-top:1px solid #e3e8ef; background:#f7f9fc;
+                         color:#63708a; font-size:12px; line-height:1.5;">
+                {% block footer %}
+                  You're receiving this because you have a JobRadar account.
+                {% endblock %}
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

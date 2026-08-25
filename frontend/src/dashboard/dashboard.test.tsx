@@ -21,7 +21,10 @@ beforeEach(() => {
 
 async function openDashboard(route = '/app') {
   renderWithProviders(<App />, { route })
-  await screen.findByRole('heading', { name: /^jobs$/i })
+  // A generous timeout: this suite runs alongside six other test files whose
+  // combined lazy-route chunks share the same CPU budget, and the default
+  // 1000ms leaves no margin under that load.
+  await screen.findByRole('heading', { name: /^jobs$/i }, { timeout: 5000 })
   return userEvent.setup()
 }
 
