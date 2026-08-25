@@ -327,6 +327,13 @@ class UserJob(models.Model):
     notes = models.TextField(blank=True)
     pinned = models.BooleanField(default=False)
 
+    #: When to email a follow-up nudge. Cleared to null has no special meaning
+    #: beyond "no reminder set" — the run never touches this, same as `status`.
+    remind_at = models.DateTimeField(null=True, blank=True)
+    #: Set once the sweep has emailed this reminder, so it is never sent twice.
+    #: Reset to null whenever `remind_at` is changed to a new value.
+    reminder_sent_at = models.DateTimeField(null=True, blank=True)
+
     first_seen_by_user = models.DateTimeField(default=timezone.now)
     #: True only on the first run this job appeared in *for this user*. A job
     #: that is weeks old globally is still new to someone who just registered.
@@ -358,6 +365,12 @@ class UserJob(models.Model):
             models.Index(fields=["user", "status"], name="userjob_user_status"),
             models.Index(fields=["user", "is_new"], name="userjob_user_is_new"),
             GinIndex(fields=["flags"], name="userjob_flags"),
+            # The sweep's only query: reminders that are due and not yet sent.
+            models.Index(
+                fields=["remind_at"],
+                condition=Q(reminder_sent_at__isnull=True),
+                name="userjob_pending_reminder",
+            ),
         ]
 
     def __str__(self) -> str:
@@ -374,3 +387,28 @@ class UserJob(models.Model):
         return (
             self.status != ApplicationStatus.NOT_STARTED or bool(self.notes.strip()) or self.pinned
         )
+
+
+class UserJobStatusEvent(models.Model):
+    """One recorded transition of a `UserJob.status`.
+
+    Written explicitly by the API layer (see `jobs.services.record_status_change`)
+    whenever a user's action changes status — never by a signal. `QuerySet.update()`
+    (used by bulk status changes) does not fire signals, and the daily run's bulk
+    writes never touch `status` at all, so a signal would either miss bulk changes
+    or need the same special-casing this plan already needs anyway.
+    """
+
+    user_job = models.ForeignKey(UserJob, on_delete=models.CASCADE, related_name="status_history")
+    from_status = models.CharField(max_length=32, choices=ApplicationStatus.choices, blank=True)
+    to_status = models.CharField(max_length=32, choices=ApplicationStatus.choices)
+    changed_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ("-changed_at",)
+        indexes = [
+            models.Index(fields=["user_job", "-changed_at"], name="statusevent_userjob_changed"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.user_job_id}: {self.from_status or '—'} → {self.to_status}"

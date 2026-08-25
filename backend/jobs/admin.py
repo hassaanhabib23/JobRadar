@@ -6,7 +6,7 @@ from django.contrib import admin, messages
 from django.db.models import QuerySet
 from django.http import HttpRequest
 
-from jobs.models import Job, Run, RunSource, Source, UserJob
+from jobs.models import Job, Run, RunSource, Source, UserJob, UserJobStatusEvent
 from sources import SourceError, fetch
 
 
@@ -56,12 +56,20 @@ class JobAdmin(admin.ModelAdmin):
         return False
 
 
+class StatusEventInline(admin.TabularInline):
+    model = UserJobStatusEvent
+    extra = 0
+    can_delete = False
+    readonly_fields = ("from_status", "to_status", "changed_at")
+
+
 @admin.register(UserJob)
 class UserJobAdmin(admin.ModelAdmin):
-    list_display = ("user", "job", "score", "tier", "status", "is_new", "is_open")
+    list_display = ("user", "job", "score", "tier", "status", "remind_at", "is_new", "is_open")
     list_filter = ("tier", "status", "is_new", "is_open")
     search_fields = ("user__email", "job__title", "job__company")
     readonly_fields = ("score", "tier", "detail", "flags", "tracking_days")
+    inlines = (StatusEventInline,)
 
 
 class RunSourceInline(admin.TabularInline):
