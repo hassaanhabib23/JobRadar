@@ -82,7 +82,14 @@ class TestSendJobRemindersTask:
 
         send_job_reminders(
             user.pk,
-            [{"title": "SWE", "company": "Careem", "url": "https://example.com/job/1", "notes": ""}],
+            [
+                {
+                    "title": "SWE",
+                    "company": "Careem",
+                    "url": "https://example.com/job/1",
+                    "notes": "",
+                }
+            ],
         )
 
         assert len(mail.outbox) == 1
@@ -91,5 +98,8 @@ class TestSendJobRemindersTask:
         assert "https://example.com/job/1" in mail.outbox[0].body
 
     def test_does_nothing_for_a_deleted_user(self):
-        assert send_job_reminders(999999, [{"title": "x", "company": "y", "url": "", "notes": ""}]) is False
+        assert (
+            send_job_reminders(999999, [{"title": "x", "company": "y", "url": "", "notes": ""}])
+            is False
+        )
         assert mail.outbox == []

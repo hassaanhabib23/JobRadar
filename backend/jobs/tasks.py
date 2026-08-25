@@ -102,8 +102,9 @@ def send_due_reminders() -> dict:
 
     now = timezone.now()
     due = list(
-        UserJob.objects.filter(remind_at__lte=now, reminder_sent_at__isnull=True, is_open=True)
-        .select_related("job", "user")
+        UserJob.objects.filter(
+            remind_at__lte=now, reminder_sent_at__isnull=True, is_open=True
+        ).select_related("job", "user")
     )
     if not due:
         return {"sent_to": 0, "reminders": 0}

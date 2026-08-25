@@ -76,7 +76,9 @@ def send_job_reminders(self: object, user_id: int, reminders: list[dict]) -> boo
     if user is None or not reminders:
         return False
 
-    subject = "Follow-up reminder" if len(reminders) == 1 else f"{len(reminders)} follow-up reminders"
+    subject = (
+        "Follow-up reminder" if len(reminders) == 1 else f"{len(reminders)} follow-up reminders"
+    )
     return send_email(
         to=user.email, subject=subject, template="job_reminder", context={"reminders": reminders}
     )

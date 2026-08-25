@@ -17,7 +17,9 @@ describe('ReminderPicker', () => {
 
     await user.type(await screen.findByLabelText(/remind me on/i), '2026-09-01')
 
-    await waitFor(() => expect(state.jobs.find((job) => job.id === 1)?.remindAt).toContain('2026-09-01'))
+    await waitFor(() =>
+      expect(state.jobs.find((job) => job.id === 1)?.remindAt).toContain('2026-09-01'),
+    )
   })
 
   it('clears an existing reminder', async () => {

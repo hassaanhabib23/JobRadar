@@ -154,7 +154,9 @@ class JobViewSet(
             .exclude(status=new_status)
             .values_list("pk", "status")
         )
-        updated = UserJob.objects.filter(pk__in=[pk for pk, _ in changing]).update(status=new_status)
+        updated = UserJob.objects.filter(pk__in=[pk for pk, _ in changing]).update(
+            status=new_status
+        )
         UserJobStatusEvent.objects.bulk_create(
             UserJobStatusEvent(user_job_id=pk, from_status=old_status, to_status=new_status)
             for pk, old_status in changing

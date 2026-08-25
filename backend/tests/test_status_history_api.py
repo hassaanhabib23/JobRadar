@@ -16,7 +16,9 @@ def authed_client(api_client: APIClient, user_factory):
 
 
 def _job(key="greenhouse:careem:1", **overrides):
-    return Job.objects.create(key=key, source="greenhouse", company="Careem", title="SWE", **overrides)
+    return Job.objects.create(
+        key=key, source="greenhouse", company="Careem", title="SWE", **overrides
+    )
 
 
 class TestPartialUpdateLogsHistory:
@@ -58,7 +60,9 @@ class TestBulkStatusLogsHistory:
         )
 
         response = client.post(
-            "/api/jobs/bulk_status/", {"ids": [first.pk, second.pk], "status": "applied"}, format="json"
+            "/api/jobs/bulk_status/",
+            {"ids": [first.pk, second.pk], "status": "applied"},
+            format="json",
         )
 
         assert response.status_code == 200
@@ -71,7 +75,9 @@ class TestBulkStatusLogsHistory:
         stranger = user_factory()
         theirs = UserJob.objects.create(user=stranger, job=_job())
 
-        client.post("/api/jobs/bulk_status/", {"ids": [theirs.pk], "status": "applied"}, format="json")
+        client.post(
+            "/api/jobs/bulk_status/", {"ids": [theirs.pk], "status": "applied"}, format="json"
+        )
 
         assert UserJobStatusEvent.objects.filter(user_job=theirs).count() == 0
 
@@ -120,7 +126,9 @@ class TestRemindAt:
             user=user, job=_job(), remind_at=timezone.now(), reminder_sent_at=timezone.now()
         )
 
-        client.patch(f"/api/jobs/{user_job.pk}/", {"remindAt": "2026-09-01T09:00:00Z"}, format="json")
+        client.patch(
+            f"/api/jobs/{user_job.pk}/", {"remindAt": "2026-09-01T09:00:00Z"}, format="json"
+        )
 
         user_job.refresh_from_db()
         assert user_job.reminder_sent_at is None
