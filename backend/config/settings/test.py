@@ -4,6 +4,8 @@ Still Postgres — see the note in base.py. The only concessions are a fast
 password hasher and eager Celery so tasks run inline.
 """
 
+import tempfile
+
 from .base import *
 
 DEBUG = False
@@ -29,6 +31,10 @@ REST_FRAMEWORK = {
 # real SMTP server, for the same reason none may touch a real job board.
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 PUBLIC_BASE_URL = "http://testserver"
+
+# A throwaway directory per test run — uploaded resumes must never land in
+# (or pollute) the real media volume, or worse, a bind-mounted source tree.
+MEDIA_ROOT = tempfile.mkdtemp(prefix="jobradar-test-media-")
 
 # Local memory is right here and wrong in production: the suite is one process,
 # and a shared Redis would leak throttle counters between test runs.

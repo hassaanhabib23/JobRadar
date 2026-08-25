@@ -41,6 +41,8 @@ services:
     # for a reason that makes no sense.
     image: jobradar-backend
     restart: unless-stopped
+    volumes:
+      - media:/app/media
     command: >
       sh -c "python manage.py migrate --noinput &&
              gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --access-logfile -"
@@ -159,3 +161,4 @@ services:
 volumes:
   pgdata:
   redisdata:
+  media:

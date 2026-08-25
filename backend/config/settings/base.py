@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "users",
     "jobs",
     "notifications",
+    "resumes",
 ]
 
 MIDDLEWARE = [
@@ -119,6 +120,12 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Never served at this URL directly — resumes are personal data, reachable
+# only through the authenticated /api/resume/ endpoints. MEDIA_ROOT just
+# needs to exist so FileField has somewhere to write.
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # --- DRF ------------------------------------------------------------------
 REST_FRAMEWORK = {
