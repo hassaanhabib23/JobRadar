@@ -20,7 +20,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from jobs.filters import JobFilter, apply_ordering
-from jobs.models import Run, Source, UserJob
+from jobs.models import Run, Source, UserJob, UserJobStatusEvent
 from jobs.runner import last_successful_run
 from jobs.serializers import (
     BulkStatusSerializer,
@@ -32,7 +32,7 @@ from jobs.serializers import (
     StatsSerializer,
     StatusChoiceSerializer,
 )
-from jobs.services import statuses
+from jobs.services import record_status_change, statuses
 from jobs.tasks import run_now
 
 
@@ -125,10 +125,12 @@ class JobViewSet(
     @extend_schema(request=JobUpdateSerializer, responses={200: JobSerializer})
     def partial_update(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         instance = self.get_object()
+        previous_status = instance.status
         serializer = JobUpdateSerializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         instance.refresh_from_db()
+        record_status_change(instance, from_status=previous_status, to_status=instance.status)
         return Response(JobSerializer(instance).data)
 
     @extend_schema(
@@ -140,12 +142,22 @@ class JobViewSet(
     def bulk_status(self, request: Request) -> Response:
         serializer = BulkStatusSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        new_status = serializer.validated_data["status"]
 
         # Scoped to this user's rows, so a foreign id updates nothing rather than
-        # erroring in a way that confirms it exists.
-        updated = UserJob.objects.filter(
-            user=_user(request), pk__in=serializer.validated_data["ids"]
-        ).update(status=serializer.validated_data["status"])
+        # erroring in a way that confirms it exists. Only rows that actually
+        # change get an event — a row already at the target status is excluded
+        # before the update, not filtered after.
+        changing = list(
+            UserJob.objects.filter(user=_user(request), pk__in=serializer.validated_data["ids"])
+            .exclude(status=new_status)
+            .values_list("pk", "status")
+        )
+        updated = UserJob.objects.filter(pk__in=[pk for pk, _ in changing]).update(status=new_status)
+        UserJobStatusEvent.objects.bulk_create(
+            UserJobStatusEvent(user_job_id=pk, from_status=old_status, to_status=new_status)
+            for pk, old_status in changing
+        )
 
         return Response({"updated": updated})
 

@@ -18,7 +18,7 @@ from datetime import date
 from django.db import transaction
 from django.utils import timezone
 
-from jobs.models import ApplicationStatus, Job, UserJob
+from jobs.models import ApplicationStatus, Job, UserJob, UserJobStatusEvent
 from scoring.domain import RawPosting
 from scoring.scorer import evaluate_job
 from users.models import Profile
@@ -209,3 +209,14 @@ def _to_posting(job: Job) -> RawPosting:
 def statuses() -> list[dict[str, str]]:
     """Status choices with human labels, so the frontend never hardcodes them."""
     return [{"value": value, "label": label} for value, label in ApplicationStatus.choices]
+
+
+def record_status_change(
+    user_job: UserJob, *, from_status: str, to_status: str
+) -> UserJobStatusEvent | None:
+    """Log one transition. A no-op write (`from_status == to_status`) logs nothing."""
+    if from_status == to_status:
+        return None
+    return UserJobStatusEvent.objects.create(
+        user_job=user_job, from_status=from_status, to_status=to_status
+    )
