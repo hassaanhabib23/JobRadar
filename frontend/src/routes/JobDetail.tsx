@@ -15,6 +15,7 @@ import { AppShell, Column } from '../components/AppShell'
 import { IconArrowLeft, IconCheck, IconExternal } from '../components/icons'
 import { Badge, Panel, PanelHeader, Skeleton, cx } from '../components/ui'
 import { Badges } from '../dashboard/badges'
+import { ReminderPicker } from '../dashboard/ReminderPicker'
 import { MAXIMUMS, SEGMENTS, ScoreBar, TIER_TONE } from '../dashboard/ScoreBar'
 import { StatusSelect } from '../dashboard/StatusSelect'
 import { StatusTimeline } from '../dashboard/StatusTimeline'
@@ -197,6 +198,8 @@ export default function JobDetail() {
             </Panel>
 
             <StatusTimeline jobId={jobId} />
+
+            <ReminderPicker jobId={jobId} value={data.remindAt} />
 
             <NotesPanel jobId={jobId} initial={data.notes} />
 
