@@ -53,7 +53,9 @@ class TestExtractText:
 
 class TestExtractSignals:
     def test_detects_skills_with_weights(self):
-        signals = extract_signals("Senior React Developer with React, TypeScript and Docker experience")
+        signals = extract_signals(
+            "Senior React Developer with React, TypeScript and Docker experience"
+        )
         assert signals.skills["react"] > 0
         assert signals.skills["typescript"] > 0
         assert signals.skills["docker"] > 0

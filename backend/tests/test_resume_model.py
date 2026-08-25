@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import IntegrityError
 
 from resumes.models import Resume, SeniorityTier
 
@@ -16,7 +17,7 @@ def test_one_resume_per_user(user_factory):
         original_filename="cv.pdf",
         content_type="application/pdf",
     )
-    with pytest.raises(Exception):
+    with pytest.raises(IntegrityError):
         Resume.objects.create(
             user=user,
             file=SimpleUploadedFile("cv2.pdf", b"%PDF-1.4 fake", content_type="application/pdf"),

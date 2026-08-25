@@ -5,6 +5,7 @@ password hasher and eager Celery so tasks run inline.
 """
 
 import tempfile
+from pathlib import Path
 
 from .base import *
 
@@ -34,7 +35,7 @@ PUBLIC_BASE_URL = "http://testserver"
 
 # A throwaway directory per test run — uploaded resumes must never land in
 # (or pollute) the real media volume, or worse, a bind-mounted source tree.
-MEDIA_ROOT = tempfile.mkdtemp(prefix="jobradar-test-media-")
+MEDIA_ROOT = Path(tempfile.mkdtemp(prefix="jobradar-test-media-"))
 
 # Local memory is right here and wrong in production: the suite is one process,
 # and a shared Redis would leak throttle counters between test runs.

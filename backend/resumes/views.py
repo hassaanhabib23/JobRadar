@@ -107,7 +107,5 @@ def _apply_to_profile(user: Any, signals: ResumeSignals) -> None:
     profile.level_bonus, profile.level_penalty = defaults.apply_seniority(
         profile.level_bonus, profile.level_penalty, signals.seniority
     )
-    profile.role_keywords = list(
-        dict.fromkeys([*profile.role_keywords, *signals.role_keywords])
-    )
+    profile.role_keywords = list(dict.fromkeys([*profile.role_keywords, *signals.role_keywords]))
     profile.save(update_fields=["skills", "level_bonus", "level_penalty", "role_keywords"])

@@ -61,7 +61,9 @@ class TestUpload:
         first_id = Resume.objects.get(user=user).pk
 
         client.post(
-            "/api/resume/", {"file": _docx_upload("cv2.docx", ["Python Django"])}, format="multipart"
+            "/api/resume/",
+            {"file": _docx_upload("cv2.docx", ["Python Django"])},
+            format="multipart",
         )
 
         assert Resume.objects.filter(user=user).count() == 1
@@ -102,7 +104,9 @@ class TestUpload:
 
     def test_requires_authentication(self, api_client: APIClient):
         upload = _docx_upload("cv.docx", ["React"])
-        assert api_client.post("/api/resume/", {"file": upload}, format="multipart").status_code == 401
+        assert (
+            api_client.post("/api/resume/", {"file": upload}, format="multipart").status_code == 401
+        )
 
 
 class TestReadAndDelete:

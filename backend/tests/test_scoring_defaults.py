@@ -26,13 +26,13 @@ class TestApplySeniority:
         assert penalty["lead"] < penalty["senior"]
 
     def test_terms_outside_the_ladder_are_left_exactly_where_they_were(self):
-        bonus, penalty = apply_seniority(DEFAULT_LEVEL_BONUS, DEFAULT_LEVEL_PENALTY, "senior")
+        _bonus, penalty = apply_seniority(DEFAULT_LEVEL_BONUS, DEFAULT_LEVEL_PENALTY, "senior")
         # "specialist"/"consultant" describe a different job family, not a
         # seniority tier — apply_seniority must not touch them.
         assert penalty["specialist"] == DEFAULT_LEVEL_PENALTY["specialist"]
         assert penalty["consultant"] == DEFAULT_LEVEL_PENALTY["consultant"]
 
     def test_returns_new_dicts_not_the_originals(self):
-        bonus, penalty = apply_seniority(DEFAULT_LEVEL_BONUS, DEFAULT_LEVEL_PENALTY, "senior")
+        bonus, _penalty = apply_seniority(DEFAULT_LEVEL_BONUS, DEFAULT_LEVEL_PENALTY, "senior")
         bonus["junior"] = -1
         assert DEFAULT_LEVEL_BONUS["junior"] == 1.0

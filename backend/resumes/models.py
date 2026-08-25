@@ -11,7 +11,7 @@ from django.conf import settings
 from django.db import models
 
 
-def resume_upload_path(instance: "Resume", filename: str) -> str:
+def resume_upload_path(instance: Resume, filename: str) -> str:
     """Keyed by user id, not a public/incrementing resume id — a leaked media
     path alone must not let anyone enumerate other users' CVs."""
     return f"resumes/{instance.user_id}/{filename}"
