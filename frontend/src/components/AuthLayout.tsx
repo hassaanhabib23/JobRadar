@@ -35,14 +35,6 @@ const REASSURANCE = [
   },
 ]
 
-// The reassurance list and footer sit in a vertically centred block whose
-// exact height varies with viewport, so both chips stay in the safe band
-// near the very top rather than risking a collision with that text.
-const BRAND_CHIPS = [
-  { score: 92, role: 'Python Developer', location: 'Remote', style: { top: '5%', left: '6%' } },
-  { score: 87, role: 'Backend Engineer', location: 'London', style: { top: '5%', right: '6%' } },
-]
-
 export function AuthLayout({
   title,
   subtitle,
@@ -61,7 +53,7 @@ export function AuthLayout({
     <div className="relative min-h-screen bg-bg lg:grid lg:grid-cols-[minmax(0,45%)_1fr]">
       {/* --- Brand side -------------------------------------------------- */}
       <aside className="relative hidden flex-col justify-center overflow-hidden bg-bg-deep px-8 lg:flex">
-        <RadarDecoration chips={BRAND_CHIPS} />
+        <RadarDecoration chips={[]} />
 
         <div className="relative max-w-md">
           <p className="text-xl font-extrabold leading-snug tracking-tight">

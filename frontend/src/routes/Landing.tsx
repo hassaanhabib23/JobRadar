@@ -135,17 +135,6 @@ const SEGMENTS = [
   { label: 'Freshness', value: 15, max: 15, colour: 'bg-seg-fresh', text: 'text-seg-fresh' },
 ]
 
-const HERO_CHIPS = [
-  { score: 92, role: 'Python Developer', location: 'Remote', style: { top: '8%', left: '4%' } },
-  { score: 87, role: 'Backend Engineer', location: 'Islamabad', style: { top: '58%', left: '2%' } },
-  {
-    score: 81,
-    role: '.NET Developer',
-    location: 'Lahore',
-    style: { top: '32%', left: '78%' },
-  },
-]
-
 export default function Landing() {
   const { status } = useAuth()
   const signedIn = status === 'authenticated'
@@ -195,7 +184,7 @@ export default function Landing() {
       <main id="main">
         {/* --- Hero -------------------------------------------------------- */}
         <section className="mesh relative overflow-hidden border-b border-hairline bg-bg">
-          <RadarDecoration chips={HERO_CHIPS} className="hidden lg:block" />
+          <RadarDecoration chips={[]} className="hidden lg:block" />
 
           <div className="relative mx-auto grid max-w-6xl gap-8 px-5 py-10 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:py-24">
             <Reveal>
