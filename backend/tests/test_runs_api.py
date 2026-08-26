@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from unittest import mock
 
 import pytest
 import responses
@@ -101,6 +102,38 @@ class TestRunList:
     def test_runs_require_authentication(self, api_client: APIClient) -> None:
         assert api_client.get("/api/runs/").status_code == 401
         assert api_client.post("/api/runs/", {}, format="json").status_code == 401
+
+
+class TestRunTrigger:
+    """`hoursOld` — how far back the scraped sources should look."""
+
+    def test_hours_old_reaches_the_task(self, client: APIClient) -> None:
+        with mock.patch("jobs.views.run_now.delay") as delayed:
+            response = client.post("/api/runs/", {"hoursOld": 168}, format="json")
+
+        assert response.status_code == 202
+        assert delayed.call_args.kwargs["hours_old"] == 168
+
+    def test_omitting_it_passes_none(self, client: APIClient) -> None:
+        """No override — the scrape uses whatever each source is normally
+        configured for, exactly like before this existed."""
+        with mock.patch("jobs.views.run_now.delay") as delayed:
+            response = client.post("/api/runs/", {}, format="json")
+
+        assert response.status_code == 202
+        assert delayed.call_args.kwargs["hours_old"] is None
+
+    def test_zero_is_rejected(self, client: APIClient) -> None:
+        """0 means everything since the epoch, not "no limit" — that spelling
+        belongs to omitting the field entirely."""
+        response = client.post("/api/runs/", {"hoursOld": 0}, format="json")
+
+        assert response.status_code == 400
+
+    def test_a_negative_value_is_rejected(self, client: APIClient) -> None:
+        response = client.post("/api/runs/", {"hoursOld": -5}, format="json")
+
+        assert response.status_code == 400
 
 
 class TestStats:

@@ -17,7 +17,13 @@ from django.core.cache import cache
 from django.utils import timezone
 
 from jobs.models import ApplicationStatus, Job, Run, RunSource, RunStatus, Source, UserJob
-from jobs.runner import close_missing_jobs, enabled_sources, execute_run, last_successful_run
+from jobs.runner import (
+    close_missing_jobs,
+    enabled_sources,
+    execute_run,
+    expand_location_sources,
+    last_successful_run,
+)
 from jobs.tasks import RUN_LOCK_KEY, catch_up_if_stale, run_now
 from sources.greenhouse import BOARD_URL
 
@@ -112,6 +118,50 @@ class TestFetchOnce:
         careem.save()
 
         assert enabled_sources() == []
+
+
+class TestExpandLocationSources:
+    """`hours_old` narrows only the scraped sources' recency window."""
+
+    @pytest.fixture
+    def jobspy_source(self) -> Source:
+        return Source.objects.create(kind="jobspy", slug="scrape", config={"query": "engineer"})
+
+    def test_overrides_hours_old_on_every_jobspy_clone(self, jobspy_source, isb_user) -> None:
+        expanded = expand_location_sources(enabled_sources(), hours_old=24)
+
+        clones = [source for source in expanded if source.kind == "jobspy"]
+        assert clones, "isb_user's cities should have produced at least one clone"
+        assert all(clone.config["hours_old"] == 24 for clone in clones)
+
+    def test_without_an_override_the_sources_own_config_is_untouched(
+        self, jobspy_source, isb_user
+    ) -> None:
+        expanded = expand_location_sources(enabled_sources())
+
+        clones = [source for source in expanded if source.kind == "jobspy"]
+        assert clones
+        assert all("hours_old" not in clone.config for clone in clones)
+        # The original row itself was never written to.
+        jobspy_source.refresh_from_db()
+        assert "hours_old" not in jobspy_source.config
+
+    def test_the_override_does_not_leak_into_the_stored_source(
+        self, jobspy_source, isb_user
+    ) -> None:
+        expand_location_sources(enabled_sources(), hours_old=72)
+
+        jobspy_source.refresh_from_db()
+        assert "hours_old" not in jobspy_source.config
+
+    def test_ats_sources_are_never_touched(self, careem, isb_user) -> None:
+        """The one kind of source with no date filter to narrow, and the one
+        whose absence *does* trigger closed-detection — an override reaching
+        it here would be a config it silently ignores at best."""
+        expanded = expand_location_sources(enabled_sources(), hours_old=24)
+
+        (greenhouse,) = [source for source in expanded if source.kind == "greenhouse"]
+        assert "hours_old" not in (greenhouse.config or {})
 
 
 class TestPartialFailure:

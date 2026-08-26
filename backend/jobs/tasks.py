@@ -39,11 +39,15 @@ def _lock():
 
 
 @shared_task(bind=True, name="jobs.run_now")
-def run_now(self, triggered_by: str = "schedule") -> dict:
+def run_now(self, triggered_by: str = "schedule", hours_old: int | None = None) -> dict:
     """Execute one run, unless one is already in flight.
 
     Two overlapping triggers must result in one run, not two — a manual trigger
     landing during the scheduled run would otherwise double every fetch.
+
+    `hours_old` narrows the scraped sources' recency window for this run only
+    — see `jobs.runner.expand_location_sources` for why only that kind of
+    source is safe to narrow.
     """
     from jobs.runner import execute_run
 
@@ -55,7 +59,7 @@ def run_now(self, triggered_by: str = "schedule") -> dict:
         return {"skipped": True, "reason": "a run is already in progress"}
 
     try:
-        run = execute_run(triggered_by=triggered_by)
+        run = execute_run(triggered_by=triggered_by, hours_old=hours_old)
     finally:
         cache.delete(RUN_LOCK_KEY)
 

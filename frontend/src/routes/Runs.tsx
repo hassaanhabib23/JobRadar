@@ -47,7 +47,7 @@ export default function Runs() {
           <h1 className="text-md font-extrabold tracking-tight">Runs</h1>
           <Button
             size="sm"
-            onClick={() => triggerRun.mutate()}
+            onClick={() => triggerRun.mutate(undefined)}
             disabled={triggerRun.isPending || running}
           >
             <IconRadar size={14} />
@@ -81,7 +81,7 @@ export default function Runs() {
             title="No runs yet"
             description="The scheduled run happens each morning. You can start one now to fill your dashboard — it usually takes under a minute."
             action={
-              <Button onClick={() => triggerRun.mutate()} disabled={triggerRun.isPending}>
+              <Button onClick={() => triggerRun.mutate(undefined)} disabled={triggerRun.isPending}>
                 {triggerRun.isPending ? 'Starting…' : 'Run now'}
               </Button>
             }

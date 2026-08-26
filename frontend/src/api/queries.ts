@@ -181,12 +181,13 @@ export function useBulkStatus(): UseMutationResult<
 export function useTriggerRun(): UseMutationResult<
   { taskId: string; runId?: number },
   Error,
-  void
+  number | undefined
 > {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: () => api.post<{ taskId: string; runId?: number }>('/runs/', {}),
+    mutationFn: (hoursOld?: number) =>
+      api.post<{ taskId: string; runId?: number }>('/runs/', { hoursOld }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.runs() })
     },

@@ -192,6 +192,18 @@ class RunSerializer(serializers.ModelSerializer):
         )
 
 
+class RunTriggerSerializer(serializers.Serializer):
+    """How far back the scraped sources (LinkedIn/Indeed/Bayt/Google) should
+    look this run. Company ATS boards ignore this — their feeds have no
+    server-side date filter to narrow, and they are the fast part of a run
+    anyway. Omitted entirely, the scrape uses whatever each source is
+    normally configured for."""
+
+    hours_old = serializers.IntegerField(
+        required=False, allow_null=True, min_value=1, max_value=8760
+    )
+
+
 class RunDetailSerializer(RunSerializer):
     """Per-source results, so a partial failure is impossible to miss."""
 

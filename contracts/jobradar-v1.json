@@ -1226,6 +1226,15 @@
                 "tags": [
                     "runs"
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/RunTrigger"
+                            }
+                        }
+                    }
+                },
                 "security": [
                     {
                         "jwtAuth": []
@@ -2487,6 +2496,18 @@
                 ],
                 "type": "string",
                 "description": "* `running` - Running\n* `success` - Success\n* `partial` - Partial — some sources failed\n* `failed` - Failed"
+            },
+            "RunTrigger": {
+                "type": "object",
+                "description": "How far back the scraped sources (LinkedIn/Indeed/Bayt/Google) should\nlook this run. Company ATS boards ignore this — their feeds have no\nserver-side date filter to narrow, and they are the fast part of a run\nanyway. Omitted entirely, the scrape uses whatever each source is\nnormally configured for.",
+                "properties": {
+                    "hoursOld": {
+                        "type": "integer",
+                        "maximum": 8760,
+                        "minimum": 1,
+                        "nullable": true
+                    }
+                }
             },
             "ScorePreviewRequest": {
                 "type": "object",

@@ -21,6 +21,16 @@ import { JobTable } from '../dashboard/JobTable'
 import { LastRunIndicator, StatTiles, StatTilesSkeleton } from '../dashboard/StatTiles'
 import { useJobFilters } from '../dashboard/useJobFilters'
 
+/** Presets for how far back the scraped sources (LinkedIn/Indeed/Bayt/Google)
+ * should look. ATS boards ignore this — see `RunTriggerSerializer`. */
+const RUN_WINDOW_PRESETS: { label: string; hoursOld: number | undefined }[] = [
+  { label: 'No limit', hoursOld: undefined },
+  { label: 'Today', hoursOld: 24 },
+  { label: 'Last 3 days', hoursOld: 72 },
+  { label: 'Last week', hoursOld: 168 },
+  { label: 'Last month', hoursOld: 720 },
+]
+
 export default function Dashboard() {
   const { filters, setFilters, reset, queryString, activeCount } = useJobFilters()
 
@@ -31,6 +41,8 @@ export default function Dashboard() {
   const bulkStatus = useBulkStatus()
 
   const [selected, setSelected] = useState<Set<number>>(new Set())
+  const [runWindow, setRunWindow] = useState(0)
+  const runWindowHoursOld = (RUN_WINDOW_PRESETS[runWindow] ?? RUN_WINDOW_PRESETS[0]!).hoursOld
 
   const rows = jobs.data?.results ?? []
   const totalPages = useMemo(
@@ -57,15 +69,32 @@ export default function Dashboard() {
             <h1 className="text-md font-extrabold tracking-tight">Jobs</h1>
             <LastRunIndicator lastRunAt={stats.data?.lastRunAt} />
           </div>
-          <Button
-            size="sm"
-            className="shrink-0"
-            onClick={() => triggerRun.mutate()}
-            disabled={triggerRun.isPending}
-          >
-            <IconRadar size={14} />
-            {triggerRun.isPending ? 'Starting…' : 'Run now'}
-          </Button>
+          <div className="flex shrink-0 items-center gap-2">
+            <label htmlFor="run-window" className="sr-only">
+              How far back to fetch
+            </label>
+            <select
+              id="run-window"
+              value={runWindow}
+              disabled={triggerRun.isPending}
+              onChange={(event) => setRunWindow(Number(event.target.value))}
+              className="h-8 rounded-sm border border-hairline-strong bg-surface px-2 text-sm font-medium shadow-e0 focus:shadow-ring focus:outline-none"
+            >
+              {RUN_WINDOW_PRESETS.map((preset, index) => (
+                <option key={preset.label} value={index}>
+                  {preset.label}
+                </option>
+              ))}
+            </select>
+            <Button
+              size="sm"
+              onClick={() => triggerRun.mutate(runWindowHoursOld)}
+              disabled={triggerRun.isPending}
+            >
+              <IconRadar size={14} />
+              {triggerRun.isPending ? 'Starting…' : 'Run now'}
+            </Button>
+          </div>
         </div>
       }
     >
@@ -117,7 +146,7 @@ export default function Dashboard() {
             hasFilters={activeCount > 0}
             neverRun={!stats.data?.lastRunAt}
             onClear={reset}
-            onRun={() => triggerRun.mutate()}
+            onRun={() => triggerRun.mutate(runWindowHoursOld)}
             running={triggerRun.isPending}
           />
         )}

@@ -58,7 +58,7 @@ class FetchOutcome:
         return not self.error
 
 
-def expand_location_sources(sources: list[Source]) -> list[Source]:
+def expand_location_sources(sources: list[Source], *, hours_old: int | None = None) -> list[Source]:
     """Turn each jobspy source into one source per city users actually want.
 
     ATS feeds are company-based: one fetch serves every user, and each user's
@@ -68,6 +68,14 @@ def expand_location_sources(sources: list[Source]) -> list[Source]:
 
     Ten users wanting Islamabad produce one Islamabad scrape; a new user in
     Lahore adds exactly one more; a city nobody selected is never scraped.
+
+    `hours_old`, when given, overrides every jobspy clone's recency window for
+    this run only — the underlying `Source` row is never written to. Only
+    jobspy honours it: it is the one kind whose absence from a run's results
+    never triggers closed-detection (`ADDITIVE_KINDS`), so narrowing its
+    window cannot wrongly mark someone else's still-open ATS listing as
+    closed. Company boards have no such filter to narrow anyway — their feeds
+    return the full current listing regardless.
     """
     from sources.jobspy_adapter import scrape_locations_for_users
     from users.models import Profile
@@ -92,6 +100,13 @@ def expand_location_sources(sources: list[Source]) -> list[Source]:
                 continue
             seen.add(key)
 
+            # A copy, not the same dict the original Source row holds — the
+            # override below must not leak back into other clones or into
+            # what gets read next run.
+            config = dict(source.config or {})
+            if hours_old is not None:
+                config["hours_old"] = hours_old
+
             # An unsaved clone: it exists only for this run's fetch loop.
             clone = Source(
                 id=source.id,
@@ -100,7 +115,7 @@ def expand_location_sources(sources: list[Source]) -> list[Source]:
                 company=source.company,
                 label=f"{source.label or 'jobspy'} — {city}",
                 location_hint=city,
-                config=source.config,
+                config=config,
                 enabled=True,
                 owner_id=source.owner_id,
             )
@@ -233,17 +248,26 @@ def _record_source_results(run: Run, outcomes: list[FetchOutcome]) -> None:
         )
 
 
-def execute_run(*, triggered_by: str = "schedule", today: date | None = None) -> Run:
+def execute_run(
+    *,
+    triggered_by: str = "schedule",
+    today: date | None = None,
+    hours_old: int | None = None,
+) -> Run:
     """Perform one complete run and return its record.
 
     Synchronous and Celery-free so it can be tested directly and called from a
     management command. `run_now` is the task that wraps it.
+
+    `hours_old` narrows the scraped sources' recency window for this run only
+    — see `expand_location_sources` for why that is the one kind of source
+    safe to narrow.
     """
     run = Run.objects.create(triggered_by=triggered_by, status=RunStatus.RUNNING)
     today = today or timezone.localdate()
 
     try:
-        sources = expand_location_sources(enabled_sources())
+        sources = expand_location_sources(enabled_sources(), hours_old=hours_old)
         run.sources_total = len(sources)
 
         # --- Phase 1: fetch and store globally, once per feed ---------------

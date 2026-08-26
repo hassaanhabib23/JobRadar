@@ -140,7 +140,7 @@ export default function ProfilePage() {
                     <Button
                       variant="secondary"
                       size="sm"
-                      onClick={() => triggerRun.mutate()}
+                      onClick={() => triggerRun.mutate(undefined)}
                       disabled={triggerRun.isPending}
                     >
                       <IconRadar size={14} />

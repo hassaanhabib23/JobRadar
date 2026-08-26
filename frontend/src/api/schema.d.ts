@@ -925,6 +925,16 @@ export interface components {
      * @enum {string}
      */
     RunStatusEnum: 'running' | 'success' | 'partial' | 'failed'
+    /**
+     * @description How far back the scraped sources (LinkedIn/Indeed/Bayt/Google) should
+     *     look this run. Company ATS boards ignore this — their feeds have no
+     *     server-side date filter to narrow, and they are the fast part of a run
+     *     anyway. Omitted entirely, the scrape uses whatever each source is
+     *     normally configured for.
+     */
+    RunTrigger: {
+      hoursOld?: number | null
+    }
     /** @description A hypothetical posting, for tuning weights interactively. */
     ScorePreviewRequest: {
       /** @default  */
@@ -1746,7 +1756,11 @@ export interface operations {
       path?: never
       cookie?: never
     }
-    requestBody?: never
+    requestBody?: {
+      content: {
+        'application/json': components['schemas']['RunTrigger']
+      }
+    }
     responses: {
       202: {
         headers: {

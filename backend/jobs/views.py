@@ -28,6 +28,7 @@ from jobs.serializers import (
     JobUpdateSerializer,
     RunDetailSerializer,
     RunSerializer,
+    RunTriggerSerializer,
     SourceSerializer,
     StatsSerializer,
     StatusChoiceSerializer,
@@ -248,12 +249,16 @@ class RunViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Gene
         return queryset
 
     @extend_schema(
-        request=None,
+        request=RunTriggerSerializer,
         responses={202: dict},
         description="Trigger a run. Returns 202 immediately; poll GET /api/runs/ for progress.",
     )
     def create(self, request: Request) -> Response:
-        result = run_now.delay(triggered_by=f"manual:{_user(request).pk}")
+        trigger = RunTriggerSerializer(data=request.data)
+        trigger.is_valid(raise_exception=True)
+        hours_old = trigger.validated_data.get("hours_old")
+
+        result = run_now.delay(triggered_by=f"manual:{_user(request).pk}", hours_old=hours_old)
 
         # With CELERY_TASK_ALWAYS_EAGER (tests, and dev without a worker) the
         # task has already finished by the time delay() returns.
