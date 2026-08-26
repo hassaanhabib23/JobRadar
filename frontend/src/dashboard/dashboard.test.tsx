@@ -6,7 +6,7 @@
  * about its direction.
  */
 
-import { screen, waitFor, within } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { beforeEach, describe, expect, it } from 'vitest'
@@ -143,31 +143,54 @@ describe('sorting', () => {
     await openDashboard()
     await screen.findByText('Associate Software Engineer')
 
-    const postedHeader = screen.getByRole('columnheader', { name: /posted/i })
-    expect(postedHeader).toHaveAttribute('aria-sort', 'descending')
+    expect(screen.getByLabelText(/sort by/i)).toHaveValue('-posted_at')
     await waitFor(() => expect(state.lastJobQuery).toContain('ordering=-posted_at'))
   })
 
-  it('reports its direction to screen readers', async () => {
+  it('sorts by score on the server', async () => {
     const user = await openDashboard()
     await screen.findByText('Associate Software Engineer')
 
-    const scoreHeader = screen.getByRole('columnheader', { name: /score/i })
-    // Not the active column yet.
-    expect(scoreHeader).toHaveAttribute('aria-sort', 'none')
+    await user.selectOptions(screen.getByLabelText(/sort by/i), '-score')
 
-    await user.click(within(scoreHeader).getByRole('button'))
-    await waitFor(() => expect(scoreHeader).toHaveAttribute('aria-sort', 'descending'))
+    await waitFor(() => expect(state.lastJobQuery).toContain('ordering=-score'))
   })
 
-  it('sorts on the server', async () => {
+  it('sorts by company on the server', async () => {
     const user = await openDashboard()
     await screen.findByText('Associate Software Engineer')
 
-    const header = screen.getByRole('columnheader', { name: /company/i })
-    await user.click(within(header).getByRole('button'))
+    await user.selectOptions(screen.getByLabelText(/sort by/i), 'company')
 
     await waitFor(() => expect(state.lastJobQuery).toContain('ordering=company'))
+  })
+})
+
+describe('the inline detail panel', () => {
+  it('opens on a card click without navigating away from the list', async () => {
+    const user = await openDashboard()
+    await screen.findByText('Associate Software Engineer')
+
+    expect(screen.getByText('Select a job')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('link', { name: 'Associate Software Engineer' }))
+
+    // The full breakdown appears on the right...
+    expect(await screen.findByText('Why it scored this')).toBeInTheDocument()
+    // ...and the list — including the *other* job — is still right there: a
+    // click opened a panel, it did not navigate to a different page.
+    expect(screen.getByRole('heading', { name: /^jobs$/i })).toBeInTheDocument()
+    expect(screen.getByText('Junior React Developer')).toBeInTheDocument()
+  })
+
+  it('closes back to the empty prompt', async () => {
+    const user = await openDashboard()
+    await user.click(await screen.findByRole('link', { name: 'Associate Software Engineer' }))
+    await screen.findByText('Why it scored this')
+
+    await user.click(screen.getByRole('button', { name: 'Close' }))
+
+    expect(await screen.findByText('Select a job')).toBeInTheDocument()
   })
 })
 

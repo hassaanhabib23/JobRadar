@@ -11,11 +11,12 @@ import { resetState, server } from './server'
 // exercise something the mock does not describe, which is exactly the silent
 // gap MSW exists to close.
 // jsdom implements no matchMedia at all. Without this the dashboard would
-// always take the narrow branch, and the table would never be under test.
+// always take the narrow branch, and the 3-column portal (and its inline
+// detail panel) would never be under test.
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: (query: string) => ({
-    matches: query.includes('min-width: 1024px'),
+    matches: query.includes('min-width: 1280px'),
     media: query,
     onchange: null,
     addEventListener: () => {},
