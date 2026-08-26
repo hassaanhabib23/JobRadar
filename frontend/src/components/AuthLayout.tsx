@@ -1,7 +1,7 @@
 /**
  * The shell for login, register and onboarding.
  *
- * A charcoal brand panel on the left (~45%), the clean authentication
+ * An indigo brand panel on the left (~45%), the clean authentication
  * experience on the right (~55%) — reversed from the old form-left layout, to
  * match the same "dark chrome, off-white content" identity as the rest of the
  * marketing site. Below a laptop the brand panel drops away entirely rather

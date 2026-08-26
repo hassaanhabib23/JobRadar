@@ -116,7 +116,7 @@ const TEXT_PAIRS: [string, string, number, string][] = [
 ]
 
 /**
- * Brand chrome: fixed-charcoal surfaces that ignore the light/dark toggle
+ * Brand chrome: fixed-indigo surfaces that ignore the light/dark toggle
  * (marketing header, hero/CTA, login's left panel, app shell chrome). These
  * tokens are declared once, not per theme (see `NON_THEMED`), so they're
  * checked once rather than inside the per-theme loop below.
@@ -126,7 +126,7 @@ const BRAND_TEXT_PAIRS: [string, string, number, string][] = [
   ['--brand-fg', '--brand-surface', 4.5, 'body text on a brand-chrome card'],
   ['--brand-fg-muted', '--brand-bg', 4.5, 'secondary text on brand chrome'],
   ['--brand-fg-subtle', '--brand-bg', 4.5, 'tertiary text on brand chrome'],
-  ['--brand-accent', '--brand-bg', 4.5, 'an amber accent on brand chrome'],
+  ['--brand-accent', '--brand-bg', 4.5, 'a cyan accent on brand chrome'],
   ['--brand-input-fg', '--brand-input-bg', 4.5, 'text in the hero search bar'],
   ['--brand-input-muted', '--brand-input-bg', 4.5, 'placeholder text in the hero search bar'],
 ]

@@ -51,7 +51,7 @@ const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   danger:
     'bg-danger-bg text-danger border border-danger-border hover:bg-danger hover:text-on-accent',
   // The three above all key off the light/dark toggle via --fg-muted etc.,
-  // which is wrong on a surface that stays charcoal regardless of it (the
+  // which is wrong on a surface that stays indigo regardless of it (the
   // marketing header, the hero/CTA, the login's brand panel). These three
   // are the brand-chrome equivalents, built from the fixed `--brand-*`
   // tokens instead.
@@ -89,6 +89,9 @@ export function Button({
         // a layout bug, and the fixed heights below would clip it anyway.
         'relative inline-flex items-center justify-center whitespace-nowrap font-semibold',
         'transition-all duration-fast ease-out',
+        // A small press-down on click — the tactile feedback that makes a
+        // button feel like a physical control rather than a coloured div.
+        'active:scale-[0.97]',
         'disabled:opacity-50 disabled:pointer-events-none disabled:shadow-none',
         BUTTON_SIZES[size],
         BUTTON_VARIANTS[variant],

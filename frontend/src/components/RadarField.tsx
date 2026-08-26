@@ -2,7 +2,7 @@
  * The radar motif and its floating opportunity chips.
  *
  * Shared between the landing hero and the login's brand panel, so the two
- * places that need "dark charcoal, a quiet radar, a couple of illustrative
+ * places that need "dark indigo, a quiet radar, a couple of illustrative
  * job cards" build it once. Everything here is `aria-hidden`: it is set
  * dressing for a brand surface, not information, and none of it claims to be
  * a real job, a real user or a real statistic — see `FloatingChip`'s

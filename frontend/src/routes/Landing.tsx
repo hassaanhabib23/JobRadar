@@ -43,7 +43,7 @@ import {
 } from '../components/icons'
 import { RadarDecoration } from '../components/RadarField'
 import { Reveal } from '../components/Reveal'
-import { Badge, Button, cx } from '../components/ui'
+import { Badge, Button, CountUp, cx } from '../components/ui'
 import { useAuth } from '../auth/AuthProvider'
 
 const PROBLEMS = [
@@ -82,11 +82,43 @@ const ATS = [
   'Breezy',
 ]
 
-const STATS = [
-  { value: `${ATS.length}+`, label: 'ATS platforms', note: 'read directly, no scraping needed' },
-  { value: '4', label: 'named boards', note: 'LinkedIn, Indeed, Bayt, Google Jobs' },
-  { value: '4', label: 'score components', note: 'stack, level, location, freshness' },
-  { value: 'Daily', label: 'run cadence', note: 'every morning, or on demand' },
+/** `numeric` drives the count-up; a stat without one (like "Daily") renders
+    `value` as plain static text instead. */
+const STATS: {
+  numeric: number | null
+  suffix: string
+  value: string
+  label: string
+  note: string
+}[] = [
+  {
+    numeric: ATS.length,
+    suffix: '+',
+    value: `${ATS.length}+`,
+    label: 'ATS platforms',
+    note: 'read directly, no scraping needed',
+  },
+  {
+    numeric: 4,
+    suffix: '',
+    value: '4',
+    label: 'named boards',
+    note: 'LinkedIn, Indeed, Bayt, Google Jobs',
+  },
+  {
+    numeric: 4,
+    suffix: '',
+    value: '4',
+    label: 'score components',
+    note: 'stack, level, location, freshness',
+  },
+  {
+    numeric: null,
+    suffix: '',
+    value: 'Daily',
+    label: 'run cadence',
+    note: 'every morning, or on demand',
+  },
 ]
 
 const SEGMENTS = [
@@ -120,8 +152,8 @@ export default function Landing() {
         Skip to content
       </a>
 
-      {/* Always charcoal, whatever the light/dark toggle says — the brief's
-          own "dark navbar, off-white content, amber CTA" pattern, applied as
+      {/* Always indigo, whatever the light/dark toggle says — the brief-inspired
+          own "dark navbar, off-white content, accent CTA" pattern, applied as
           a constant rather than something the toggle can undo. */}
       <header className="sticky top-0 z-20 border-b border-brand-border bg-brand-bg">
         <div className="mx-auto flex h-topbar max-w-6xl items-center gap-3 px-5">
@@ -159,7 +191,7 @@ export default function Landing() {
       </header>
 
       <main id="main">
-        {/* --- Hero (charcoal) ------------------------------------------ */}
+        {/* --- Hero (indigo) ------------------------------------------ */}
         <section className="relative overflow-hidden bg-brand-bg">
           <RadarDecoration chips={HERO_CHIPS} className="hidden lg:block" />
 
@@ -224,7 +256,7 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* --- Stats band (charcoal) -------------------------------------- */}
+        {/* --- Stats band (indigo) -------------------------------------- */}
         <section className="border-b border-brand-border bg-brand-bg">
           <div className="mx-auto max-w-6xl px-5 py-12">
             <dl className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -234,7 +266,14 @@ export default function Landing() {
                     {stat.label}
                   </dt>
                   <dd className="tabular mt-1.5 text-4xl font-extrabold text-brand-accent">
-                    {stat.value}
+                    {stat.numeric !== null ? (
+                      <>
+                        <CountUp value={stat.numeric} duration={1100} />
+                        {stat.suffix}
+                      </>
+                    ) : (
+                      stat.value
+                    )}
                   </dd>
                   <p className="mt-1.5 text-sm text-brand-fg-muted">{stat.note}</p>
                 </Reveal>
@@ -316,7 +355,7 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* --- CTA (charcoal) ---------------------------------------------- */}
+        {/* --- CTA (indigo) ---------------------------------------------- */}
         <section className="bg-brand-bg">
           <div className="mx-auto max-w-6xl px-5 py-16 text-center">
             <h2 className="text-3xl font-extrabold text-brand-fg sm:text-4xl">

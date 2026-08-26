@@ -4,7 +4,7 @@
  * Full-bleed, not a centred column. A centred page wastes the right half of a
  * wide monitor on the one screen whose job is fitting more rows on it.
  *
- * The chrome — sidebar and top bar — is fixed charcoal, the same brand chrome
+ * The chrome — sidebar and top bar — is fixed indigo, the same brand chrome
  * as the marketing header, regardless of the light/dark toggle: the content
  * area underneath keeps following it. Translucent, so the content scrolls
  * beneath it — that is what gives the app a sense of layers rather than of
@@ -60,7 +60,7 @@ export function AppShell({
         Skip to content
       </a>
 
-      {/* --- Sidebar: fixed charcoal brand chrome ----------------------- */}
+      {/* --- Sidebar: fixed indigo brand chrome ----------------------- */}
       <aside
         className={cx(
           'fixed inset-y-0 left-0 z-40 flex w-sidebar flex-col border-r border-brand-border bg-brand-bg',

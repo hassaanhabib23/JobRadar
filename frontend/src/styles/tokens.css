@@ -13,13 +13,15 @@
  * light mode leans on ambient shadow. Copying one to the other is exactly how a
  * dark theme ends up looking flat.
  *
- * **Brand identity: deep charcoal + warm amber + off-white, emerald for
- * success.** Amber is the accent — reserved for primary actions, emphasis and
- * focus — never a background fill. A handful of surfaces (the marketing header,
- * the landing hero and CTA, the login's brand panel, the app shell's chrome)
- * are always charcoal-branded regardless of the light/dark toggle below; those
- * live in the `--brand-*` tokens further down, declared once because they do
- * not change with theme.
+ * **Brand identity: midnight indigo + electric cyan, emerald for success.**
+ * Cyan is the accent — reserved for primary actions, emphasis and focus —
+ * never a background fill. A handful of surfaces (the marketing header, the
+ * landing hero and CTA, the login's brand panel, the app shell's chrome) are
+ * always indigo-branded regardless of the light/dark toggle below; those live
+ * in the `--brand-*` tokens further down, declared once because they do not
+ * change with theme. The dark theme's content surfaces share that same
+ * indigo family, so the app never shows two different "darks" side by side —
+ * only the light theme's off-white content stays neutral.
  *
  * Every foreground/background pair below meets WCAG AA — 4.5:1 for body text,
  * 3:1 for large text and UI boundaries. `tokens.test.ts` asserts it, because
@@ -31,16 +33,17 @@
   color-scheme: light;
 
   /* --- Surfaces: a ladder, not a pair -------------------------------- */
-  /* Each step is a little lighter and a little more forward. Warm off-white,
-     not the cool blue-white of a generic dashboard. */
-  --bg: #f8f6f1;
-  --bg-deep: #efe9de;
+  /* Each step is a little lighter and a little more forward. Cool, neutral
+     off-white — it stays quiet so the indigo chrome and cyan accent do the
+     talking. */
+  --bg: #f6f7fb;
+  --bg-deep: #eceefa;
   --surface: #ffffff;
   --surface-raised: #ffffff;
-  --surface-hover: #f7f3ea;
-  --surface-strong: #f1ebdd;
-  --surface-inset: #f2ece0;
-  --overlay: rgb(23 18 10 / 0.42);
+  --surface-hover: #f4f5fc;
+  --surface-strong: #e9ebf7;
+  --surface-inset: #eef0f9;
+  --overlay: rgb(10 11 26 / 0.42);
 
   /* --- Translucent chrome -------------------------------------------- */
   /* The sidebar and top bar. Content passes beneath them. */
@@ -50,32 +53,33 @@
   --glass-blur: 14px;
 
   /* --- Text ------------------------------------------------------------ */
-  --fg: #16130d; /* ~18.6:1 on --bg */
-  --fg-muted: #55503f; /* ~7.9:1 on --bg */
-  --fg-subtle: #706a55; /* ~5.1:1 on --bg */
+  --fg: #10121e; /* ~18.7:1 on --bg */
+  --fg-muted: #4a4f6b; /* ~7.8:1 on --bg */
+  --fg-subtle: #656a8a; /* ~5.0:1 on --bg */
   --fg-on-accent: #ffffff;
 
   /* --- Lines ----------------------------------------------------------- */
-  --border: #e6ddcb;
-  --border-strong: #8a8069;
+  --border: #e1e3f3;
+  --border-strong: #7d82a8;
   /* The lighter top edge that makes a card read as lit from above. */
   --border-highlight: rgb(255 255 255 / 0.95);
 
   /* --- Brand ----------------------------------------------------------- */
-  /* Warm amber-orange, dark enough to carry body-weight text on off-white. */
-  --accent: #a8540a;
-  --accent-hover: #8a4408;
-  --accent-subtle: #fdf1e1;
-  --accent-border: #eccb98;
+  /* Deep sky/cyan-blue, dark enough to carry body-weight text on off-white. */
+  --accent: #0369a1;
+  --accent-hover: #045480;
+  --accent-subtle: #e8f6fd;
+  --accent-border: #bce4f7;
 
   /* --- Semantic: tiers and states -------------------------------------- */
-  /* Emerald — the brief's "emerald = success", already the High tier. */
+  /* Emerald — success, unchanged from before. */
   --high: #12734a;
   --high-bg: #edfaf3;
   --high-border: #a9e5c7;
 
-  /* A softer, more golden amber than the brand accent, so a Medium badge and
-     a primary button never read as the same colour. */
+  /* Tier categories are a separate, categorical system from the brand accent
+     — left as-is so a Medium badge and a primary button never collide, and
+     so the meaning of each tier doesn't drift with a brand refresh. */
   --medium: #9a5b09;
   --medium-bg: #fff8ec;
   --medium-border: #f6d59a;
@@ -100,30 +104,30 @@
   --seg-fresh: #c26a05;
 
   /* --- Elevation: ambient + key light ---------------------------------- */
-  /* Two shadows per step, tinted warm rather than blue-black. One soft and
-     wide for the ambient occlusion, one tight and dark for the contact edge —
-     a single blur reads as fog. */
-  --elev-0: 0 0 0 1px rgb(23 18 10 / 0.05);
-  --elev-1: 0 1px 2px -1px rgb(23 18 10 / 0.09), 0 2px 8px -2px rgb(23 18 10 / 0.07);
-  --elev-2: 0 2px 4px -2px rgb(23 18 10 / 0.11), 0 8px 20px -6px rgb(23 18 10 / 0.11);
-  --elev-3: 0 4px 8px -4px rgb(23 18 10 / 0.13), 0 20px 44px -12px rgb(23 18 10 / 0.17);
+  /* Two shadows per step, tinted cool indigo rather than warm black. One
+     soft and wide for the ambient occlusion, one tight and dark for the
+     contact edge — a single blur reads as fog. */
+  --elev-0: 0 0 0 1px rgb(10 11 26 / 0.05);
+  --elev-1: 0 1px 2px -1px rgb(10 11 26 / 0.09), 0 2px 8px -2px rgb(10 11 26 / 0.07);
+  --elev-2: 0 2px 4px -2px rgb(10 11 26 / 0.11), 0 8px 20px -6px rgb(10 11 26 / 0.11);
+  --elev-3: 0 4px 8px -4px rgb(10 11 26 / 0.13), 0 20px 44px -12px rgb(10 11 26 / 0.17);
 
   /* --- Gradients -------------------------------------------------------- */
-  --grad-accent: linear-gradient(180deg, #cf7207 0%, #a8540a 55%, #8a4408 100%);
-  --grad-accent-hover: linear-gradient(180deg, #d97b0d 0%, #b35f09 55%, #93490a 100%);
+  --grad-accent: linear-gradient(180deg, #0d7ab8 0%, #0369a1 55%, #045480 100%);
+  --grad-accent-hover: linear-gradient(180deg, #1288c9 0%, #0c76ad 55%, #085f8e 100%);
   /* The faint top-to-bottom sheen that stops a card looking like flat paper. */
   --grad-surface: linear-gradient(180deg, rgb(255 255 255 / 0.9) 0%, rgb(255 255 255 / 0) 60%);
-  --grad-edge: linear-gradient(90deg, var(--accent) 0%, #d9820f 50%, #f2a33e 100%);
-  /* Behind the hero and the auth screens. Warm amber, a hint of emerald. */
+  --grad-edge: linear-gradient(90deg, var(--accent) 0%, #2563eb 50%, #4f46e5 100%);
+  /* Behind the hero and the auth screens. Cyan into indigo, a hint of emerald. */
   --grad-mesh:
-    radial-gradient(60% 50% at 15% 0%, rgb(168 84 10 / 0.08) 0%, transparent 60%),
-    radial-gradient(50% 45% at 85% 10%, rgb(18 115 74 / 0.05) 0%, transparent 60%),
-    radial-gradient(45% 40% at 50% 100%, rgb(210 140 40 / 0.06) 0%, transparent 60%);
+    radial-gradient(60% 50% at 15% 0%, rgb(3 105 161 / 0.08) 0%, transparent 60%),
+    radial-gradient(50% 45% at 85% 10%, rgb(79 70 229 / 0.06) 0%, transparent 60%),
+    radial-gradient(45% 40% at 50% 100%, rgb(18 115 74 / 0.05) 0%, transparent 60%);
 
   /* --- Glow: emphasis, never decoration --------------------------------- */
-  --glow-accent: 0 0 0 1px rgb(168 84 10 / 0.18), 0 6px 18px -6px rgb(168 84 10 / 0.45);
+  --glow-accent: 0 0 0 1px rgb(3 105 161 / 0.18), 0 6px 18px -6px rgb(3 105 161 / 0.45);
   --glow-high: 0 0 16px -4px rgb(18 115 74 / 0.4);
-  --ring: 0 0 0 3px rgb(168 84 10 / 0.28);
+  --ring: 0 0 0 3px rgb(3 105 161 / 0.28);
 
   /* --- Spacing: room to breathe ----------------------------------------- */
   --space-1: 0.25rem; /*  4px */
@@ -155,83 +159,87 @@
   --measure: 68ch;
 
   /* -----------------------------------------------------------------------
-     Brand chrome: always charcoal, never following the light/dark toggle.
-     A handful of surfaces are deliberately not "content" — the marketing
-     header, the landing hero/CTA, the login's left panel, the app shell's
-     sidebar and top bar — and stay dark-branded the way the brief's own
-     example does ("dark navbar, off-white content, amber CTA"). Declared
-     once, not duplicated per theme, exactly like the radius/motion tokens
-     above: these are structural, not thematic.
+     Brand chrome: always midnight indigo, never following the light/dark
+     toggle. A handful of surfaces are deliberately not "content" — the
+     marketing header, the landing hero/CTA, the login's left panel, the app
+     shell's sidebar and top bar — and stay dark-branded the way a premium
+     product's chrome does regardless of the reader's own theme preference.
+     Declared once, not duplicated per theme, exactly like the radius/motion
+     tokens above: these are structural, not thematic.
      ------------------------------------------------------------------- */
-  --brand-bg: #14110c;
-  --brand-bg-deep: #0c0a07;
-  --brand-surface: #1c1811;
-  --brand-surface-hover: #241f17;
-  --brand-border: #2e2820;
-  --brand-border-strong: #6b6154; /* ~3.1:1 on --brand-bg */
-  --brand-fg: #f7f3ea; /* ~17:1 on --brand-bg */
-  --brand-fg-muted: #b9ae9b; /* ~8.6:1 on --brand-bg */
-  --brand-fg-subtle: #8f8471; /* ~5.1:1 on --brand-bg */
-  --brand-accent: #f2a33e; /* ~9.1:1 on --brand-bg */
-  --brand-accent-hover: #f6b968;
-  --brand-accent-subtle: #241a09;
+  --brand-bg: #0b0d1a;
+  --brand-bg-deep: #07080f;
+  --brand-surface: #12142b;
+  --brand-surface-hover: #171b38;
+  --brand-border: #20254a;
+  --brand-border-strong: #565c8c; /* ~3.4:1 on --brand-bg */
+  --brand-fg: #eef0fb; /* ~18:1 on --brand-bg */
+  --brand-fg-muted: #a9aed0; /* ~8.9:1 on --brand-bg */
+  --brand-fg-subtle: #8489ad; /* ~5.7:1 on --brand-bg */
+  --brand-accent: #38bdf8; /* ~9:1 on --brand-bg */
+  --brand-accent-hover: #67cdfb;
+  --brand-accent-subtle: #10233a;
   /* Tailwind's `bg-x/NN` opacity modifier only works on a colour it can
      resolve to a literal value at build time — it silently generates nothing
      for a colour defined as a bare `var(...)` reference, which every token
      in this file is. Anywhere a translucent brand surface is needed (the
      floating opportunity chips), the alpha has to be baked into the token
      itself, the same way `--glass-bg` already does above. */
-  --brand-glass-bg: rgb(28 24 17 / 0.9);
-  --brand-grad-accent: linear-gradient(180deg, #c97a1e 0%, #b06a15 55%, #8f5310 100%);
-  --brand-glow: 0 0 0 1px rgb(242 163 62 / 0.35), 0 8px 26px -8px rgb(242 163 62 / 0.55);
-  /* Radar-ring / grid-line stroke on a charcoal ground. */
+  --brand-glass-bg: rgb(18 20 43 / 0.9);
+  /* A deeper blue than the standalone accent: white button text needs 3:1,
+     which the bright standalone cyan can't carry on its own. */
+  --brand-grad-accent: linear-gradient(180deg, #2a8cc4 0%, #1c7bb0 55%, #125e8c 100%);
+  --brand-glow: 0 0 0 1px rgb(56 189 248 / 0.35), 0 8px 26px -8px rgb(56 189 248 / 0.55);
+  /* Radar-ring / grid-line stroke on an indigo ground. */
   --brand-line: rgb(255 255 255 / 0.08);
   /* A real, off-white product control (the hero search bar) embedded in the
-     charcoal chrome — fixed like everything else here, so it reads the same
+     indigo chrome — fixed like everything else here, so it reads the same
      regardless of the light/dark toggle. */
-  --brand-input-bg: #faf8f4;
-  --brand-input-fg: #17140d; /* ~18.4:1 on --brand-input-bg */
-  --brand-input-muted: #6b6455; /* ~5.6:1 on --brand-input-bg */
+  --brand-input-bg: #f7f8fc;
+  --brand-input-fg: #10121e; /* ~18.5:1 on --brand-input-bg */
+  --brand-input-muted: #5c6080; /* ~5.6:1 on --brand-input-bg */
 }
 
 /* --------------------------------------------------------------------------
    Dark.
-   Built separately rather than derived: shadows all but vanish on a near-black
-   ground, so depth here comes from luminous borders, lighter raised surfaces
-   and an inner top highlight.
+   Shares the brand's indigo family rather than a separate cool-gray dark —
+   so the app never shows two different "darks" side by side when the always-
+   indigo chrome sits next to a dark-themed content area. Shadows all but
+   vanish on this ground, so depth leans on luminous borders and inner
+   highlights instead.
    -------------------------------------------------------------------------- */
 :root[data-theme='dark'] {
   color-scheme: dark;
 
-  --bg: #100d09;
-  --bg-deep: #0a0806;
-  --surface: #1a150f;
-  --surface-raised: #201a13;
-  --surface-hover: #251f16;
-  --surface-strong: #2b2419;
-  --surface-inset: #150f0a;
-  --overlay: rgb(10 8 6 / 0.72);
+  --bg: #0b0d1a;
+  --bg-deep: #07080f;
+  --surface: #12142b;
+  --surface-raised: #161a35;
+  --surface-hover: #1a1f42;
+  --surface-strong: #1f2550;
+  --surface-inset: #0e1024;
+  --overlay: rgb(5 6 15 / 0.72);
 
-  --glass-bg: rgb(20 16 11 / 0.72);
-  --glass-bg-strong: rgb(20 16 11 / 0.9);
+  --glass-bg: rgb(18 20 43 / 0.72);
+  --glass-bg-strong: rgb(18 20 43 / 0.9);
   /* A light top edge, not a dark one: this is what reads as a raised surface
      when there is no shadow to see. */
   --glass-border: rgb(255 255 255 / 0.09);
   --glass-blur: 16px;
 
-  --fg: #f6f1e7; /* ~17:1 on --bg */
-  --fg-muted: #b6ab96; /* ~8.3:1 on --bg */
-  --fg-subtle: #8f8471; /* ~5.1:1 on --bg */
+  --fg: #eef0fb; /* ~18:1 on --bg */
+  --fg-muted: #a9aed0; /* ~8.9:1 on --bg */
+  --fg-subtle: #8489ad; /* ~5.7:1 on --bg */
   --fg-on-accent: #ffffff;
 
-  --border: #2b2419;
-  --border-strong: #756a5b;
+  --border: #20254a;
+  --border-strong: #5f6699;
   --border-highlight: rgb(255 255 255 / 0.08);
 
-  --accent: #f2a33e;
-  --accent-hover: #f6b968;
-  --accent-subtle: #241a09;
-  --accent-border: #6b4a1c;
+  --accent: #38bdf8;
+  --accent-hover: #67cdfb;
+  --accent-subtle: #10233a;
+  --accent-border: #1c4a6e;
 
   /* Lightened deliberately: the light-mode greens and ambers fail contrast
      against a near-black ground. */
@@ -266,18 +274,18 @@
   --elev-2: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 24px -8px rgb(0 0 0 / 0.65);
   --elev-3: 0 0 0 1px rgb(255 255 255 / 0.08), 0 24px 56px -16px rgb(0 0 0 / 0.8);
 
-  --grad-accent: linear-gradient(180deg, #c97a1e 0%, #b06a15 55%, #8f5310 100%);
-  --grad-accent-hover: linear-gradient(180deg, #cf7f22 0%, #b57318 55%, #935c12 100%);
+  --grad-accent: linear-gradient(180deg, #2a8cc4 0%, #1c7bb0 55%, #125e8c 100%);
+  --grad-accent-hover: linear-gradient(180deg, #379bd6 0%, #2589bf 55%, #1a6c9e 100%);
   --grad-surface: linear-gradient(180deg, rgb(255 255 255 / 0.055) 0%, rgb(255 255 255 / 0) 55%);
-  --grad-edge: linear-gradient(90deg, #f2a33e 0%, #f6b968 50%, #ffd28a 100%);
+  --grad-edge: linear-gradient(90deg, #38bdf8 0%, #60a5fa 50%, #818cf8 100%);
   --grad-mesh:
-    radial-gradient(60% 50% at 15% 0%, rgb(242 163 62 / 0.14) 0%, transparent 60%),
-    radial-gradient(50% 45% at 85% 10%, rgb(86 217 154 / 0.08) 0%, transparent 60%),
-    radial-gradient(45% 40% at 50% 100%, rgb(242 163 62 / 0.06) 0%, transparent 60%);
+    radial-gradient(60% 50% at 15% 0%, rgb(56 189 248 / 0.14) 0%, transparent 60%),
+    radial-gradient(50% 45% at 85% 10%, rgb(129 140 248 / 0.1) 0%, transparent 60%),
+    radial-gradient(45% 40% at 50% 100%, rgb(56 189 248 / 0.06) 0%, transparent 60%);
 
-  --glow-accent: 0 0 0 1px rgb(242 163 62 / 0.35), 0 8px 26px -8px rgb(242 163 62 / 0.55);
+  --glow-accent: 0 0 0 1px rgb(56 189 248 / 0.35), 0 8px 26px -8px rgb(56 189 248 / 0.55);
   --glow-high: 0 0 18px -4px rgb(86 217 154 / 0.45);
-  --ring: 0 0 0 3px rgb(242 163 62 / 0.35);
+  --ring: 0 0 0 3px rgb(56 189 248 / 0.35);
 }
 
 /* Follow the system when no explicit choice has been made. Duplicated rather
@@ -286,33 +294,33 @@
   :root:not([data-theme='light']) {
     color-scheme: dark;
 
-    --bg: #100d09;
-    --bg-deep: #0a0806;
-    --surface: #1a150f;
-    --surface-raised: #201a13;
-    --surface-hover: #251f16;
-    --surface-strong: #2b2419;
-    --surface-inset: #150f0a;
-    --overlay: rgb(10 8 6 / 0.72);
+    --bg: #0b0d1a;
+    --bg-deep: #07080f;
+    --surface: #12142b;
+    --surface-raised: #161a35;
+    --surface-hover: #1a1f42;
+    --surface-strong: #1f2550;
+    --surface-inset: #0e1024;
+    --overlay: rgb(5 6 15 / 0.72);
 
-    --glass-bg: rgb(20 16 11 / 0.72);
-    --glass-bg-strong: rgb(20 16 11 / 0.9);
+    --glass-bg: rgb(18 20 43 / 0.72);
+    --glass-bg-strong: rgb(18 20 43 / 0.9);
     --glass-border: rgb(255 255 255 / 0.09);
     --glass-blur: 16px;
 
-    --fg: #f6f1e7;
-    --fg-muted: #b6ab96;
-    --fg-subtle: #8f8471;
+    --fg: #eef0fb;
+    --fg-muted: #a9aed0;
+    --fg-subtle: #8489ad;
     --fg-on-accent: #ffffff;
 
-    --border: #2b2419;
-    --border-strong: #756a5b;
+    --border: #20254a;
+    --border-strong: #5f6699;
     --border-highlight: rgb(255 255 255 / 0.08);
 
-    --accent: #f2a33e;
-    --accent-hover: #f6b968;
-    --accent-subtle: #241a09;
-    --accent-border: #6b4a1c;
+    --accent: #38bdf8;
+    --accent-hover: #67cdfb;
+    --accent-subtle: #10233a;
+    --accent-border: #1c4a6e;
 
     --high: #56d99a;
     --high-bg: #0b2318;
@@ -343,17 +351,17 @@
     --elev-2: 0 0 0 1px rgb(255 255 255 / 0.06), 0 8px 24px -8px rgb(0 0 0 / 0.65);
     --elev-3: 0 0 0 1px rgb(255 255 255 / 0.08), 0 24px 56px -16px rgb(0 0 0 / 0.8);
 
-    --grad-accent: linear-gradient(180deg, #c97a1e 0%, #b06a15 55%, #8f5310 100%);
-    --grad-accent-hover: linear-gradient(180deg, #cf7f22 0%, #b57318 55%, #935c12 100%);
+    --grad-accent: linear-gradient(180deg, #2a8cc4 0%, #1c7bb0 55%, #125e8c 100%);
+    --grad-accent-hover: linear-gradient(180deg, #379bd6 0%, #2589bf 55%, #1a6c9e 100%);
     --grad-surface: linear-gradient(180deg, rgb(255 255 255 / 0.055) 0%, rgb(255 255 255 / 0) 55%);
-    --grad-edge: linear-gradient(90deg, #f2a33e 0%, #f6b968 50%, #ffd28a 100%);
+    --grad-edge: linear-gradient(90deg, #38bdf8 0%, #60a5fa 50%, #818cf8 100%);
     --grad-mesh:
-      radial-gradient(60% 50% at 15% 0%, rgb(242 163 62 / 0.14) 0%, transparent 60%),
-      radial-gradient(50% 45% at 85% 10%, rgb(86 217 154 / 0.08) 0%, transparent 60%),
-      radial-gradient(45% 40% at 50% 100%, rgb(242 163 62 / 0.06) 0%, transparent 60%);
+      radial-gradient(60% 50% at 15% 0%, rgb(56 189 248 / 0.14) 0%, transparent 60%),
+      radial-gradient(50% 45% at 85% 10%, rgb(129 140 248 / 0.1) 0%, transparent 60%),
+      radial-gradient(45% 40% at 50% 100%, rgb(56 189 248 / 0.06) 0%, transparent 60%);
 
-    --glow-accent: 0 0 0 1px rgb(242 163 62 / 0.35), 0 8px 26px -8px rgb(242 163 62 / 0.55);
+    --glow-accent: 0 0 0 1px rgb(56 189 248 / 0.35), 0 8px 26px -8px rgb(56 189 248 / 0.55);
     --glow-high: 0 0 18px -4px rgb(86 217 154 / 0.45);
-    --ring: 0 0 0 3px rgb(242 163 62 / 0.35);
+    --ring: 0 0 0 3px rgb(56 189 248 / 0.35);
   }
 }
