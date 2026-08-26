@@ -2120,6 +2120,14 @@
                         "readOnly": true,
                         "title": "Email address"
                     },
+                    "firstName": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "lastName": {
+                        "type": "string",
+                        "readOnly": true
+                    },
                     "onboardingComplete": {
                         "type": "boolean",
                         "readOnly": true
@@ -2187,6 +2195,16 @@
                     "password": {
                         "type": "string",
                         "writeOnly": true
+                    },
+                    "firstName": {
+                        "type": "string",
+                        "default": "",
+                        "maxLength": 150
+                    },
+                    "lastName": {
+                        "type": "string",
+                        "default": "",
+                        "maxLength": 150
                     },
                     "locations": {
                         "type": "array",
@@ -2732,6 +2750,14 @@
                         "readOnly": true,
                         "title": "Email address"
                     },
+                    "firstName": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "lastName": {
+                        "type": "string",
+                        "readOnly": true
+                    },
                     "onboardingComplete": {
                         "type": "boolean",
                         "readOnly": true
@@ -2750,7 +2776,9 @@
                     "dateJoined",
                     "email",
                     "emailVerified",
+                    "firstName",
                     "id",
+                    "lastName",
                     "onboardingComplete"
                 ]
             },

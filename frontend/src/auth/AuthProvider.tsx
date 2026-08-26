@@ -39,6 +39,8 @@ interface AuthContextValue {
 export interface RegisterInput {
   email: string
   password: string
+  firstName: string
+  lastName: string
   locations?: string[]
   roleKeywords?: string[]
 }

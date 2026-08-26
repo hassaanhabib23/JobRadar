@@ -62,6 +62,9 @@ export interface Job {
 export interface User {
   id: number
   email: string
+  /** Optional — registration doesn't require a name, so either can be ''. */
+  firstName: string
+  lastName: string
   onboardingComplete: boolean
   /** Soft gate: false only withholds the digest, never access to the app. */
   emailVerified: boolean
@@ -231,4 +234,8 @@ export type _JobMatchesContract = AssertAssignable<
 export type _RunMatchesContract = AssertAssignable<
   Pick<Schemas['Run'], 'id' | 'status'>,
   Pick<Run, 'id' | 'status'>
+>
+export type _UserMatchesContract = AssertAssignable<
+  Pick<Schemas['User'], 'id' | 'email' | 'firstName' | 'lastName'>,
+  Pick<User, 'id' | 'email' | 'firstName' | 'lastName'>
 >

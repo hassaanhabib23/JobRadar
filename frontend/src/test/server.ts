@@ -19,6 +19,8 @@ export interface MockState {
   user: {
     id: number
     email: string
+    firstName: string
+    lastName: string
     onboardingComplete: boolean
     emailVerified: boolean
     dateJoined: string
@@ -123,6 +125,8 @@ function createState(): MockState {
     user: {
       id: 1,
       email: 'dev@example.com',
+      firstName: 'Dev',
+      lastName: 'User',
       onboardingComplete: true,
       emailVerified: true,
       dateJoined: '2026-08-01T00:00:00Z',
@@ -209,7 +213,12 @@ export const handlers = [
   }),
 
   http.post(`${API}/auth/register/`, async ({ request }) => {
-    const body = (await request.json()) as { email: string; password: string }
+    const body = (await request.json()) as {
+      email: string
+      password: string
+      firstName?: string
+      lastName?: string
+    }
     if (body.password.length < 8) {
       return HttpResponse.json({ password: ['This password is too short.'] }, { status: 400 })
     }
@@ -222,7 +231,13 @@ export const handlers = [
     const access = 'access-from-register'
     state.validTokens.add(access)
     state.refreshValid = true
-    state.user = { ...state.user, email: body.email, onboardingComplete: false }
+    state.user = {
+      ...state.user,
+      email: body.email,
+      firstName: body.firstName ?? '',
+      lastName: body.lastName ?? '',
+      onboardingComplete: false,
+    }
     return HttpResponse.json({ user: state.user, access }, { status: 201 })
   }),
 

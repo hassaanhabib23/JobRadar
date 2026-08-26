@@ -26,13 +26,27 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("id", "email", "onboarding_complete", "email_verified", "date_joined")
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "onboarding_complete",
+            "email_verified",
+            "date_joined",
+        )
         read_only_fields = fields
 
 
 class RegisterSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True, style={"input_type": "password"})
+    # Optional server-side: the registration form asks for these, but nothing
+    # downstream depends on them, so a client that omits them (an existing
+    # integration, a script) still works rather than failing on a field it
+    # doesn't know about.
+    first_name = serializers.CharField(required=False, allow_blank=True, max_length=150, default="")
+    last_name = serializers.CharField(required=False, allow_blank=True, max_length=150, default="")
     locations = serializers.ListField(
         child=serializers.CharField(),
         required=False,
@@ -75,7 +89,10 @@ class RegisterSerializer(serializers.Serializer):
         keywords = tuple(validated_data.get("role_keywords") or ())
 
         user = User.objects.create_user(
-            email=validated_data["email"], password=validated_data["password"]
+            email=validated_data["email"],
+            password=validated_data["password"],
+            first_name=validated_data.get("first_name", ""),
+            last_name=validated_data.get("last_name", ""),
         )
 
         # The post_save signal has already created a default profile; re-seed it

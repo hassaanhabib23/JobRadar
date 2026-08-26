@@ -72,6 +72,31 @@ class TestRegistration:
         assert profile.skills["c#"] > profile.skills["react"]
         assert profile.role_keywords == ["dotnet"]
 
+    def test_stores_and_returns_the_name(self, api_client: APIClient) -> None:
+        response = api_client.post(
+            "/api/auth/register/",
+            {**REGISTRATION, "firstName": "Ada", "lastName": "Lovelace"},
+            format="json",
+        )
+
+        assert response.json()["user"]["firstName"] == "Ada"
+        assert response.json()["user"]["lastName"] == "Lovelace"
+        user = User.objects.get(email="new@example.com")
+        assert user.first_name == "Ada"
+        assert user.last_name == "Lovelace"
+
+    def test_the_name_is_optional(self, api_client: APIClient) -> None:
+        """An existing integration that only ever sent email/password must not
+        start failing because the form grew a field it doesn't send."""
+        response = api_client.post(
+            "/api/auth/register/",
+            {"email": "noname@example.com", "password": "a-strong-passphrase-42"},
+            format="json",
+        )
+
+        assert response.status_code == 201
+        assert response.json()["user"]["firstName"] == ""
+
     def test_registering_without_locations_still_works(self, api_client: APIClient) -> None:
         response = api_client.post(
             "/api/auth/register/",

@@ -108,9 +108,18 @@ export function AppShell({
         {/* Stacked, not side by side: the three-way theme switch and a labelled
             button do not both fit in 244px without the label wrapping. */}
         <div className="flex flex-col gap-2.5 border-t border-brand-border p-3">
-          <p className="truncate px-1.5 text-xs text-brand-fg-subtle" title={user?.email}>
-            {user?.email}
-          </p>
+          <div className="truncate px-1.5">
+            {/* Registration doesn't require a name — an account made before
+                this existed, or via the API directly, just shows the email. */}
+            {(user?.firstName || user?.lastName) && (
+              <p className="truncate text-sm font-semibold text-brand-fg">
+                {[user.firstName, user.lastName].filter(Boolean).join(' ')}
+              </p>
+            )}
+            <p className="truncate text-xs text-brand-fg-subtle" title={user?.email}>
+              {user?.email}
+            </p>
+          </div>
           <div className="flex items-center justify-between gap-2">
             <ThemeToggle />
             <Button variant="brand-ghost" size="sm" onClick={() => void logout()}>

@@ -805,6 +805,8 @@ export interface components {
        * Format: email
        */
       readonly email?: string
+      readonly firstName?: string
+      readonly lastName?: string
       readonly onboardingComplete?: boolean
       readonly emailVerified?: boolean
       /** Format: date-time */
@@ -842,6 +844,10 @@ export interface components {
       /** Format: email */
       email: string
       password: string
+      /** @default  */
+      firstName: string
+      /** @default  */
+      lastName: string
       /** @description Catalogue keys from GET /api/locations/. Defaults to Islamabad + Rawalpindi. */
       locations?: string[]
       /** @description Onboarding role chips that pre-weight the matching skills. */
@@ -999,6 +1005,8 @@ export interface components {
        * Format: email
        */
       readonly email: string
+      readonly firstName: string
+      readonly lastName: string
       readonly onboardingComplete: boolean
       readonly emailVerified: boolean
       /** Format: date-time */
