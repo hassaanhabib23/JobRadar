@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import {
   queryKeys,
+  resumeUploadErrorMessage,
   useDeleteResume,
   useProfile,
   useResume,
@@ -343,7 +344,7 @@ function ResumePanel() {
           {uploadResume.isPending && <p className="mt-1.5 text-sm text-muted">Reading your CV…</p>}
           {uploadResume.isError && (
             <p role="alert" className="mt-1.5 text-sm text-danger">
-              Could not read that file — PDF and DOCX only, up to 5MB.
+              {resumeUploadErrorMessage(uploadResume.error)}
             </p>
           )}
         </div>

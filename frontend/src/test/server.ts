@@ -42,6 +42,8 @@ export interface MockState {
     uploadedAt: string
     parsedAt: string | null
   } | null
+  /** Set by a test to make the next upload fail with a specific server reason. */
+  nextResumeUploadError: { status: number; body: Record<string, unknown> } | null
   jobs: MockJob[]
 }
 
@@ -134,6 +136,7 @@ function createState(): MockState {
     bulkUpdates: [],
     statusHistory: {},
     resume: null,
+    nextResumeUploadError: null,
     jobs: [
       job(),
       job({
@@ -363,6 +366,17 @@ export const handlers = [
 
   http.post(`${API}/resume/`, ({ request }) => {
     if (!authed(request)) return unauthorized()
+
+    // Lets a test simulate the real API's specific rejection reasons
+    // (too large, unreadable, wrong type) without parsing the multipart
+    // body — jsdom's File/FormData and Node's undici fetch don't
+    // interoperate cleanly enough in tests to read it back reliably.
+    if (state.nextResumeUploadError) {
+      const { status, body } = state.nextResumeUploadError
+      state.nextResumeUploadError = null
+      return HttpResponse.json(body, { status })
+    }
+
     state.resume = {
       detectedSkills: { react: 6, typescript: 4 },
       detectedRoleKeywords: ['react'],

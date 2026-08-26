@@ -15,7 +15,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { api } from '../api/client'
-import { useUploadResume } from '../api/queries'
+import { resumeUploadErrorMessage, useUploadResume } from '../api/queries'
 import {
   ROLE_KEYWORDS,
   type Location,
@@ -128,7 +128,7 @@ export default function Welcome() {
               {uploadResume.isPending && <p className="text-sm text-muted">Reading your CV…</p>}
               {uploadResume.isError && (
                 <p role="alert" className="text-sm text-danger">
-                  Could not read that file — PDF and DOCX only, up to 5MB.
+                  {resumeUploadErrorMessage(uploadResume.error)}
                 </p>
               )}
               {uploadResume.isSuccess && (

@@ -66,6 +66,22 @@ describe('résumé section', () => {
     expect(screen.queryByText(/no cv uploaded yet/i)).not.toBeInTheDocument()
   })
 
+  it('shows the server’s actual rejection reason, not a generic message', async () => {
+    state.nextResumeUploadError = {
+      status: 400,
+      body: { file: ['No text could be extracted from this file.'] },
+    }
+    const user = userEvent.setup()
+    renderWithProviders(<ProfilePage />)
+
+    const input = await screen.findByLabelText(/upload your cv/i)
+    await user.upload(input, new File(['fake pdf bytes'], 'cv.pdf', { type: 'application/pdf' }))
+
+    expect(
+      await screen.findByText(/no text could be extracted from this file/i),
+    ).toBeInTheDocument()
+  })
+
   it('removing an uploaded résumé clears it', async () => {
     state.resume = {
       detectedSkills: { react: 6 },

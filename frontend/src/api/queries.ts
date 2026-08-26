@@ -245,6 +245,16 @@ export function useUploadResume(): UseMutationResult<ResumeSignals, Error, File>
   })
 }
 
+/**
+ * The server's actual reason a resume upload was rejected — "File is too
+ * large (max 5MB)", "This PDF is password-protected", etc. — rather than one
+ * fixed string that hides which of several distinct causes actually happened.
+ */
+export function resumeUploadErrorMessage(error: unknown): string {
+  if (error instanceof ApiError) return error.detail
+  return 'Could not read that file — PDF and DOCX only, up to 5MB.'
+}
+
 export function useDeleteResume(): UseMutationResult<void, Error, void> {
   const queryClient = useQueryClient()
 
