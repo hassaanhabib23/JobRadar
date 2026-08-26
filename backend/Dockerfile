@@ -22,7 +22,15 @@ RUN pip install --no-cache-dir ".[dev,scrape]"
 
 COPY . .
 
-RUN useradd --create-home --uid 1000 app && chown -R app:app /app
+# `media/` isn't in the repo — it's gitignored and only ever created at
+# runtime by an upload — so without this, the directory doesn't exist yet for
+# the chown below to reach. The `media` named volume then gets populated from
+# this (now correctly owned) image path the first time it's attached, instead
+# of Docker defaulting the empty mount point to root — which silently blocks
+# every upload with a 500 the moment the non-root user below tries to write.
+RUN mkdir -p media \
+    && useradd --create-home --uid 1000 app \
+    && chown -R app:app /app
 USER app
 
 EXPOSE 8000
