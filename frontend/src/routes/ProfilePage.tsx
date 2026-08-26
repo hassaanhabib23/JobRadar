@@ -12,10 +12,13 @@ import { useEffect, useState } from 'react'
 import { api } from '../api/client'
 import {
   queryKeys,
+  useDeleteResume,
   useProfile,
+  useResume,
   useScorePreview,
   useTriggerRun,
   useUpdateProfile,
+  useUploadResume,
 } from '../api/queries'
 import type { Location, Profile } from '../api/types'
 import { AppShell, Column } from '../components/AppShell'
@@ -147,6 +150,8 @@ export default function ProfilePage() {
               </div>
             </Panel>
 
+            <ResumePanel />
+
             <WeightsPanel profile={data} onSave={(patch) => update.mutate(patch)} />
             <BlocklistPanel profile={data} onSave={(patch) => update.mutate(patch)} />
           </>
@@ -271,6 +276,75 @@ function ScorePreviewPanel() {
                 </ul>
               ) : null}
             </>
+          )}
+        </div>
+      </div>
+    </Panel>
+  )
+}
+
+function ResumePanel() {
+  const resume = useResume()
+  const uploadResume = useUploadResume()
+  const deleteResume = useDeleteResume()
+  const data = resume.data
+
+  return (
+    <Panel>
+      <PanelHeader
+        title="CV"
+        description="Upload a CV to pre-fill your skill weights and role focus. Re-uploading replaces it."
+      />
+      <div className="flex flex-col gap-4 p-5">
+        {resume.isPending && <Skeleton className="h-10" />}
+
+        {!resume.isPending && !data && <p className="text-sm text-muted">No CV uploaded yet.</p>}
+
+        {data && (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded border border-hairline bg-surface-inset p-3.5">
+            <div className="min-w-0 text-sm">
+              <p>
+                <strong className="font-bold text-fg">
+                  {Object.keys(data.detectedSkills).join(', ') || 'No specific skills detected'}
+                </strong>
+                {data.detectedSeniority !== 'unknown' && ` · ${data.detectedSeniority}`}
+              </p>
+              <p className="mt-1 text-2xs text-subtle">
+                Uploaded {new Date(data.uploadedAt).toLocaleDateString()}
+              </p>
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => deleteResume.mutate()}
+              disabled={deleteResume.isPending}
+            >
+              {deleteResume.isPending ? 'Removing…' : 'Remove'}
+            </Button>
+          </div>
+        )}
+
+        <div>
+          <label htmlFor="profile-resume-upload" className="text-sm font-medium">
+            {data ? 'Replace your CV' : 'Upload your CV'}
+          </label>
+          <input
+            id="profile-resume-upload"
+            type="file"
+            accept=".pdf,.docx"
+            onChange={(event) => {
+              const file = event.target.files?.[0]
+              if (!file) return
+              uploadResume.mutate(file)
+              event.target.value = ''
+            }}
+            className="mt-1.5 w-full rounded border border-hairline-strong bg-surface-inset p-3.5 text-sm"
+          />
+          {uploadResume.isPending && <p className="mt-1.5 text-sm text-muted">Reading your CV…</p>}
+          {uploadResume.isError && (
+            <p role="alert" className="mt-1.5 text-sm text-danger">
+              Could not read that file — PDF and DOCX only, up to 5MB.
+            </p>
           )}
         </div>
       </div>
