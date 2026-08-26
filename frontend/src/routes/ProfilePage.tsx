@@ -175,7 +175,7 @@ function ScorePreviewPanel() {
         title="Score preview"
         description="Paste a real posting and see exactly what your profile gives it. Change a weight below, run it again, watch it move."
         action={
-          <span className="flex h-10 w-10 items-center justify-center rounded-sm bg-grad-accent text-on-accent shadow-e1">
+          <span className="flex h-10 w-10 items-center justify-center rounded-sm bg-accent text-on-accent shadow-e1">
             <IconTarget size={18} />
           </span>
         }

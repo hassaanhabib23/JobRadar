@@ -21,6 +21,9 @@ import { cx } from './ui'
 /**
  * Concentric rings and a scan line, built from the same idea as `IconRadar`
  * but scaled up as a background field rather than a 24px glyph.
+ *
+ * Flat fill, not a gradient: the sweep wedge is a single translucent accent
+ * colour, same rule as everywhere else in the app.
  */
 export function RadarField({ className }: { className?: string }) {
   return (
@@ -30,18 +33,8 @@ export function RadarField({ className }: { className?: string }) {
       <circle cx="200" cy="200" r="70" fill="none" stroke="var(--border)" strokeWidth="1" />
       <circle cx="200" cy="200" r="4" fill="var(--accent)" opacity="0.7" />
       <g className="radar-sweep">
-        <path
-          d="M200 200 L200 30 A170 170 0 0 1 340 115 Z"
-          fill="url(#radar-sweep-gradient)"
-          opacity="0.5"
-        />
+        <path d="M200 200 L200 30 A170 170 0 0 1 340 115 Z" fill="var(--accent)" opacity="0.14" />
       </g>
-      <defs>
-        <linearGradient id="radar-sweep-gradient" x1="200" y1="30" x2="340" y2="115">
-          <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
-        </linearGradient>
-      </defs>
     </svg>
   )
 }

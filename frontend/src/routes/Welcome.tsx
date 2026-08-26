@@ -330,7 +330,7 @@ function Progress({ current }: { current: Step }) {
                 'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-2xs font-bold',
                 'transition-all duration-fast ease-out',
                 done && 'bg-high-bg text-high ring-1 ring-high-border',
-                active && 'bg-grad-accent text-on-accent shadow-e1',
+                active && 'bg-accent text-on-accent shadow-e1',
                 !done && !active && 'bg-surface-inset text-subtle ring-1 ring-hairline',
               )}
             >

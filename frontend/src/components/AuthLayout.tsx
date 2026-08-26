@@ -99,7 +99,7 @@ export function AuthLayout({
               </Link>
             )}
             <Link to="/" className="flex items-center gap-2.5 font-extrabold tracking-tight">
-              <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-grad-accent text-on-accent shadow-e1">
+              <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-accent text-on-accent shadow-e1">
                 <IconRadar size={17} />
               </span>
               JobRadar

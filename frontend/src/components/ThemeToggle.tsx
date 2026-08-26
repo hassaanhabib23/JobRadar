@@ -69,7 +69,7 @@ export function ThemeToggle() {
               'transition-all duration-fast ease-out',
               'focus-within:outline focus-within:outline-2 focus-within:outline-offset-1 focus-within:outline-accent',
               active
-                ? 'bg-grad-accent text-on-accent shadow-e1'
+                ? 'bg-accent text-on-accent shadow-e1'
                 : 'text-subtle hover:bg-surface-hover hover:text-fg',
             )}
           >

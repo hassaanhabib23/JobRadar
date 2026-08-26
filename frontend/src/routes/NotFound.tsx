@@ -25,7 +25,7 @@ export default function NotFound() {
           elevation="high"
           className="flex flex-col items-center gap-5 p-5 text-center sm:p-7"
         >
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-grad-accent text-on-accent shadow-glow">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-accent text-on-accent shadow-e2">
             <IconRadar size={24} />
           </span>
 

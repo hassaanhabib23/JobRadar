@@ -56,7 +56,7 @@ export function AppShell({
           table on every page. */}
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-grad-accent focus:px-4 focus:py-2 focus:font-semibold focus:text-on-accent focus:shadow-e2"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-accent focus:px-4 focus:py-2 focus:font-semibold focus:text-on-accent focus:shadow-e2"
       >
         Skip to content
       </a>
@@ -70,7 +70,7 @@ export function AppShell({
         )}
       >
         <div className="flex h-topbar items-center gap-2.5 px-5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-grad-accent text-on-accent shadow-e1">
+          <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-accent text-on-accent shadow-e1">
             <IconRadar size={17} />
           </span>
           <span className="text-md font-extrabold tracking-tight">JobRadar</span>
@@ -94,8 +94,8 @@ export function AppShell({
                   'relative flex min-h-[44px] items-center gap-3 rounded px-3.5 font-semibold',
                   'transition-all duration-fast ease-out',
                   isActive
-                    ? // A gradient pill, not a tinted rectangle.
-                      'bg-grad-accent text-on-accent shadow-e1'
+                    ? // A solid pill, not a tinted rectangle.
+                      'bg-accent text-on-accent shadow-e1'
                     : 'text-muted hover:bg-surface-hover hover:text-fg',
                 )
               }

@@ -143,7 +143,7 @@ export default function Landing() {
     <div className="min-h-screen bg-bg">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded focus:bg-grad-accent focus:px-4 focus:py-2 focus:font-semibold focus:text-on-accent focus:shadow-e2"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded focus:bg-accent focus:px-4 focus:py-2 focus:font-semibold focus:text-on-accent focus:shadow-e2"
       >
         Skip to content
       </a>
@@ -151,7 +151,7 @@ export default function Landing() {
       <header className="glass sticky top-0 z-20 border-b">
         <div className="mx-auto flex h-topbar max-w-6xl items-center gap-3 px-5">
           <span className="flex items-center gap-2.5 text-md font-extrabold tracking-tight">
-            <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-grad-accent text-on-accent shadow-e1">
+            <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-accent text-on-accent shadow-e1">
               <IconRadar size={17} />
             </span>
             JobRadar
@@ -280,7 +280,7 @@ export default function Landing() {
                 <li key={step.title}>
                   <Reveal delay={index * 80} className="surface lift h-full p-5 sm:p-6">
                     <div className="flex items-center gap-3">
-                      <span className="flex h-11 w-11 items-center justify-center rounded-sm bg-grad-accent text-on-accent shadow-e1">
+                      <span className="flex h-11 w-11 items-center justify-center rounded-sm bg-accent text-on-accent shadow-e1">
                         <step.Icon size={19} />
                       </span>
                       <span className="tabular text-xs text-subtle">

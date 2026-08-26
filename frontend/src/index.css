@@ -2,12 +2,18 @@
    work on a flaky connection, and a webfont from someone else's server is the
    first thing to fail.
 
-   Manrope for the interface: geometric and modern where the previous Fira Sans
-   was utilitarian. Fira Code stays for numbers — scores, counts and durations
-   change in place, and proportional figures make them jitter. */
-@import '@fontsource-variable/manrope';
+   Per design-system/jobradar/MASTER.md: Fira Sans for the interface, Fira Code
+   for headings and for numbers — scores, counts and durations change in place,
+   and proportional figures make them jitter. */
+@import '@fontsource/fira-sans/300.css';
+@import '@fontsource/fira-sans/400.css';
+@import '@fontsource/fira-sans/500.css';
+@import '@fontsource/fira-sans/600.css';
+@import '@fontsource/fira-sans/700.css';
 @import '@fontsource/fira-code/400.css';
 @import '@fontsource/fira-code/500.css';
+@import '@fontsource/fira-code/600.css';
+@import '@fontsource/fira-code/700.css';
 
 @import './styles/tokens.css';
 
@@ -29,7 +35,7 @@
     background: var(--bg);
     color: var(--fg);
     font-family:
-      'Manrope Variable',
+      'Fira Sans',
       system-ui,
       -apple-system,
       'Segoe UI',
@@ -53,9 +59,12 @@
   h4 {
     /* Stops a two-word heading breaking into a lonely orphan line. */
     text-wrap: balance;
+    /* MASTER.md: headings set in the monospace face — "dashboard, data,
+       analytics, technical, precise." Body copy stays Fira Sans. */
+    font-family: 'Fira Code', ui-monospace, monospace;
     font-weight: 700;
     /* Large type needs to be pulled tighter or it reads loose and cheap. */
-    letter-spacing: -0.022em;
+    letter-spacing: -0.018em;
   }
 
   p {
@@ -111,17 +120,12 @@
   /**
    * Depth utilities.
    *
-   * `.surface` is the workhorse: an elevated card with a faint top-to-bottom
-   * sheen and a lighter top edge, so it reads as lit from above rather than as
-   * flat paper with a border drawn on it.
+   * Flat design: `.surface` is a plain elevated card — solid fill, a hairline
+   * border, one of MASTER.md's shadow steps. No sheen, no translucency.
    */
   .surface {
     position: relative;
-    /* The sheen is a background *image* rather than a ::before overlay, so it
-       paints above the fill and below the content with no extra element — a
-       wrapper div would break every `flex` class a caller puts on the card. */
     background-color: var(--surface-raised);
-    background-image: var(--grad-surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     box-shadow: var(--elev-1);
@@ -135,19 +139,19 @@
     box-shadow: var(--elev-3);
   }
 
-  /** Translucent chrome. Content passes beneath it. */
+  /** Chrome that sits above scrolling content — the sidebar, the sticky top
+      bar. Solid, not glass: flat design keeps chrome as opaque as any other
+      surface, distinguished only by sitting a shadow step above it. */
   .glass {
-    background-color: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-    border-color: var(--glass-border);
+    background-color: var(--surface);
+    border-color: var(--border);
+    box-shadow: var(--elev-1);
   }
 
   .glass-strong {
-    background-color: var(--glass-bg-strong);
-    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-    border-color: var(--glass-border);
+    background-color: var(--surface);
+    border-color: var(--border);
+    box-shadow: var(--elev-2);
   }
 
   /** The physical lift. Transform and shadow only — both compositor-friendly. */
@@ -244,6 +248,14 @@
     to {
       transform: rotate(360deg);
     }
+  }
+
+  /** A flat, solid top edge — the one accent a card gets for standing out
+      (the High-tier job row, the "new today" stat tile, the auth card).
+      Deliberately last in this layer so it wins over `.surface`'s border
+      shorthand at equal specificity, regardless of class order in markup. */
+  .edge-top {
+    border-top: 3px solid var(--accent);
   }
 }
 
