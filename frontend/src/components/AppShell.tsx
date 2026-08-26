@@ -4,9 +4,11 @@
  * Full-bleed, not a centred column. A centred page wastes the right half of a
  * wide monitor on the one screen whose job is fitting more rows on it.
  *
- * The chrome — sidebar and top bar — is translucent, and the content scrolls
- * beneath it. That is what gives the app a sense of layers rather than of flat
- * panes butted against each other.
+ * The chrome — sidebar and top bar — is fixed charcoal, the same brand chrome
+ * as the marketing header, regardless of the light/dark toggle: the content
+ * area underneath keeps following it. Translucent, so the content scrolls
+ * beneath it — that is what gives the app a sense of layers rather than of
+ * flat panes butted against each other.
  */
 
 import { useEffect, useState, type ReactNode } from 'react'
@@ -48,33 +50,33 @@ export function AppShell({
   useEffect(() => setNavOpen(false), [location.pathname])
 
   return (
-    <div className="mesh min-h-screen bg-bg">
+    <div className="min-h-screen bg-bg">
       {/* Keyboard users should not have to tab the whole sidebar to reach the
           table on every page. */}
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-grad-accent focus:px-4 focus:py-2 focus:font-semibold focus:text-on-accent focus:shadow-e2"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-brand-grad-accent focus:px-4 focus:py-2 focus:font-semibold focus:text-white focus:shadow-e2"
       >
         Skip to content
       </a>
 
-      {/* --- Sidebar --------------------------------------------------- */}
+      {/* --- Sidebar: fixed charcoal brand chrome ----------------------- */}
       <aside
         className={cx(
-          'glass-strong fixed inset-y-0 left-0 z-40 flex w-sidebar flex-col border-r',
+          'fixed inset-y-0 left-0 z-40 flex w-sidebar flex-col border-r border-brand-border bg-brand-bg',
           'transition-transform duration-slow ease-out lg:translate-x-0',
           navOpen ? 'translate-x-0 shadow-e3' : '-translate-x-full',
         )}
       >
         <div className="flex h-topbar items-center gap-2.5 px-5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-grad-accent text-on-accent shadow-e1">
+          <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-brand-grad-accent text-white shadow-e1">
             <IconRadar size={17} />
           </span>
-          <span className="text-md font-extrabold tracking-tight">JobRadar</span>
+          <span className="text-md font-extrabold tracking-tight text-brand-fg">JobRadar</span>
           <button
             type="button"
             onClick={() => setNavOpen(false)}
-            className="ml-auto rounded-sm p-2 text-muted transition-colors hover:bg-surface-hover hover:text-fg lg:hidden"
+            className="ml-auto rounded-sm p-2 text-brand-fg-muted transition-colors hover:bg-brand-surface-hover hover:text-brand-fg lg:hidden"
           >
             <IconClose title="Close navigation" size={18} />
           </button>
@@ -92,8 +94,8 @@ export function AppShell({
                   'transition-all duration-fast ease-out',
                   isActive
                     ? // A gradient pill, not a tinted rectangle.
-                      'bg-grad-accent text-on-accent shadow-e1'
-                    : 'text-muted hover:bg-surface-hover hover:text-fg',
+                      'bg-brand-grad-accent text-white shadow-e1'
+                    : 'text-brand-fg-muted hover:bg-brand-surface-hover hover:text-brand-fg',
                 )
               }
             >
@@ -105,13 +107,13 @@ export function AppShell({
 
         {/* Stacked, not side by side: the three-way theme switch and a labelled
             button do not both fit in 244px without the label wrapping. */}
-        <div className="flex flex-col gap-2.5 border-t border-hairline p-3">
-          <p className="truncate px-1.5 text-xs text-subtle" title={user?.email}>
+        <div className="flex flex-col gap-2.5 border-t border-brand-border p-3">
+          <p className="truncate px-1.5 text-xs text-brand-fg-subtle" title={user?.email}>
             {user?.email}
           </p>
           <div className="flex items-center justify-between gap-2">
             <ThemeToggle />
-            <Button variant="ghost" size="sm" onClick={() => void logout()}>
+            <Button variant="brand-ghost" size="sm" onClick={() => void logout()}>
               <IconLogout size={16} />
               Sign out
             </Button>
@@ -128,7 +130,7 @@ export function AppShell({
         />
       )}
 
-      {/* --- Content ---------------------------------------------------- */}
+      {/* --- Content: follows the light/dark toggle, unlike the chrome --- */}
       <div className="lg:pl-sidebar">
         <header className="glass sticky top-0 z-20 flex h-topbar items-center gap-4 border-b px-5">
           <button
