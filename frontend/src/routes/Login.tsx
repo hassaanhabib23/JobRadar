@@ -57,6 +57,7 @@ export default function Login() {
     <AuthLayout
       title="Sign in"
       subtitle="Your ranked shortlist is waiting."
+      showBack
       footer={
         <>
           No account?{' '}

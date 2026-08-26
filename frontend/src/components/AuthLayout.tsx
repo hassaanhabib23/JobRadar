@@ -14,7 +14,7 @@ import { Link } from 'react-router-dom'
 
 import { RadarDecoration } from './RadarField'
 import { ThemeToggle } from './ThemeToggle'
-import { IconCheck, IconRadar, IconShield, IconSparkle, IconTarget } from './icons'
+import { IconArrowLeft, IconCheck, IconRadar, IconShield, IconSparkle, IconTarget } from './icons'
 import { Panel } from './ui'
 
 const REASSURANCE = [
@@ -41,6 +41,7 @@ export function AuthLayout({
   children,
   footer,
   wide = false,
+  showBack = false,
 }: {
   title: string
   subtitle?: string
@@ -48,6 +49,8 @@ export function AuthLayout({
   footer?: ReactNode
   /** Onboarding needs more room than a two-field sign-in form. */
   wide?: boolean
+  /** An explicit way back to the landing page, distinct from the logo link. */
+  showBack?: boolean
 }) {
   return (
     <div className="relative min-h-screen bg-bg lg:grid lg:grid-cols-[minmax(0,45%)_1fr]">
@@ -85,12 +88,23 @@ export function AuthLayout({
       {/* --- Form side ----------------------------------------------------- */}
       <div className="relative flex min-h-screen flex-col px-5 py-5 sm:px-7 lg:min-h-0">
         <header className="flex items-center justify-between gap-3">
-          <Link to="/" className="flex items-center gap-2.5 font-extrabold tracking-tight">
-            <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-grad-accent text-on-accent shadow-e1">
-              <IconRadar size={17} />
-            </span>
-            JobRadar
-          </Link>
+          <div className="flex items-center gap-4">
+            {showBack && (
+              <Link
+                to="/"
+                className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-fg"
+              >
+                <IconArrowLeft size={15} />
+                Back
+              </Link>
+            )}
+            <Link to="/" className="flex items-center gap-2.5 font-extrabold tracking-tight">
+              <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-grad-accent text-on-accent shadow-e1">
+                <IconRadar size={17} />
+              </span>
+              JobRadar
+            </Link>
+          </div>
           <ThemeToggle />
         </header>
 
