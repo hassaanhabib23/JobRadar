@@ -1,18 +1,15 @@
 /**
- * The filter sidebar.
+ * The filter bar.
  *
  * Filters are visible, not hidden behind a "Filters" button — a filter you
  * cannot see is a filter you forget is on, and then the list looks wrong for
- * reasons you cannot explain. A vertical column rather than a wrapping bar: it
- * is the left third of the 3-column job portal (filters | results | detail),
- * so every control gets the full row width instead of being squeezed into a
- * compact select.
+ * reasons you cannot explain.
  *
  * Search is debounced so typing does not fire a request per keystroke;
  * everything else commits immediately. All of it goes into the URL.
  */
 
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 
 import type { StatusChoice } from '../api/types'
 import { IconClose, IconSearch } from '../components/icons'
@@ -22,9 +19,9 @@ import type { JobFilters } from './useJobFilters'
 /**
  * Human names for the places jobs come from.
  *
- * Built from the sources actually present in your data, so it never offers a
- * filter that would return nothing — and it never shows the name of a Python
- * library where a job board belongs.
+ * The dropdown is built from the sources actually present in your data, so it
+ * never offers a filter that would return nothing — and it never shows the name
+ * of a Python library where a job board belongs.
  */
 export const SOURCE_LABELS: Record<string, string> = {
   linkedin: 'LinkedIn',
@@ -88,112 +85,98 @@ export function FilterBar({
   }, [searchDraft, filters.search, setFilters])
 
   return (
-    <section aria-label="Filters" className="surface flex flex-col gap-4 p-4">
-      <div className="flex items-center justify-between gap-2">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-subtle">Filters</h2>
-        {activeCount > 0 && (
-          <Button variant="ghost" size="sm" onClick={reset} className="!h-7 !px-2 text-xs">
-            <IconClose size={12} />
-            Clear {activeCount} filter{activeCount === 1 ? '' : 's'}
-          </Button>
-        )}
-      </div>
+    // Deliberately not sticky: the bulk-action bar below it already pins to the
+    // same offset, and two elements at one offset overlap.
+    <section
+      aria-label="Filters"
+      className="glass-strong rounded-lg border border-hairline p-3.5 shadow-e1"
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative min-w-[220px] flex-1">
+          <label htmlFor="job-search" className="sr-only">
+            Search jobs
+          </label>
+          <IconSearch
+            size={15}
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-subtle"
+          />
+          <input
+            id="job-search"
+            type="search"
+            placeholder="Search title, company or location"
+            value={searchDraft}
+            onChange={(event) => setSearchDraft(event.target.value)}
+            className="h-10 w-full rounded-sm border border-hairline-strong bg-surface-inset pl-9 pr-3 text-base transition-all duration-fast placeholder:text-subtle focus:border-accent focus:bg-surface focus:shadow-ring focus:outline-none"
+          />
+        </div>
 
-      <p aria-live="polite" className="-mt-2 text-sm text-muted">
-        {resultCount === undefined ? (
-          'Loading…'
-        ) : (
-          <>
-            <span className="tabular text-md font-extrabold text-fg">{resultCount}</span> job
-            {resultCount === 1 ? '' : 's'}
-          </>
-        )}
-      </p>
+        <Compact label="Tier" value={filters.tier} onChange={(tier) => setFilters({ tier })}>
+          <option value="">Any tier</option>
+          <option value="High">High</option>
+          <option value="Medium">Medium</option>
+          <option value="Stretch">Stretch</option>
+        </Compact>
 
-      <div className="relative">
-        <label htmlFor="job-search" className="sr-only">
-          Search jobs
-        </label>
-        <IconSearch
-          size={15}
-          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-subtle"
-        />
-        <input
-          id="job-search"
-          type="search"
-          placeholder="Search title, company or location"
-          value={searchDraft}
-          onChange={(event) => setSearchDraft(event.target.value)}
-          className="h-10 w-full rounded-sm border border-hairline-strong bg-surface-inset pl-9 pr-3 text-base transition-all duration-fast placeholder:text-subtle focus:border-accent focus:bg-surface focus:shadow-ring focus:outline-none"
-        />
-      </div>
-
-      <LabeledField label="Tier" value={filters.tier} onChange={(tier) => setFilters({ tier })}>
-        <option value="">Any tier</option>
-        <option value="High">High</option>
-        <option value="Medium">Medium</option>
-        <option value="Stretch">Stretch</option>
-      </LabeledField>
-
-      <LabeledField
-        label="Status"
-        value={filters.status}
-        onChange={(status) => setFilters({ status })}
-      >
-        <option value="">Any status</option>
-        {statuses.map((status) => (
-          <option key={status.value} value={status.value}>
-            {status.label}
-          </option>
-        ))}
-      </LabeledField>
-
-      <LabeledField
-        label="Source"
-        value={filters.source}
-        onChange={(source) => setFilters({ source })}
-      >
-        <option value="">Any source</option>
-        {Object.entries(sources)
-          // Most jobs first: the useful filters sit at the top of the list.
-          .sort((a, b) => b[1] - a[1])
-          .map(([source, count]) => (
-            <option key={source} value={source}>
-              {sourceLabel(source)} ({count})
+        <Compact
+          label="Status"
+          value={filters.status}
+          onChange={(status) => setFilters({ status })}
+        >
+          <option value="">Any status</option>
+          {statuses.map((status) => (
+            <option key={status.value} value={status.value}>
+              {status.label}
             </option>
           ))}
-      </LabeledField>
+        </Compact>
 
-      <LabeledField
-        label="City"
-        value={filters.location}
-        onChange={(location) => setFilters({ location })}
-      >
-        <option value="">Any city</option>
-        {CITIES.map((city) => (
-          <option key={city.value} value={city.value}>
-            {city.label}
-          </option>
-        ))}
-      </LabeledField>
+        <Compact
+          label="Source"
+          value={filters.source}
+          onChange={(source) => setFilters({ source })}
+        >
+          <option value="">Any source</option>
+          {Object.entries(sources)
+            // Most jobs first: the useful filters sit at the top of the list.
+            .sort((a, b) => b[1] - a[1])
+            .map(([source, count]) => (
+              <option key={source} value={source}>
+                {sourceLabel(source)} ({count})
+              </option>
+            ))}
+        </Compact>
 
-      <div className="flex flex-col gap-2">
-        <label htmlFor="min-score" className="text-xs font-semibold text-subtle">
-          Minimum score
-        </label>
-        <input
-          id="min-score"
-          type="number"
-          min={0}
-          max={100}
-          placeholder="0"
-          value={filters.minScore}
-          onChange={(event) => setFilters({ minScore: event.target.value })}
-          className="tabular h-10 w-full rounded-sm border border-hairline-strong bg-surface-inset px-3 text-sm transition-all duration-fast focus:border-accent focus:bg-surface focus:shadow-ring focus:outline-none"
-        />
+        <Compact
+          label="City"
+          value={filters.location}
+          onChange={(location) => setFilters({ location })}
+        >
+          <option value="">Any city</option>
+          {CITIES.map((city) => (
+            <option key={city.value} value={city.value}>
+              {city.label}
+            </option>
+          ))}
+        </Compact>
+
+        <div className="flex items-center gap-1.5">
+          <label htmlFor="min-score" className="text-xs text-subtle">
+            Min
+          </label>
+          <input
+            id="min-score"
+            type="number"
+            min={0}
+            max={100}
+            placeholder="0"
+            value={filters.minScore}
+            onChange={(event) => setFilters({ minScore: event.target.value })}
+            className="tabular h-10 w-[68px] rounded-sm border border-hairline-strong bg-surface-inset px-2 text-sm transition-all duration-fast focus:border-accent focus:bg-surface focus:shadow-ring focus:outline-none"
+          />
+        </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 border-t border-hairline pt-3.5">
+      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-hairline pt-3">
         <Chip checked={filters.postedToday} onChange={(postedToday) => setFilters({ postedToday })}>
           <span title="Published today, by the employer's own date. Undated postings are excluded — with no date there is no evidence.">
             Posted today
@@ -224,14 +207,31 @@ export function FilterBar({
         >
           Include closed
         </Chip>
+
+        {activeCount > 0 && (
+          <Button variant="ghost" size="sm" onClick={reset}>
+            <IconClose size={13} />
+            Clear {activeCount} filter{activeCount === 1 ? '' : 's'}
+          </Button>
+        )}
+
+        <p aria-live="polite" className={cx('ml-auto text-sm text-muted')}>
+          {resultCount === undefined ? (
+            'Loading…'
+          ) : (
+            <>
+              <span className="tabular text-md font-extrabold text-fg">{resultCount}</span> job
+              {resultCount === 1 ? '' : 's'}
+            </>
+          )}
+        </p>
       </div>
     </section>
   )
 }
 
-/** A visible-label select — the vertical sidebar has the room a compact
-    horizontal bar didn't. */
-function LabeledField({
+/** A compact labelled select for the filter row. */
+function Compact({
   label,
   value,
   onChange,
@@ -240,12 +240,12 @@ function LabeledField({
   label: string
   value: string
   onChange: (value: string) => void
-  children: ReactNode
+  children: React.ReactNode
 }) {
   const id = `filter-${label.toLowerCase()}`
   return (
-    <div className="flex flex-col gap-2">
-      <label htmlFor={id} className="text-xs font-semibold text-subtle">
+    <>
+      <label htmlFor={id} className="sr-only">
         {label}
       </label>
       <select
@@ -253,7 +253,7 @@ function LabeledField({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className={cx(
-          'h-10 w-full rounded-sm border px-2.5 text-sm font-medium transition-all duration-fast',
+          'h-10 rounded-sm border px-2.5 text-sm font-medium transition-all duration-fast',
           'focus:shadow-ring focus:outline-none',
           value
             ? 'border-accent-border bg-accent-subtle text-accent shadow-e0'
@@ -262,6 +262,6 @@ function LabeledField({
       >
         {children}
       </select>
-    </div>
+    </>
   )
 }

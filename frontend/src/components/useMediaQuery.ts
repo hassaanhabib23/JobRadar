@@ -25,13 +25,10 @@ export function useMediaQuery(query: string): boolean {
 }
 
 /**
- * The job portal's 3-column breakpoint (filters | cards | detail panel).
+ * The table/card breakpoint.
  *
- * Three real columns plus a sticky detail panel need real room, and this is
- * also the exact point at which a job card's title starts opening the inline
- * panel instead of navigating to the standalone page — the two have to agree,
- * or a click could intercept navigation into a panel that isn't on screen.
- * Matches Tailwind's `xl:` breakpoint (1280px) so the JS and the CSS grid
- * never disagree about which layout is showing.
+ * Matches the sidebar's own breakpoint on purpose: below it the sidebar is a
+ * slide-over and the content has the full width, so a table would be squeezed
+ * into whatever the sidebar left behind.
  */
-export const PORTAL_WIDE = '(min-width: 1280px)'
+export const WIDE_SCREEN = '(min-width: 1024px)'
