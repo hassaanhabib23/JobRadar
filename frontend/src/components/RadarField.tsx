@@ -21,11 +21,7 @@ import { cx } from './ui'
  */
 export function RadarField({ className }: { className?: string }) {
   return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 400 400"
-      className={cx('pointer-events-none', className)}
-    >
+    <svg aria-hidden="true" viewBox="0 0 400 400" className={cx('pointer-events-none', className)}>
       <circle cx="200" cy="200" r="170" fill="none" stroke="var(--brand-line)" strokeWidth="1" />
       <circle cx="200" cy="200" r="120" fill="none" stroke="var(--brand-line)" strokeWidth="1" />
       <circle cx="200" cy="200" r="70" fill="none" stroke="var(--brand-line)" strokeWidth="1" />

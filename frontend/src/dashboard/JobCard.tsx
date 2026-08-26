@@ -110,8 +110,8 @@ export function JobCard({
 
           <p className="mt-0.5 truncate text-sm text-muted">{job.company}</p>
           <p className="mt-1 truncate text-xs text-subtle">
-            {job.location || 'Location not stated'} · via{' '}
-            <span>{sourceLabel(job.source)}</span> · <PostedLabel job={job} />
+            {job.location || 'Location not stated'} · via <span>{sourceLabel(job.source)}</span> ·{' '}
+            <PostedLabel job={job} />
           </p>
 
           <ScoreBar detail={job.detail} score={job.score} className="mt-2.5" />

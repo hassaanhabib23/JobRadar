@@ -110,9 +110,7 @@ export function JobDetailContent({
               description="Every number here comes from a weight you control."
               action={
                 <div className="flex items-baseline gap-2">
-                  <span className="tabular text-3xl font-extrabold leading-none">
-                    {data.score}
-                  </span>
+                  <span className="tabular text-3xl font-extrabold leading-none">{data.score}</span>
                   <span className="text-sm text-subtle">/ 100</span>
                   <Badge tone={TIER_TONE[data.tier as keyof typeof TIER_TONE] ?? 'neutral'}>
                     {data.tier}

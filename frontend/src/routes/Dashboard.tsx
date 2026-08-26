@@ -167,7 +167,9 @@ export default function Dashboard() {
                     type="checkbox"
                     checked={allSelected}
                     onChange={(event) =>
-                      setSelected(event.target.checked ? new Set(rows.map((job) => job.id)) : new Set())
+                      setSelected(
+                        event.target.checked ? new Set(rows.map((job) => job.id)) : new Set(),
+                      )
                     }
                     className="h-4 w-4 accent-[var(--accent)]"
                   />
