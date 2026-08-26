@@ -27,7 +27,15 @@ export function cx(...classes: (string | false | null | undefined)[]): string {
 
 /* --- Button ------------------------------------------------------------- */
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'glass' | 'danger'
+type ButtonVariant =
+  | 'primary'
+  | 'secondary'
+  | 'ghost'
+  | 'glass'
+  | 'danger'
+  | 'brand'
+  | 'brand-secondary'
+  | 'brand-ghost'
 type ButtonSize = 'sm' | 'md' | 'lg'
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
@@ -42,6 +50,19 @@ const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   glass: 'glass border text-fg hover:bg-surface-hover',
   danger:
     'bg-danger-bg text-danger border border-danger-border hover:bg-danger hover:text-on-accent',
+  // The three above all key off the light/dark toggle via --fg-muted etc.,
+  // which is wrong on a surface that stays charcoal regardless of it (the
+  // marketing header, the hero/CTA, the login's brand panel). These three
+  // are the brand-chrome equivalents, built from the fixed `--brand-*`
+  // tokens instead.
+  brand:
+    'bg-brand-grad-accent text-white shadow-e1 border border-transparent ' +
+    'hover:shadow-brand-glow hover:-translate-y-px active:translate-y-0',
+  'brand-secondary':
+    'border border-brand-border-strong bg-brand-surface text-brand-fg hover:bg-brand-surface-hover ' +
+    'hover:-translate-y-px active:translate-y-0',
+  'brand-ghost':
+    'text-brand-fg-muted hover:text-brand-fg hover:bg-brand-surface-hover border border-transparent',
 }
 
 const BUTTON_SIZES: Record<ButtonSize, string> = {
@@ -266,7 +287,7 @@ export function Chip({
   )
 }
 
-export type BadgeTone = 'neutral' | 'accent' | 'high' | 'medium' | 'stretch' | 'danger'
+export type BadgeTone = 'neutral' | 'accent' | 'high' | 'medium' | 'stretch' | 'danger' | 'brand'
 
 const BADGE_TONES: Record<BadgeTone, string> = {
   neutral: 'border-hairline bg-surface-inset text-muted',
@@ -275,6 +296,13 @@ const BADGE_TONES: Record<BadgeTone, string> = {
   medium: 'border-medium-border bg-medium-bg text-medium',
   stretch: 'border-stretch-border bg-stretch-bg text-stretch',
   danger: 'border-danger-border bg-danger-bg text-danger',
+  // For a badge sitting directly on brand chrome (the hero, the CTA, the
+  // login's brand panel) — see the comment on the `brand` button variant.
+  // A translucent border needs its alpha baked into the token (Tailwind
+  // can't apply an opacity modifier to a colour it only knows as `var(...)`
+  // — see the comment on `--brand-glass-bg` in tokens.css), so this reuses
+  // the solid `--brand-border` rather than trying `/30` on the accent.
+  brand: 'border-brand-border bg-brand-accent-subtle text-brand-accent',
 }
 
 export function Badge({

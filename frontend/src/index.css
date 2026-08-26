@@ -231,6 +231,39 @@
       transform: none;
     }
   }
+
+  /** A slow, small drift for the decorative opportunity chips on brand
+      chrome. Frozen by the reduced-motion block below, same as everything
+      else here — it is set dressing, never information. */
+  .float {
+    animation: float 7s var(--ease) infinite;
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-9px);
+    }
+  }
+
+  /** The radar's scan line. One slow, quiet rotation — a clock hand, not a
+      spinner. */
+  .radar-sweep {
+    animation: radar-sweep 9s linear infinite;
+    transform-origin: center;
+  }
+
+  @keyframes radar-sweep {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
 }
 
 /* Motion is decoration here, never information. Removing it costs nothing:
