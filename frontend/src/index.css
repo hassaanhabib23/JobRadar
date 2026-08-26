@@ -150,25 +150,6 @@
     border-color: var(--glass-border);
   }
 
-  /**
-   * A gradient hairline along the top edge of a card.
-   *
-   * The card clips it, so the bar follows the rounded corners instead of
-   * running straight past them and reading as a line floating above the card.
-   */
-  .edge-top {
-    overflow: hidden;
-  }
-
-  .edge-top::after {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto 0;
-    height: 3px;
-    background: var(--grad-edge);
-    pointer-events: none;
-  }
-
   /** The physical lift. Transform and shadow only — both compositor-friendly. */
   .lift {
     transition:
