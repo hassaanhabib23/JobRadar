@@ -23,7 +23,9 @@ RUN_LOCK_KEY = "jobradar:run:lock"
 RUN_LOCK_TIMEOUT = 60 * 30
 
 #: How stale the last successful run must be before startup fires a catch-up.
-CATCH_UP_AFTER = timedelta(hours=24)
+#: Kept just above the scheduled interval (see CELERY_BEAT_SCHEDULE) so normal
+#: timing jitter between runs never looks like an outage.
+CATCH_UP_AFTER = timedelta(hours=3)
 
 
 def _lock():
@@ -77,9 +79,9 @@ def run_now(self, triggered_by: str = "schedule", hours_old: int | None = None) 
 def catch_up_if_stale() -> dict:
     """Fire a run if the last successful one is older than the schedule.
 
-    Beat does not backfill. If the machine was down at 09:00 that run simply
-    never happens, and a weekend of downtime becomes a silent gap in the data
-    with nothing in the UI to suggest anything was missed.
+    Beat does not backfill. If the machine was down over a scheduled slot that
+    run simply never happens, and extended downtime becomes a silent gap in
+    the data with nothing in the UI to suggest anything was missed.
     """
     from jobs.runner import last_successful_run
 

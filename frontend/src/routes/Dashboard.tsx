@@ -289,7 +289,7 @@ function DashboardEmpty({
       <EmptyState
         icon={<IconRadar size={18} />}
         title="Nothing fetched yet"
-        description="No run has finished. The scheduled run happens each morning, or you can start one now — it usually takes under a minute."
+        description="No run has finished. The scheduled run happens every 2 hours, or you can start one now — it usually takes under a minute."
         action={
           <Button onClick={onRun} disabled={running}>
             {running ? 'Starting…' : 'Run now'}

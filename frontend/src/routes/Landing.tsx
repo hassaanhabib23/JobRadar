@@ -68,7 +68,7 @@ const STEPS = [
   },
   {
     Icon: IconRadar,
-    title: 'It reads everything, daily',
+    title: 'It reads everything, every 2 hours',
     body: 'Company job boards, plus Indeed, Bayt, Google Jobs and any RSS or Google Alerts feed you point it at.',
   },
   {
@@ -122,9 +122,9 @@ const STATS: {
   {
     numeric: null,
     suffix: '',
-    value: 'Daily',
+    value: 'Every 2h',
     label: 'run cadence',
-    note: 'every morning, or on demand',
+    note: 'around the clock, or on demand',
   },
 ]
 

@@ -25,7 +25,7 @@ const REASSURANCE = [
   },
   {
     Icon: IconSparkle,
-    title: '17 sources, checked daily',
+    title: '17 sources, checked every 2 hours',
     body: 'Company job boards plus LinkedIn, Indeed, Bayt and Google Jobs.',
   },
   {

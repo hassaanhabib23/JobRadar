@@ -79,7 +79,7 @@ export default function Runs() {
           <EmptyState
             icon={<IconHistory size={18} />}
             title="No runs yet"
-            description="The scheduled run happens each morning. You can start one now to fill your dashboard — it usually takes under a minute."
+            description="The scheduled run happens every 2 hours. You can start one now to fill your dashboard — it usually takes under a minute."
             action={
               <Button onClick={() => triggerRun.mutate(undefined)} disabled={triggerRun.isPending}>
                 {triggerRun.isPending ? 'Starting…' : 'Run now'}

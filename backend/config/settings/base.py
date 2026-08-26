@@ -239,20 +239,31 @@ CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 
 REDIS_URL = env("REDIS_URL", "redis://redis:6379/0")
 
-# The daily schedule. django-celery-beat stores it in the database, so the cron
-# is editable from the admin without a redeploy; this is only the initial value.
+# django-celery-beat stores the schedule in the database, so the cron is
+# editable from the admin without a redeploy; this is only the initial value.
+# The task key ("daily-run") is kept stable even though the cadence below is no
+# longer daily — django-celery-beat matches DB rows to this dict by name, and
+# renaming the key would orphan the old row as a still-firing duplicate.
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_BEAT_SCHEDULE = {
     "daily-run": {
         "task": "jobs.run_now",
-        # 09:00 Asia/Karachi — CELERY_TIMEZONE above, not the server's clock.
-        "schedule": crontab(hour="9", minute="0"),
-        "kwargs": {"triggered_by": "schedule"},
+        # Every 2 hours, on the hour, Asia/Karachi (CELERY_TIMEZONE above, not
+        # the server's clock).
+        "schedule": crontab(hour="*/2", minute="0"),
+        "kwargs": {
+            "triggered_by": "schedule",
+            # A run every 2 hours only needs to see postings from the last few
+            # hours — 4h gives one interval of buffer against timing jitter or
+            # a single missed run, without re-fetching the whole history each
+            # time. ATS boards ignore this; see RunTriggerSerializer.
+            "hours_old": 4,
+        },
     },
     "job-reminders": {
         "task": "jobs.send_due_reminders",
-        # Hourly: a date-level reminder does not need finer granularity, and
-        # this is 24x more sweeps than the run without being noisy.
+        # Hourly: a date-level reminder does not need finer granularity than
+        # the run itself.
         "schedule": crontab(minute=0),
     },
 }
