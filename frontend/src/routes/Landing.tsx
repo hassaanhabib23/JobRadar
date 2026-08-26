@@ -10,6 +10,13 @@
  * mechanism, then the proof — and the proof is a real scored row rather than a
  * paragraph describing one. Showing the actual artefact is the whole pitch.
  *
+ * **Every colour here is a theme token, never a fixed one.** The header, hero,
+ * stats band and CTA used to stay a fixed dark colour regardless of the
+ * light/dark toggle, which meant switching themes changed only part of the
+ * page — it reads as broken, because the toggle sits right there in the
+ * header implying it controls everything around it. `bg`/`bg-deep` alternate
+ * for section rhythm instead, and both follow the toggle.
+ *
  * **Honest copy, above conversion.** No invented testimonials, no "trusted by
  * N developers", no fabricated logos or star ratings. It does not claim to
  * index every job on the internet, and it does not call the scoring AI — it is
@@ -147,18 +154,15 @@ export default function Landing() {
     <div className="min-h-screen bg-bg">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded focus:bg-brand-grad-accent focus:px-4 focus:py-2 focus:font-semibold focus:text-white focus:shadow-e2"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded focus:bg-grad-accent focus:px-4 focus:py-2 focus:font-semibold focus:text-on-accent focus:shadow-e2"
       >
         Skip to content
       </a>
 
-      {/* Always indigo, whatever the light/dark toggle says — the brief-inspired
-          own "dark navbar, off-white content, accent CTA" pattern, applied as
-          a constant rather than something the toggle can undo. */}
-      <header className="sticky top-0 z-20 border-b border-brand-border bg-brand-bg">
+      <header className="glass sticky top-0 z-20 border-b">
         <div className="mx-auto flex h-topbar max-w-6xl items-center gap-3 px-5">
-          <span className="flex items-center gap-2.5 text-md font-extrabold tracking-tight text-brand-fg">
-            <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-brand-grad-accent text-white shadow-e1">
+          <span className="flex items-center gap-2.5 text-md font-extrabold tracking-tight">
+            <span className="flex h-8 w-8 items-center justify-center rounded-sm bg-grad-accent text-on-accent shadow-e1">
               <IconRadar size={17} />
             </span>
             JobRadar
@@ -168,21 +172,19 @@ export default function Landing() {
             <ThemeToggle />
             {signedIn ? (
               <Link to="/app">
-                <Button size="sm" variant="brand-secondary">
+                <Button size="sm" variant="secondary">
                   Dashboard
                 </Button>
               </Link>
             ) : (
               <>
                 <Link to="/login" className="hidden sm:block">
-                  <Button size="sm" variant="brand-ghost">
+                  <Button size="sm" variant="ghost">
                     Sign in
                   </Button>
                 </Link>
                 <Link to="/register">
-                  <Button size="sm" variant="brand">
-                    Get started
-                  </Button>
+                  <Button size="sm">Get started</Button>
                 </Link>
               </>
             )}
@@ -191,22 +193,22 @@ export default function Landing() {
       </header>
 
       <main id="main">
-        {/* --- Hero (indigo) ------------------------------------------ */}
-        <section className="relative overflow-hidden bg-brand-bg">
+        {/* --- Hero -------------------------------------------------------- */}
+        <section className="mesh relative overflow-hidden border-b border-hairline bg-bg">
           <RadarDecoration chips={HERO_CHIPS} className="hidden lg:block" />
 
           <div className="relative mx-auto grid max-w-6xl gap-8 px-5 py-10 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:py-24">
             <Reveal>
-              <Badge tone="brand" icon={<IconCheck size={12} />}>
+              <Badge tone="accent" icon={<IconCheck size={12} />}>
                 Free and self-hostable
               </Badge>
 
-              <h1 className="mt-5 text-3xl font-extrabold leading-[1.08] tracking-tight text-brand-fg sm:text-4xl lg:text-5xl">
+              <h1 className="mt-5 text-3xl font-extrabold leading-[1.08] tracking-tight sm:text-4xl lg:text-5xl">
                 Every junior dev job in your city,{' '}
-                <span className="text-brand-accent">scored against your CV</span>, in one place.
+                <span className="text-accent">scored against your CV</span>, in one place.
               </h1>
 
-              <p className="mt-4 max-w-measure text-md text-brand-fg-muted">
+              <p className="mt-4 max-w-measure text-md text-muted">
                 JobRadar reads company job boards and feeds every morning, ranks each posting
                 against a profile you control, and tells you exactly why it ranked where it did.
               </p>
@@ -215,18 +217,16 @@ export default function Landing() {
 
               <div className="mt-5 flex flex-wrap items-center gap-3">
                 <Link to="/register">
-                  <Button size="lg" variant="brand">
-                    Get started
-                  </Button>
+                  <Button size="lg">Get started</Button>
                 </Link>
                 <Link to="/login">
-                  <Button size="lg" variant="brand-secondary">
+                  <Button size="lg" variant="secondary">
                     Sign in
                   </Button>
                 </Link>
               </div>
 
-              <p className="mt-4 text-sm text-brand-fg-subtle">
+              <p className="mt-4 text-sm text-subtle">
                 Two minutes to set up. Two minutes a morning after that.
               </p>
             </Reveal>
@@ -238,7 +238,7 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* --- The problem (off-white) ----------------------------------- */}
+        {/* --- The problem --------------------------------------------- */}
         <section className="border-b border-hairline bg-bg">
           <div className="mx-auto max-w-6xl px-5 py-14">
             <h2 className="max-w-measure text-2xl font-extrabold sm:text-3xl">
@@ -256,16 +256,16 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* --- Stats band (indigo) -------------------------------------- */}
-        <section className="border-b border-brand-border bg-brand-bg">
+        {/* --- Stats band ------------------------------------------------- */}
+        <section className="border-b border-hairline bg-bg-deep">
           <div className="mx-auto max-w-6xl px-5 py-12">
             <dl className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {STATS.map((stat, index) => (
                 <Reveal key={stat.label} delay={index * 60}>
-                  <dt className="text-2xs font-bold uppercase tracking-wide text-brand-fg-subtle">
+                  <dt className="text-2xs font-bold uppercase tracking-wide text-subtle">
                     {stat.label}
                   </dt>
-                  <dd className="tabular mt-1.5 text-4xl font-extrabold text-brand-accent">
+                  <dd className="tabular mt-1.5 text-4xl font-extrabold text-accent">
                     {stat.numeric !== null ? (
                       <>
                         <CountUp value={stat.numeric} duration={1100} />
@@ -275,15 +275,15 @@ export default function Landing() {
                       stat.value
                     )}
                   </dd>
-                  <p className="mt-1.5 text-sm text-brand-fg-muted">{stat.note}</p>
+                  <p className="mt-1.5 text-sm text-muted">{stat.note}</p>
                 </Reveal>
               ))}
             </dl>
           </div>
         </section>
 
-        {/* --- How it works (light gray) ---------------------------------- */}
-        <section className="border-b border-hairline bg-bg-deep">
+        {/* --- How it works ------------------------------------------------ */}
+        <section className="border-b border-hairline bg-bg">
           <div className="mx-auto max-w-6xl px-5 py-14">
             <h2 className="text-2xl font-extrabold sm:text-3xl">How it works</h2>
             <ol className="mt-6 grid gap-4 lg:grid-cols-3">
@@ -307,8 +307,8 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* --- What it reads, named honestly (off-white) ------------------ */}
-        <section className="border-b border-hairline bg-bg">
+        {/* --- What it reads, named honestly -------------------------------- */}
+        <section className="border-b border-hairline bg-bg-deep">
           <div className="mx-auto max-w-6xl px-5 py-14">
             <h2 className="text-2xl font-extrabold sm:text-3xl">What it actually reads</h2>
             <p className="mt-2 max-w-measure text-sm text-muted">
@@ -316,7 +316,7 @@ export default function Landing() {
             </p>
 
             <div className="mt-6 grid gap-4 lg:grid-cols-2">
-              <article className="surface lift edge-top p-5 sm:p-6">
+              <article className="surface lift p-5 sm:p-6">
                 <h3 className="flex items-center gap-2 text-md font-bold">
                   <IconLayers size={16} className="text-accent" />
                   Company job boards
@@ -334,7 +334,7 @@ export default function Landing() {
                 </ul>
               </article>
 
-              <article className="surface lift edge-top p-5 sm:p-6">
+              <article className="surface lift p-5 sm:p-6">
                 <h3 className="flex items-center gap-2 text-md font-bold">
                   <IconRadar size={16} className="text-accent" />
                   Boards and feeds
@@ -355,21 +355,17 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* --- CTA (indigo) ---------------------------------------------- */}
-        <section className="bg-brand-bg">
+        {/* --- CTA ----------------------------------------------------- */}
+        <section className="bg-bg">
           <div className="mx-auto max-w-6xl px-5 py-16 text-center">
-            <h2 className="text-3xl font-extrabold text-brand-fg sm:text-4xl">
-              Stop opening eight tabs
-            </h2>
-            <p className="mx-auto mt-3 max-w-measure text-md text-brand-fg-muted">
+            <h2 className="text-3xl font-extrabold sm:text-4xl">Stop opening eight tabs</h2>
+            <p className="mx-auto mt-3 max-w-measure text-md text-muted">
               Free, open, and self-hostable — one command on your own machine, and your job list and
               notes never leave it.
             </p>
             <div className="mt-7 flex flex-wrap justify-center gap-3">
               <Link to="/register">
-                <Button size="lg" variant="brand">
-                  Get started
-                </Button>
+                <Button size="lg">Get started</Button>
               </Link>
               <a
                 href="https://github.com"
@@ -377,7 +373,7 @@ export default function Landing() {
                 rel="noopener noreferrer"
                 className="inline-flex"
               >
-                <Button size="lg" variant="brand-secondary">
+                <Button size="lg" variant="secondary">
                   View the source
                   <IconExternal size={14} />
                 </Button>
@@ -387,11 +383,11 @@ export default function Landing() {
         </section>
       </main>
 
-      <footer className="border-t border-brand-border bg-brand-bg-deep px-5 py-10 text-sm text-brand-fg-muted">
+      <footer className="border-t border-hairline bg-bg-deep px-5 py-10 text-sm text-muted">
         <div className="mx-auto grid max-w-6xl gap-5 sm:grid-cols-2">
           <div>
-            <p className="flex items-center gap-2 font-bold text-brand-fg">
-              <IconRadar size={16} className="text-brand-accent" />
+            <p className="flex items-center gap-2 font-bold text-fg">
+              <IconRadar size={16} className="text-accent" />
               JobRadar
             </p>
             <p className="mt-2 max-w-measure">
@@ -401,10 +397,10 @@ export default function Landing() {
           </div>
           <div className="space-y-2.5">
             <p>
-              <strong className="font-bold text-brand-fg">Worth knowing:</strong> scraped sources
+              <strong className="font-bold text-fg">Worth knowing:</strong> scraped sources
               (LinkedIn, Indeed) can rate-limit or block, so coverage from them varies.{' '}
-              <strong className="font-bold text-brand-fg">Glassdoor is not supported</strong> — it
-              does not serve Pakistan, so the data simply is not there.
+              <strong className="font-bold text-fg">Glassdoor is not supported</strong> — it does
+              not serve Pakistan, so the data simply is not there.
             </p>
             <p>
               Scoring is transparent keyword weighting against a profile you edit. It is not AI, and
@@ -438,35 +434,35 @@ function HeroSearch() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-7 flex flex-col gap-2 rounded-xl border border-black/5 bg-brand-input-bg p-2 shadow-e3 sm:flex-row sm:items-center"
+      className="surface mt-7 flex flex-col gap-2 rounded-xl p-2 shadow-e3 sm:flex-row sm:items-center"
     >
       <label className="flex flex-1 items-center gap-2.5 px-2.5 py-2">
-        <IconSearch size={16} className="shrink-0 text-brand-input-muted" />
+        <IconSearch size={16} className="shrink-0 text-subtle" />
         <span className="sr-only">Job title, skills or company</span>
         <input
           type="text"
           value={role}
           onChange={(event) => setRole(event.target.value)}
           placeholder="Job title, skills or company"
-          className="w-full bg-transparent text-base text-brand-input-fg placeholder:text-brand-input-muted focus:outline-none"
+          className="w-full bg-transparent text-base text-fg placeholder:text-subtle focus:outline-none"
         />
       </label>
 
-      <div className="hidden h-8 w-px bg-black/10 sm:block" aria-hidden="true" />
+      <div className="hidden h-8 w-px bg-hairline sm:block" aria-hidden="true" />
 
-      <label className="flex items-center gap-2.5 border-t border-black/5 px-2.5 py-2 sm:w-[200px] sm:border-t-0">
-        <IconMapPin size={16} className="hidden shrink-0 text-brand-input-muted sm:block" />
+      <label className="flex items-center gap-2.5 border-t border-hairline px-2.5 py-2 sm:w-[200px] sm:border-t-0">
+        <IconMapPin size={16} className="hidden shrink-0 text-subtle sm:block" />
         <span className="sr-only">Location</span>
         <input
           type="text"
           value={location}
           onChange={(event) => setLocation(event.target.value)}
           placeholder="Islamabad, Lahore…"
-          className="w-full bg-transparent text-base text-brand-input-fg placeholder:text-brand-input-muted focus:outline-none"
+          className="w-full bg-transparent text-base text-fg placeholder:text-subtle focus:outline-none"
         />
       </label>
 
-      <Button type="submit" variant="brand" size="md" className="w-full sm:w-auto">
+      <Button type="submit" size="md" className="w-full sm:w-auto">
         <IconSearch size={15} />
         Search jobs
       </Button>
@@ -482,7 +478,7 @@ function HeroSearch() {
  */
 function ScoredRowDemo() {
   return (
-    <figure className="surface surface-3 edge-top relative z-10 rounded-xl">
+    <figure className="surface surface-3 relative z-10 rounded-xl">
       <figcaption className="flex items-center justify-between gap-3 border-b border-hairline px-4 py-2.5">
         <span className="text-2xs font-bold uppercase tracking-wide text-subtle">
           One row from your list

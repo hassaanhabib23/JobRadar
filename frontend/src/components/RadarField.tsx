@@ -1,13 +1,16 @@
 /**
  * The radar motif and its floating opportunity chips.
  *
- * Shared between the landing hero and the login's brand panel, so the two
- * places that need "dark indigo, a quiet radar, a couple of illustrative
- * job cards" build it once. Everything here is `aria-hidden`: it is set
- * dressing for a brand surface, not information, and none of it claims to be
- * a real job, a real user or a real statistic — see `FloatingChip`'s
- * comment. The motion freezes under `prefers-reduced-motion` via the global
- * rule in `index.css`, not per-component logic.
+ * Shared between the landing hero and the login's side panel, so the two
+ * places that need "a quiet radar, a couple of illustrative job cards" build
+ * it once. Everything here follows the light/dark toggle — every colour is a
+ * theme token (`--border`, `--accent`, `--fg`...), never a fixed value, so it
+ * always matches whatever the reader has chosen, the same as the rest of the
+ * page around it. Everything is also `aria-hidden`: it is set dressing, not
+ * information, and none of it claims to be a real job, a real user or a real
+ * statistic — see `FloatingChip`'s comment. The motion freezes under
+ * `prefers-reduced-motion` via the global rule in `index.css`, not
+ * per-component logic.
  */
 
 import type { ReactNode } from 'react'
@@ -22,10 +25,10 @@ import { cx } from './ui'
 export function RadarField({ className }: { className?: string }) {
   return (
     <svg aria-hidden="true" viewBox="0 0 400 400" className={cx('pointer-events-none', className)}>
-      <circle cx="200" cy="200" r="170" fill="none" stroke="var(--brand-line)" strokeWidth="1" />
-      <circle cx="200" cy="200" r="120" fill="none" stroke="var(--brand-line)" strokeWidth="1" />
-      <circle cx="200" cy="200" r="70" fill="none" stroke="var(--brand-line)" strokeWidth="1" />
-      <circle cx="200" cy="200" r="4" fill="var(--brand-accent)" opacity="0.7" />
+      <circle cx="200" cy="200" r="170" fill="none" stroke="var(--border)" strokeWidth="1" />
+      <circle cx="200" cy="200" r="120" fill="none" stroke="var(--border)" strokeWidth="1" />
+      <circle cx="200" cy="200" r="70" fill="none" stroke="var(--border)" strokeWidth="1" />
+      <circle cx="200" cy="200" r="4" fill="var(--accent)" opacity="0.7" />
       <g className="radar-sweep">
         <path
           d="M200 200 L200 30 A170 170 0 0 1 340 115 Z"
@@ -35,8 +38,8 @@ export function RadarField({ className }: { className?: string }) {
       </g>
       <defs>
         <linearGradient id="radar-sweep-gradient" x1="200" y1="30" x2="340" y2="115">
-          <stop offset="0%" stopColor="var(--brand-accent)" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="var(--brand-accent)" stopOpacity="0" />
+          <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
         </linearGradient>
       </defs>
     </svg>
@@ -54,8 +57,8 @@ export function BrandGrid({ className }: { className?: string }) {
       className={cx('pointer-events-none', className)}
       style={{
         backgroundImage:
-          'linear-gradient(to right, var(--brand-line) 1px, transparent 1px), ' +
-          'linear-gradient(to bottom, var(--brand-line) 1px, transparent 1px)',
+          'linear-gradient(to right, var(--border) 1px, transparent 1px), ' +
+          'linear-gradient(to bottom, var(--border) 1px, transparent 1px)',
         backgroundSize: '48px 48px',
         maskImage: 'radial-gradient(ellipse 75% 65% at 50% 40%, black 25%, transparent 85%)',
         WebkitMaskImage: 'radial-gradient(ellipse 75% 65% at 50% 40%, black 25%, transparent 85%)',
@@ -89,20 +92,16 @@ export function FloatingChip({
     <div
       aria-hidden="true"
       style={style}
-      className={cx(
-        'float absolute w-[178px] rounded-lg border border-brand-border bg-brand-glass p-3',
-        'shadow-e2 backdrop-blur-sm',
-        className,
-      )}
+      className={cx('float glass absolute w-[178px] rounded-lg p-3 shadow-e2', className)}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="text-2xs font-bold uppercase tracking-wide text-brand-accent">
+        <span className="text-2xs font-bold uppercase tracking-wide text-accent">
           {score}% Match
         </span>
-        <span className="h-1.5 w-1.5 rounded-full bg-brand-accent" />
+        <span className="h-1.5 w-1.5 rounded-full bg-accent" />
       </div>
-      <p className="mt-1.5 text-sm font-bold text-brand-fg">{role}</p>
-      <p className="mt-0.5 flex items-center gap-1 text-xs text-brand-fg-muted">
+      <p className="mt-1.5 text-sm font-bold text-fg">{role}</p>
+      <p className="mt-0.5 flex items-center gap-1 text-xs text-muted">
         <IconMapPin size={11} />
         {location}
       </p>

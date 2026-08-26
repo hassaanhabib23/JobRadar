@@ -54,33 +54,12 @@ export default {
         'seg-level': 'var(--seg-level)',
         'seg-location': 'var(--seg-location)',
         'seg-fresh': 'var(--seg-fresh)',
-
-        // Fixed charcoal brand chrome — ignores the light/dark toggle. See
-        // the comment above `--brand-bg` in tokens.css.
-        'brand-bg': 'var(--brand-bg)',
-        'brand-bg-deep': 'var(--brand-bg-deep)',
-        'brand-surface': 'var(--brand-surface)',
-        'brand-surface-hover': 'var(--brand-surface-hover)',
-        'brand-fg': 'var(--brand-fg)',
-        'brand-fg-muted': 'var(--brand-fg-muted)',
-        'brand-fg-subtle': 'var(--brand-fg-subtle)',
-        'brand-border': 'var(--brand-border)',
-        'brand-border-strong': 'var(--brand-border-strong)',
-        'brand-accent': 'var(--brand-accent)',
-        'brand-accent-hover': 'var(--brand-accent-hover)',
-        'brand-accent-subtle': 'var(--brand-accent-subtle)',
-        'brand-line': 'var(--brand-line)',
-        'brand-glass': 'var(--brand-glass-bg)',
-        'brand-input-bg': 'var(--brand-input-bg)',
-        'brand-input-fg': 'var(--brand-input-fg)',
-        'brand-input-muted': 'var(--brand-input-muted)',
       },
       backgroundImage: {
         'grad-accent': 'var(--grad-accent)',
         'grad-accent-hover': 'var(--grad-accent-hover)',
         'grad-surface': 'var(--grad-surface)',
         'grad-edge': 'var(--grad-edge)',
-        'brand-grad-accent': 'var(--brand-grad-accent)',
         mesh: 'var(--grad-mesh)',
       },
       borderRadius: {
@@ -98,7 +77,6 @@ export default {
         glow: 'var(--glow-accent)',
         'glow-high': 'var(--glow-high)',
         ring: 'var(--ring)',
-        'brand-glow': 'var(--brand-glow)',
       },
       fontFamily: {
         sans: ["'Manrope Variable'", 'system-ui', 'sans-serif'],

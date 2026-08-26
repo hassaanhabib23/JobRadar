@@ -1,12 +1,12 @@
 /**
  * The shell for login, register and onboarding.
  *
- * An indigo brand panel on the left (~45%), the clean authentication
- * experience on the right (~55%) — reversed from the old form-left layout, to
- * match the same "dark chrome, off-white content" identity as the rest of the
- * marketing site. Below a laptop the brand panel drops away entirely rather
- * than stacking — nobody scrolls past a marketing pitch to reach a password
- * field.
+ * A branded panel on the left (~45%), the clean authentication experience on
+ * the right (~55%). Both sides use the same theme tokens as everywhere else —
+ * no fixed colours — so switching light/dark changes the whole screen, panel
+ * included, together. Below a laptop the brand panel drops away entirely
+ * rather than stacking — nobody scrolls past a marketing pitch to reach a
+ * password field.
  */
 
 import type { ReactNode } from 'react'
@@ -60,30 +60,30 @@ export function AuthLayout({
   return (
     <div className="relative min-h-screen bg-bg lg:grid lg:grid-cols-[minmax(0,45%)_1fr]">
       {/* --- Brand side -------------------------------------------------- */}
-      <aside className="relative hidden flex-col justify-center overflow-hidden bg-brand-bg px-8 lg:flex">
+      <aside className="relative hidden flex-col justify-center overflow-hidden bg-bg-deep px-8 lg:flex">
         <RadarDecoration chips={BRAND_CHIPS} />
 
         <div className="relative max-w-md">
-          <p className="text-xl font-extrabold leading-snug tracking-tight text-brand-fg">
+          <p className="text-xl font-extrabold leading-snug tracking-tight">
             Your next opportunity is waiting.
           </p>
 
           <ul className="mt-7 space-y-4">
             {REASSURANCE.map((item) => (
               <li key={item.title} className="flex items-start gap-3.5">
-                <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-brand-border bg-brand-surface text-brand-accent shadow-e1">
+                <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-hairline bg-surface text-accent shadow-e1">
                   <item.Icon size={16} />
                 </span>
                 <span>
-                  <span className="block font-semibold text-brand-fg">{item.title}</span>
-                  <span className="mt-0.5 block text-sm text-brand-fg-muted">{item.body}</span>
+                  <span className="block font-semibold">{item.title}</span>
+                  <span className="mt-0.5 block text-sm text-muted">{item.body}</span>
                 </span>
               </li>
             ))}
           </ul>
 
-          <p className="mt-8 flex items-start gap-2 border-t border-brand-border pt-5 text-xs text-brand-fg-subtle">
-            <IconCheck size={13} className="mt-0.5 text-brand-accent" />
+          <p className="mt-8 flex items-start gap-2 border-t border-hairline pt-5 text-xs text-subtle">
+            <IconCheck size={13} className="mt-0.5 text-accent" />
             Free and self-hostable. Scoring is transparent keyword weighting, not AI — you can see
             and change every number behind every rank.
           </p>

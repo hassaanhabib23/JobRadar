@@ -116,27 +116,6 @@ const TEXT_PAIRS: [string, string, number, string][] = [
 ]
 
 /**
- * Brand chrome: fixed-indigo surfaces that ignore the light/dark toggle
- * (marketing header, hero/CTA, login's left panel, app shell chrome). These
- * tokens are declared once, not per theme (see `NON_THEMED`), so they're
- * checked once rather than inside the per-theme loop below.
- */
-const BRAND_TEXT_PAIRS: [string, string, number, string][] = [
-  ['--brand-fg', '--brand-bg', 4.5, 'body text on brand chrome'],
-  ['--brand-fg', '--brand-surface', 4.5, 'body text on a brand-chrome card'],
-  ['--brand-fg-muted', '--brand-bg', 4.5, 'secondary text on brand chrome'],
-  ['--brand-fg-subtle', '--brand-bg', 4.5, 'tertiary text on brand chrome'],
-  ['--brand-accent', '--brand-bg', 4.5, 'a cyan accent on brand chrome'],
-  ['--brand-input-fg', '--brand-input-bg', 4.5, 'text in the hero search bar'],
-  ['--brand-input-muted', '--brand-input-bg', 4.5, 'placeholder text in the hero search bar'],
-]
-
-const BRAND_UI_PAIRS: [string, string, number, string][] = [
-  ['--brand-border-strong', '--brand-bg', 3, 'a control border on brand chrome'],
-  ['--brand-accent', '--brand-surface', 3, 'the focus ring against brand chrome'],
-]
-
-/**
  * Non-text pairs. 3:1 under 1.4.11, because these carry meaning as shapes: a
  * border you cannot see is a control you cannot find.
  */
@@ -206,32 +185,6 @@ describe.each([
   )
 })
 
-describe('brand chrome contrast', () => {
-  it.each(BRAND_TEXT_PAIRS)('%s on %s meets %s:1 — %s', (fg, bg, minimum) => {
-    const ratio = contrast(LIGHT[fg]!, LIGHT[bg]!)
-    expect(
-      Number(ratio.toFixed(2)),
-      `${fg} (${LIGHT[fg]}) on ${bg} (${LIGHT[bg]}) is ${ratio.toFixed(2)}:1`,
-    ).toBeGreaterThanOrEqual(minimum)
-  })
-
-  it.each(BRAND_UI_PAIRS)('%s against %s meets %s:1 — %s', (fg, bg, minimum) => {
-    const ratio = contrast(LIGHT[fg]!, LIGHT[bg]!)
-    expect(
-      Number(ratio.toFixed(2)),
-      `${fg} (${LIGHT[fg]}) on ${bg} (${LIGHT[bg]}) is ${ratio.toFixed(2)}:1`,
-    ).toBeGreaterThanOrEqual(minimum)
-  })
-
-  it('keeps button text legible on the lightest stop of --brand-grad-accent', () => {
-    const stop = lightestStop(LIGHT['--brand-grad-accent']!)
-    expect(
-      Number(contrast('#ffffff', stop).toFixed(2)),
-      `--brand-grad-accent's lightest stop is ${stop}`,
-    ).toBeGreaterThanOrEqual(3)
-  })
-})
-
 describe('theme parity', () => {
   it('defines every light token in dark too', () => {
     // A token that exists in one theme only renders as `unset` in the other —
@@ -271,23 +224,4 @@ const NON_THEMED = new Set([
   '--sidebar-w',
   '--topbar-h',
   '--measure',
-  '--brand-bg',
-  '--brand-bg-deep',
-  '--brand-surface',
-  '--brand-surface-hover',
-  '--brand-border',
-  '--brand-border-strong',
-  '--brand-fg',
-  '--brand-fg-muted',
-  '--brand-fg-subtle',
-  '--brand-accent',
-  '--brand-accent-hover',
-  '--brand-accent-subtle',
-  '--brand-glass-bg',
-  '--brand-grad-accent',
-  '--brand-glow',
-  '--brand-line',
-  '--brand-input-bg',
-  '--brand-input-fg',
-  '--brand-input-muted',
 ])
