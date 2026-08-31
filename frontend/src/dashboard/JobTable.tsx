@@ -272,8 +272,17 @@ function PostedCell({ job }: { job: Job }) {
       </span>
     )
   }
-  const posted = new Date(job.postedAt)
-  const days = Math.round((Date.now() - posted.getTime()) / 86_400_000)
+  // `postedAt` is a date-only string ("2026-08-24"). `new Date(...)` on a
+  // date-only string parses it as UTC midnight, not local midnight — for a
+  // viewer ahead of UTC that anchor sits hours into their *previous* day,
+  // so a job posted this morning could already read "1d" by evening. Build
+  // the date from its local components instead so "today" means the
+  // viewer's own calendar day.
+  const [year = 0, month = 1, day = 1] = job.postedAt.split('-').map(Number)
+  const posted = new Date(year, month - 1, day)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const days = Math.round((today.getTime() - posted.getTime()) / 86_400_000)
   return (
     <span className="tabular" title={posted.toLocaleDateString()}>
       {days <= 0 ? 'today' : `${days}d`}
