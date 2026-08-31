@@ -51,7 +51,7 @@ class Freshness:
     """Freshness and staleness knobs. All editable per user."""
 
     #: Postings older than this are dropped outright. 0 disables the filter.
-    max_age_days: int = 60
+    max_age_days: int = 7
     #: Freshness points for a posting whose source gave no date at all.
     unknown_date_points: int = 4
     #: Freshness ceiling once a posting is flagged as a ghost.

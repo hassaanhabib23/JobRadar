@@ -42,7 +42,7 @@ class TestProfileEndpoint:
 
         assert body["skills"]
         assert body["locationsAllowed"] == ["islamabad", "rawalpindi"]
-        assert body["freshness"]["maxAgeDays"] == 60
+        assert body["freshness"]["maxAgeDays"] == 7
 
     def test_weights_can_be_tuned(self, client: APIClient) -> None:
         response = client.patch("/api/profile/", {"skills": {"rust": 7}}, format="json")
@@ -155,7 +155,7 @@ class TestProfileResilience:
 
         assert domain.skills == {"django": 5.0}
         assert domain.locations_allowed == ()
-        assert domain.freshness.max_age_days == 60  # unknown keys ignored, default kept
+        assert domain.freshness.max_age_days == 7  # unknown keys ignored, default kept
 
     def test_a_null_freshness_block_falls_back_to_defaults(self, user_factory) -> None:
         """The column is NOT NULL, but `to_domain` is the last line of defence

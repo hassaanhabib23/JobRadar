@@ -393,8 +393,11 @@ class TestGhostPostings:
         assert ghost.detail.fresh < undated.detail.fresh
 
     def test_a_dated_but_long_tracked_posting_is_also_a_ghost(self, profile: Profile) -> None:
+        # max_age_days raised so the freshness cutoff itself does not drop this
+        # posting before ghost detection — that interaction is a separate concern.
+        never_expires = replace(profile, freshness=replace(profile.freshness, max_age_days=0))
         result = score_job(
-            posting(posted_at=date(2026, 7, 20)), profile, tracked_days=30, today=TODAY
+            posting(posted_at=date(2026, 7, 20)), never_expires, tracked_days=30, today=TODAY
         )
 
         assert result is not None

@@ -152,7 +152,7 @@ DEFAULT_TITLE_BLOCKLIST: tuple[str, ...] = (
 DEFAULT_STACK_SATURATION = 45.0
 
 DEFAULT_FRESHNESS = Freshness(
-    max_age_days=60,
+    max_age_days=7,
     unknown_date_points=4,
     ghost_points=1,
     drop_unknown_date=False,
